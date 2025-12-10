@@ -25,13 +25,13 @@ const stats = [
 
 const TrustSection = () => {
   return (
-    <section className="py-12 bg-secondary text-secondary-foreground">
+    <section className="py-12 bg-primary text-primary-foreground">
       <div className="container-main">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           {stats.map((stat) => (
             <div key={stat.label} className="text-center">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/20 mb-3">
-                <stat.icon size={24} className="text-primary" />
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-white/20 mb-3">
+                <stat.icon size={24} className="text-white" />
               </div>
               <div className="text-3xl md:text-4xl font-bold mb-1">{stat.value}</div>
               <div className="text-sm opacity-80">{stat.label}</div>
