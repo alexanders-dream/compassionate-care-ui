@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Heart, Shield, Users } from "lucide-react";
+import heroImage from "@/assets/hero-clinician.jpg";
 
 const HeroSection = () => {
   return (
@@ -52,19 +53,14 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Hero Image Placeholder */}
+          {/* Hero Image */}
           <div className="relative animate-fade-in" style={{ animationDelay: "0.2s" }}>
-            <div className="aspect-square lg:aspect-[4/5] rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 overflow-hidden soft-shadow border border-primary/20">
-              <div className="w-full h-full flex items-center justify-center p-8">
-                <div className="text-center space-y-4">
-                  <div className="w-24 h-24 mx-auto rounded-full bg-primary/20 flex items-center justify-center">
-                    <Heart size={40} className="text-primary" />
-                  </div>
-                  <p className="text-muted-foreground text-sm">
-                    [Clinician imagery placeholder]
-                  </p>
-                </div>
-              </div>
+            <div className="aspect-square lg:aspect-[4/5] rounded-2xl overflow-hidden soft-shadow border border-primary/20">
+              <img 
+                src={heroImage} 
+                alt="Compassionate wound care clinician ready to help"
+                className="w-full h-full object-cover"
+              />
             </div>
             {/* Decorative Elements */}
             <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-primary/10 rounded-full blur-2xl" />

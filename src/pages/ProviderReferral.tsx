@@ -157,7 +157,7 @@ const ProviderReferral = () => {
             <div className="grid md:grid-cols-3 gap-6">
               {benefits.map((benefit) => (
                 <div key={benefit.title} className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-accent flex items-center justify-center shrink-0">
+                  <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
                     <benefit.icon size={24} className="text-primary" />
                   </div>
                   <div>
