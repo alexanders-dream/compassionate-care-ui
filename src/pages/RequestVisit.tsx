@@ -12,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Phone, Mail, Clock, CheckCircle2, Shield, Heart } from "lucide-react";
+import woundCareImage from "@/assets/wound-care-supplies.jpg";
 
 const formSchema = z.object({
   firstName: z.string().min(2, "First name is required"),
@@ -247,8 +248,17 @@ const RequestVisit = () => {
 
               {/* Sidebar */}
               <div className="space-y-6">
+                {/* Image */}
+                <div className="hidden lg:block rounded-xl overflow-hidden soft-shadow">
+                  <img 
+                    src={woundCareImage} 
+                    alt="Professional wound care supplies and treatment"
+                    className="w-full h-48 object-cover"
+                  />
+                </div>
+
                 {/* Contact Card */}
-                <Card className="bg-accent/50 border-0">
+                <Card className="bg-primary/10 border-0">
                   <CardContent className="p-6">
                     <h3 className="font-semibold text-foreground mb-4">Need Immediate Help?</h3>
                     <div className="space-y-4">
