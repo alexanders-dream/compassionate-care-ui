@@ -4,12 +4,12 @@ import { ArrowRight, Heart, Shield, Users } from "lucide-react";
 
 const HeroSection = () => {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-warm via-background to-accent/20">
+    <section className="relative overflow-hidden bg-gradient-to-br from-warm via-background to-primary/10">
       <div className="container-main section-padding">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Content */}
           <div className="space-y-8 animate-fade-in">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent/50 rounded-full text-sm font-medium text-accent-foreground">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/15 rounded-full text-sm font-medium text-primary">
               <Heart size={16} className="text-primary" />
               <span>Compassionate Expert Care</span>
             </div>
@@ -54,7 +54,7 @@ const HeroSection = () => {
 
           {/* Hero Image Placeholder */}
           <div className="relative animate-fade-in" style={{ animationDelay: "0.2s" }}>
-            <div className="aspect-square lg:aspect-[4/5] rounded-2xl bg-gradient-to-br from-accent to-primary/20 overflow-hidden soft-shadow">
+            <div className="aspect-square lg:aspect-[4/5] rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 overflow-hidden soft-shadow border border-primary/20">
               <div className="w-full h-full flex items-center justify-center p-8">
                 <div className="text-center space-y-4">
                   <div className="w-24 h-24 mx-auto rounded-full bg-primary/20 flex items-center justify-center">
@@ -68,7 +68,7 @@ const HeroSection = () => {
             </div>
             {/* Decorative Elements */}
             <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-primary/10 rounded-full blur-2xl" />
-            <div className="absolute -top-4 -right-4 w-32 h-32 bg-accent/30 rounded-full blur-2xl" />
+            <div className="absolute -top-4 -right-4 w-32 h-32 bg-primary/20 rounded-full blur-2xl" />
           </div>
         </div>
       </div>

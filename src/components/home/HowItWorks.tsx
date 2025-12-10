@@ -51,7 +51,7 @@ const HowItWorks = () => {
                 <span className="text-6xl font-bold text-primary/10 absolute -top-4 left-1/2 -translate-x-1/2">
                   {step.number}
                 </span>
-                <div className="relative z-10 w-20 h-20 rounded-full bg-accent flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                <div className="relative z-10 w-20 h-20 rounded-full bg-primary/15 flex items-center justify-center group-hover:bg-primary/25 transition-colors">
                   <step.icon size={36} className="text-primary" />
                 </div>
               </div>
