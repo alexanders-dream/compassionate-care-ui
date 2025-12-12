@@ -10,6 +10,14 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import RequestVisit from "./pages/RequestVisit";
 import ProviderReferral from "./pages/ProviderReferral";
+import Conditions from "./pages/Conditions";
+import Testimonials from "./pages/Testimonials";
+import Resources from "./pages/Resources";
+import Insurance from "./pages/Insurance";
+import Community from "./pages/Community";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
+import Accessibility from "./pages/Accessibility";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +36,14 @@ const App = () => (
             <Route path="/contact" element={<Contact />} />
             <Route path="/request-visit" element={<RequestVisit />} />
             <Route path="/refer" element={<ProviderReferral />} />
+            <Route path="/conditions" element={<Conditions />} />
+            <Route path="/testimonials" element={<Testimonials />} />
+            <Route path="/resources" element={<Resources />} />
+            <Route path="/insurance" element={<Insurance />} />
+            <Route path="/community" element={<Community />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/accessibility" element={<Accessibility />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
