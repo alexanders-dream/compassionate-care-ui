@@ -18,17 +18,17 @@ const Header = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border">
+      <header className="sticky top-0 z-50 w-full bg-primary">
         <div className="container-main">
           <div className="flex h-16 md:h-20 items-center justify-between">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-lg">AR</span>
+              <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                <span className="text-white font-bold text-lg">AR</span>
               </div>
               <div className="hidden sm:block">
-                <span className="font-display font-semibold text-foreground">AR Advanced</span>
-                <span className="block text-xs text-muted-foreground -mt-1">Woundcare Solutions</span>
+                <span className="font-display font-semibold text-white">AR Advanced</span>
+                <span className="block text-xs text-white/70 -mt-1">Woundcare Solutions</span>
               </div>
             </Link>
 
@@ -38,8 +38,8 @@ const Header = () => {
                 <Link
                   key={link.href}
                   to={link.href}
-                  className={`text-sm font-medium transition-colors hover:text-primary ${
-                    isActive(link.href) ? "text-primary" : "text-muted-foreground"
+                  className={`text-sm font-medium transition-colors hover:text-white ${
+                    isActive(link.href) ? "text-white" : "text-white/80"
                   }`}
                 >
                   {link.label}
@@ -49,10 +49,10 @@ const Header = () => {
 
             {/* CTA Buttons */}
             <div className="hidden md:flex items-center gap-3">
-              <Button variant="outline" asChild className="border-secondary text-secondary hover:bg-secondary hover:text-secondary-foreground">
+              <Button variant="outline" asChild className="border-white/30 text-white hover:bg-white/10 hover:text-white">
                 <Link to="/refer">Refer a Patient</Link>
               </Button>
-              <Button asChild>
+              <Button asChild className="bg-white text-primary hover:bg-white/90">
                 <Link to="/request-visit">Book a Visit</Link>
               </Button>
             </div>
@@ -60,7 +60,7 @@ const Header = () => {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="lg:hidden p-2 text-foreground"
+              className="lg:hidden p-2 text-white"
               aria-label="Toggle menu"
             >
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -70,7 +70,7 @@ const Header = () => {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="lg:hidden border-t border-border bg-background">
+          <div className="lg:hidden border-t border-white/20 bg-primary">
             <nav className="container-main py-4 flex flex-col gap-2">
               {navLinks.map((link) => (
                 <Link
@@ -78,17 +78,17 @@ const Header = () => {
                   to={link.href}
                   onClick={() => setIsMenuOpen(false)}
                   className={`py-2 text-base font-medium transition-colors ${
-                    isActive(link.href) ? "text-primary" : "text-muted-foreground"
+                    isActive(link.href) ? "text-white" : "text-white/80"
                   }`}
                 >
                   {link.label}
                 </Link>
               ))}
-              <div className="flex flex-col gap-2 pt-4 border-t border-border mt-2">
-                <Button variant="outline" asChild className="w-full border-secondary text-secondary">
+              <div className="flex flex-col gap-2 pt-4 border-t border-white/20 mt-2">
+                <Button variant="outline" asChild className="w-full border-white/30 text-white hover:bg-white/10">
                   <Link to="/refer" onClick={() => setIsMenuOpen(false)}>Refer a Patient</Link>
                 </Button>
-                <Button asChild className="w-full">
+                <Button asChild className="w-full bg-white text-primary hover:bg-white/90">
                   <Link to="/request-visit" onClick={() => setIsMenuOpen(false)}>Book a Visit</Link>
                 </Button>
               </div>
