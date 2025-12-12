@@ -28,9 +28,9 @@ const CTABanner = () => {
             </Button>
             <Button 
               size="lg" 
-              variant="outline" 
+              variant="ghost" 
               asChild 
-              className="text-base border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary"
+              className="text-base border border-white text-white hover:bg-white/10 hover:text-white"
             >
               <a href="tel:+18001234567">
                 <Phone size={18} />
