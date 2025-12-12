@@ -49,10 +49,10 @@ const Header = () => {
 
             {/* CTA Buttons */}
             <div className="hidden md:flex items-center gap-3">
-              <Button variant="outline" asChild className="border-white/30 text-white hover:bg-white/10 hover:text-white">
+              <Button variant="ghost" asChild className="border border-white/30 text-white hover:bg-white/10 hover:text-white">
                 <Link to="/refer">Refer a Patient</Link>
               </Button>
-              <Button asChild className="bg-white text-primary hover:bg-white/90">
+              <Button asChild className="bg-white text-primary hover:bg-white/90 hover:text-primary">
                 <Link to="/request-visit">Book a Visit</Link>
               </Button>
             </div>
@@ -85,10 +85,10 @@ const Header = () => {
                 </Link>
               ))}
               <div className="flex flex-col gap-2 pt-4 border-t border-white/20 mt-2">
-                <Button variant="outline" asChild className="w-full border-white/30 text-white hover:bg-white/10">
+                <Button variant="ghost" asChild className="w-full border border-white/30 text-white hover:bg-white/10">
                   <Link to="/refer" onClick={() => setIsMenuOpen(false)}>Refer a Patient</Link>
                 </Button>
-                <Button asChild className="w-full bg-white text-primary hover:bg-white/90">
+                <Button asChild className="w-full bg-white text-primary hover:bg-white/90 hover:text-primary">
                   <Link to="/request-visit" onClick={() => setIsMenuOpen(false)}>Book a Visit</Link>
                 </Button>
               </div>
@@ -100,10 +100,10 @@ const Header = () => {
       {/* Mobile Floating Call Button */}
       <a
         href="tel:+18001234567"
-        className="fixed bottom-6 right-6 z-50 md:hidden w-14 h-14 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-lg hover:bg-primary/90 transition-colors"
+        className="fixed bottom-6 right-6 z-50 md:hidden w-14 h-14 bg-primary rounded-full flex items-center justify-center shadow-lg hover:bg-primary/90 transition-colors"
         aria-label="Call now"
       >
-        <Phone size={24} />
+        <Phone size={24} className="text-white" />
       </a>
     </>
   );
