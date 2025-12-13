@@ -10,19 +10,28 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Pencil, Trash2, FileText, Users, Star, HelpCircle, Briefcase } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Pencil, Trash2, FileText, Users, Star, HelpCircle, Briefcase, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { blogPosts, BlogPost, categories } from "@/data/blogPosts";
 import { 
   defaultTestimonials, defaultServices, defaultTeamMembers, defaultFAQs,
   Testimonial, Service, TeamMember, FAQ 
 } from "@/data/siteContent";
+import AIArticleGenerator, { ArticleMedia } from "@/components/admin/AIArticleGenerator";
+
+interface ExtendedBlogPost extends BlogPost {
+  status?: "draft" | "published" | "scheduled";
+  scheduledDate?: string;
+  media?: ArticleMedia[];
+}
 
 const Admin = () => {
   const { toast } = useToast();
   
   // State for all content types
-  const [posts, setPosts] = useState<BlogPost[]>(blogPosts);
+  const [posts, setPosts] = useState<ExtendedBlogPost[]>(blogPosts.map(p => ({ ...p, status: "published" as const })));
+  const [showAIGenerator, setShowAIGenerator] = useState(false);
   const [testimonials, setTestimonials] = useState<Testimonial[]>(defaultTestimonials);
   const [services, setServices] = useState<Service[]>(defaultServices);
   const [team, setTeam] = useState<TeamMember[]>(defaultTeamMembers);
@@ -47,7 +56,7 @@ const Admin = () => {
   const handleSavePost = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const postData: BlogPost = {
+    const postData: ExtendedBlogPost = {
       id: editingPost?.id || String(formData.get("slug")) || String(Date.now()),
       title: String(formData.get("title")),
       excerpt: String(formData.get("excerpt")),
@@ -56,11 +65,12 @@ const Admin = () => {
       author: String(formData.get("author")),
       date: String(formData.get("date")),
       readTime: String(formData.get("readTime")),
-      image: String(formData.get("image")) || undefined
+      image: String(formData.get("image")) || undefined,
+      status: "published"
     };
 
     if (editingPost) {
-      setPosts(posts.map(p => p.id === editingPost.id ? postData : p));
+      setPosts(posts.map(p => p.id === editingPost.id ? { ...postData, status: p.status } : p));
       toast({ title: "Post updated successfully" });
     } else {
       setPosts([...posts, postData]);
@@ -70,9 +80,30 @@ const Admin = () => {
     setEditingPost(null);
   };
 
+  const handleAISaveArticle = (article: ExtendedBlogPost) => {
+    const existingIndex = posts.findIndex(p => p.id === article.id);
+    if (existingIndex >= 0) {
+      setPosts(posts.map(p => p.id === article.id ? article : p));
+    } else {
+      setPosts([article, ...posts]);
+    }
+    setShowAIGenerator(false);
+  };
+
   const handleDeletePost = (id: string) => {
     setPosts(posts.filter(p => p.id !== id));
     toast({ title: "Post deleted" });
+  };
+
+  const getStatusBadge = (status?: string) => {
+    switch (status) {
+      case "draft":
+        return <Badge variant="secondary">Draft</Badge>;
+      case "scheduled":
+        return <Badge variant="outline" className="border-amber-500 text-amber-600">Scheduled</Badge>;
+      default:
+        return <Badge className="bg-green-500">Published</Badge>;
+    }
   };
 
   // Testimonial handlers
@@ -229,104 +260,143 @@ const Admin = () => {
 
                 {/* Blog Posts Tab */}
                 <TabsContent value="blog">
-                  <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-semibold">Blog Posts ({posts.length})</h2>
-                    <Dialog open={isPostDialogOpen} onOpenChange={setIsPostDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button onClick={() => setEditingPost(null)}>
-                          <Plus className="h-4 w-4 mr-2" /> Add Post
+                  {showAIGenerator ? (
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <h2 className="text-xl font-semibold flex items-center gap-2">
+                          <Sparkles className="h-5 w-5 text-primary" />
+                          AI Article Generator
+                        </h2>
+                        <Button variant="outline" onClick={() => setShowAIGenerator(false)}>
+                          Back to Posts
                         </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                        <DialogHeader>
-                          <DialogTitle>{editingPost ? "Edit Post" : "New Post"}</DialogTitle>
-                        </DialogHeader>
-                        <form onSubmit={handleSavePost} className="space-y-4">
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <Label htmlFor="title">Title</Label>
-                              <Input id="title" name="title" defaultValue={editingPost?.title} required />
-                            </div>
-                            <div>
-                              <Label htmlFor="slug">Slug (URL ID)</Label>
-                              <Input id="slug" name="slug" defaultValue={editingPost?.id} required />
-                            </div>
-                          </div>
-                          <div>
-                            <Label htmlFor="excerpt">Excerpt</Label>
-                            <Textarea id="excerpt" name="excerpt" defaultValue={editingPost?.excerpt} required />
-                          </div>
-                          <div>
-                            <Label htmlFor="content">Content</Label>
-                            <Textarea id="content" name="content" defaultValue={editingPost?.content} rows={6} required />
-                          </div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <Label htmlFor="category">Category</Label>
-                              <Select name="category" defaultValue={editingPost?.category || "guides"}>
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {categoryOptions.map(cat => (
-                                    <SelectItem key={cat.id} value={cat.id}>{cat.label}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div>
-                              <Label htmlFor="author">Author</Label>
-                              <Input id="author" name="author" defaultValue={editingPost?.author} required />
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <Label htmlFor="date">Date</Label>
-                              <Input id="date" name="date" type="date" defaultValue={editingPost?.date} required />
-                            </div>
-                            <div>
-                              <Label htmlFor="readTime">Read Time</Label>
-                              <Input id="readTime" name="readTime" defaultValue={editingPost?.readTime} placeholder="5 min read" required />
-                            </div>
-                          </div>
-                          <div>
-                            <Label htmlFor="image">Image URL</Label>
-                            <Input id="image" name="image" defaultValue={editingPost?.image} placeholder="/placeholder.svg" />
-                          </div>
-                          <Button type="submit" className="w-full">Save Post</Button>
-                        </form>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Title</TableHead>
-                        <TableHead>Category</TableHead>
-                        <TableHead>Author</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {posts.map(post => (
-                        <TableRow key={post.id}>
-                          <TableCell className="font-medium">{post.title}</TableCell>
-                          <TableCell>{post.category}</TableCell>
-                          <TableCell>{post.author}</TableCell>
-                          <TableCell>{post.date}</TableCell>
-                          <TableCell className="text-right">
-                            <Button variant="ghost" size="sm" onClick={() => { setEditingPost(post); setIsPostDialogOpen(true); }}>
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleDeletePost(post.id)}>
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </div>
+                      <AIArticleGenerator 
+                        onSaveArticle={handleAISaveArticle} 
+                        editingArticle={editingPost}
+                      />
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-xl font-semibold">Blog Posts ({posts.length})</h2>
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="outline" 
+                            onClick={() => { setEditingPost(null); setShowAIGenerator(true); }}
+                            className="border-primary text-primary hover:bg-primary/10"
+                          >
+                            <Sparkles className="h-4 w-4 mr-2" /> AI Generate
+                          </Button>
+                          <Dialog open={isPostDialogOpen} onOpenChange={setIsPostDialogOpen}>
+                            <DialogTrigger asChild>
+                              <Button onClick={() => setEditingPost(null)}>
+                                <Plus className="h-4 w-4 mr-2" /> Add Post
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                              <DialogHeader>
+                                <DialogTitle>{editingPost ? "Edit Post" : "New Post"}</DialogTitle>
+                              </DialogHeader>
+                              <form onSubmit={handleSavePost} className="space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <Label htmlFor="title">Title</Label>
+                                    <Input id="title" name="title" defaultValue={editingPost?.title} required />
+                                  </div>
+                                  <div>
+                                    <Label htmlFor="slug">Slug (URL ID)</Label>
+                                    <Input id="slug" name="slug" defaultValue={editingPost?.id} required />
+                                  </div>
+                                </div>
+                                <div>
+                                  <Label htmlFor="excerpt">Excerpt</Label>
+                                  <Textarea id="excerpt" name="excerpt" defaultValue={editingPost?.excerpt} required />
+                                </div>
+                                <div>
+                                  <Label htmlFor="content">Content</Label>
+                                  <Textarea id="content" name="content" defaultValue={editingPost?.content} rows={6} required />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <Label htmlFor="category">Category</Label>
+                                    <Select name="category" defaultValue={editingPost?.category || "guides"}>
+                                      <SelectTrigger>
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {categoryOptions.map(cat => (
+                                          <SelectItem key={cat.id} value={cat.id}>{cat.label}</SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  <div>
+                                    <Label htmlFor="author">Author</Label>
+                                    <Input id="author" name="author" defaultValue={editingPost?.author} required />
+                                  </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <Label htmlFor="date">Date</Label>
+                                    <Input id="date" name="date" type="date" defaultValue={editingPost?.date} required />
+                                  </div>
+                                  <div>
+                                    <Label htmlFor="readTime">Read Time</Label>
+                                    <Input id="readTime" name="readTime" defaultValue={editingPost?.readTime} placeholder="5 min read" required />
+                                  </div>
+                                </div>
+                                <div>
+                                  <Label htmlFor="image">Image URL</Label>
+                                  <Input id="image" name="image" defaultValue={editingPost?.image} placeholder="/placeholder.svg" />
+                                </div>
+                                <Button type="submit" className="w-full">Save Post</Button>
+                              </form>
+                            </DialogContent>
+                          </Dialog>
+                        </div>
+                      </div>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Title</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Category</TableHead>
+                            <TableHead>Author</TableHead>
+                            <TableHead>Date</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {posts.map(post => (
+                            <TableRow key={post.id}>
+                              <TableCell className="font-medium max-w-xs truncate">{post.title}</TableCell>
+                              <TableCell>{getStatusBadge(post.status)}</TableCell>
+                              <TableCell>{post.category}</TableCell>
+                              <TableCell>{post.author}</TableCell>
+                              <TableCell>{post.date}</TableCell>
+                              <TableCell className="text-right">
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  onClick={() => { setEditingPost(post); setShowAIGenerator(true); }}
+                                  title="Edit with AI"
+                                >
+                                  <Sparkles className="h-4 w-4 text-primary" />
+                                </Button>
+                                <Button variant="ghost" size="sm" onClick={() => { setEditingPost(post); setIsPostDialogOpen(true); }}>
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="sm" onClick={() => handleDeletePost(post.id)}>
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </>
+                  )}
                 </TabsContent>
 
                 {/* Testimonials Tab */}
