@@ -14,8 +14,10 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Plus, Pencil, Trash2, FileText, Users, Star, HelpCircle, Briefcase, 
   Sparkles, Mail, Send, ClipboardList, BookOpen, CheckCircle2, CalendarDays,
-  Upload, Download, File, User, Type, Image
+  Upload, Download, File, User, Type, Image, Settings2, GripVertical, Eye, EyeOff
 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { defaultFormConfigs, FormConfig, FormFieldConfig, FormFieldOption } from "@/data/formConfig";
 import { useToast } from "@/hooks/use-toast";
 import { blogPosts, BlogPost, categories } from "@/data/blogPosts";
 import { 
@@ -51,6 +53,12 @@ const Admin = () => {
   const [referrals, setReferrals] = useState<ProviderReferralSubmission[]>(sampleReferrals);
   const [siteCopy, setSiteCopy] = useState<SiteCopySection[]>(defaultSiteCopy);
   const [selectedCopyPage, setSelectedCopyPage] = useState<string>("all");
+  const [formConfigs, setFormConfigs] = useState<FormConfig[]>(defaultFormConfigs);
+  const [selectedFormId, setSelectedFormId] = useState<string>(defaultFormConfigs[0]?.id || "");
+  const [editingField, setEditingField] = useState<FormFieldConfig | null>(null);
+  const [isFieldDialogOpen, setIsFieldDialogOpen] = useState(false);
+  const [newOptionLabel, setNewOptionLabel] = useState("");
+  const [newOptionValue, setNewOptionValue] = useState("");
 
   // Dialog states
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
@@ -477,6 +485,117 @@ const Admin = () => {
     ? siteCopy 
     : siteCopy.filter(s => s.page === selectedCopyPage);
 
+  // Form Config handlers
+  const selectedForm = formConfigs.find(f => f.id === selectedFormId);
+  
+  const handleToggleFieldEnabled = (fieldId: string) => {
+    setFormConfigs(formConfigs.map(form => {
+      if (form.id === selectedFormId) {
+        return {
+          ...form,
+          fields: form.fields.map(field =>
+            field.id === fieldId ? { ...field, enabled: !field.enabled } : field
+          )
+        };
+      }
+      return form;
+    }));
+  };
+
+  const handleToggleFieldRequired = (fieldId: string) => {
+    setFormConfigs(formConfigs.map(form => {
+      if (form.id === selectedFormId) {
+        return {
+          ...form,
+          fields: form.fields.map(field =>
+            field.id === fieldId ? { ...field, required: !field.required } : field
+          )
+        };
+      }
+      return form;
+    }));
+  };
+
+  const handleUpdateField = (fieldId: string, updates: Partial<FormFieldConfig>) => {
+    setFormConfigs(formConfigs.map(form => {
+      if (form.id === selectedFormId) {
+        return {
+          ...form,
+          fields: form.fields.map(field =>
+            field.id === fieldId ? { ...field, ...updates } : field
+          )
+        };
+      }
+      return form;
+    }));
+  };
+
+  const handleSaveFieldEdit = () => {
+    if (!editingField) return;
+    handleUpdateField(editingField.id, editingField);
+    setIsFieldDialogOpen(false);
+    setEditingField(null);
+    toast({ title: "Field updated successfully" });
+  };
+
+  const handleAddFieldOption = () => {
+    if (!editingField || !newOptionLabel || !newOptionValue) return;
+    const newOption: FormFieldOption = { label: newOptionLabel, value: newOptionValue };
+    setEditingField({
+      ...editingField,
+      options: [...(editingField.options || []), newOption]
+    });
+    setNewOptionLabel("");
+    setNewOptionValue("");
+  };
+
+  const handleRemoveFieldOption = (index: number) => {
+    if (!editingField) return;
+    setEditingField({
+      ...editingField,
+      options: editingField.options?.filter((_, i) => i !== index)
+    });
+  };
+
+  const handleDeleteField = (fieldId: string) => {
+    setFormConfigs(formConfigs.map(form => {
+      if (form.id === selectedFormId) {
+        return {
+          ...form,
+          fields: form.fields.filter(field => field.id !== fieldId)
+        };
+      }
+      return form;
+    }));
+    toast({ title: "Field removed" });
+  };
+
+  const handleAddNewField = () => {
+    if (!selectedForm) return;
+    const newField: FormFieldConfig = {
+      id: `new-${Date.now()}`,
+      key: `newField${Date.now()}`,
+      label: "New Field",
+      type: "text",
+      placeholder: "",
+      required: false,
+      enabled: true,
+      order: selectedForm.fields.length + 1
+    };
+    setFormConfigs(formConfigs.map(form => {
+      if (form.id === selectedFormId) {
+        return { ...form, fields: [...form.fields, newField] };
+      }
+      return form;
+    }));
+    setEditingField(newField);
+    setIsFieldDialogOpen(true);
+  };
+
+  const handleSaveFormConfig = () => {
+    toast({ title: "Form configuration saved", description: "Changes will apply to the live forms" });
+  };
+
   return (
     <Layout>
       <Helmet>
@@ -496,7 +615,7 @@ const Admin = () => {
           <Card>
             <CardContent className="pt-6">
               <Tabs defaultValue="submissions" className="w-full">
-                <TabsList className="grid w-full grid-cols-5 md:grid-cols-9 mb-6">
+                <TabsList className="grid w-full grid-cols-5 md:grid-cols-10 mb-6">
                   <TabsTrigger value="submissions" className="flex items-center gap-2">
                     <ClipboardList className="h-4 w-4" />
                     <span className="hidden sm:inline">Submissions</span>
@@ -504,6 +623,10 @@ const Admin = () => {
                   <TabsTrigger value="appointments" className="flex items-center gap-2">
                     <CalendarDays className="h-4 w-4" />
                     <span className="hidden sm:inline">Appointments</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="forms" className="flex items-center gap-2">
+                    <Settings2 className="h-4 w-4" />
+                    <span className="hidden sm:inline">Forms</span>
                   </TabsTrigger>
                   <TabsTrigger value="site-copy" className="flex items-center gap-2">
                     <Type className="h-4 w-4" />
@@ -733,6 +856,260 @@ const Admin = () => {
                     externalAppointments={allAppointments}
                     onAppointmentsChange={handleAppointmentsChange}
                   />
+                </TabsContent>
+
+                {/* Forms Management Tab */}
+                <TabsContent value="forms">
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-center">
+                      <h2 className="text-xl font-semibold">Form Configuration</h2>
+                      <div className="flex gap-3">
+                        <Select value={selectedFormId} onValueChange={setSelectedFormId}>
+                          <SelectTrigger className="w-56">
+                            <SelectValue placeholder="Select form" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {formConfigs.map(form => (
+                              <SelectItem key={form.id} value={form.id}>
+                                {form.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button onClick={handleSaveFormConfig}>
+                          <CheckCircle2 className="h-4 w-4 mr-2" />
+                          Save Changes
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    {selectedForm && (
+                      <>
+                        <Card className="bg-muted/50">
+                          <CardContent className="pt-4">
+                            <p className="text-sm text-muted-foreground">{selectedForm.description}</p>
+                          </CardContent>
+                        </Card>
+
+                        <div className="flex justify-between items-center">
+                          <h3 className="font-semibold">Form Fields ({selectedForm.fields.length})</h3>
+                          <Button variant="outline" onClick={handleAddNewField}>
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Field
+                          </Button>
+                        </div>
+
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="w-8"></TableHead>
+                              <TableHead>Field Label</TableHead>
+                              <TableHead>Type</TableHead>
+                              <TableHead className="text-center">Required</TableHead>
+                              <TableHead className="text-center">Enabled</TableHead>
+                              <TableHead className="text-right">Actions</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {selectedForm.fields.sort((a, b) => a.order - b.order).map(field => (
+                              <TableRow key={field.id} className={!field.enabled ? "opacity-50" : ""}>
+                                <TableCell>
+                                  <GripVertical className="h-4 w-4 text-muted-foreground cursor-move" />
+                                </TableCell>
+                                <TableCell>
+                                  <div className="font-medium">{field.label}</div>
+                                  <div className="text-xs text-muted-foreground">{field.key}</div>
+                                </TableCell>
+                                <TableCell>
+                                  <Badge variant="secondary" className="capitalize">
+                                    {field.type}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  <Switch 
+                                    checked={field.required}
+                                    onCheckedChange={() => handleToggleFieldRequired(field.id)}
+                                    disabled={!field.enabled}
+                                  />
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  <Switch 
+                                    checked={field.enabled}
+                                    onCheckedChange={() => handleToggleFieldEnabled(field.id)}
+                                  />
+                                </TableCell>
+                                <TableCell className="text-right space-x-1">
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    onClick={() => {
+                                      setEditingField({ ...field });
+                                      setIsFieldDialogOpen(true);
+                                    }}
+                                  >
+                                    <Pencil className="h-4 w-4" />
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    onClick={() => handleDeleteField(field.id)}
+                                  >
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+
+                        {/* Field Edit Dialog */}
+                        <Dialog open={isFieldDialogOpen} onOpenChange={setIsFieldDialogOpen}>
+                          <DialogContent className="max-w-lg">
+                            <DialogHeader>
+                              <DialogTitle>Edit Field: {editingField?.label}</DialogTitle>
+                            </DialogHeader>
+                            {editingField && (
+                              <div className="space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <Label htmlFor="fieldLabel">Label</Label>
+                                    <Input 
+                                      id="fieldLabel"
+                                      value={editingField.label}
+                                      onChange={(e) => setEditingField({ ...editingField, label: e.target.value })}
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label htmlFor="fieldKey">Field Key</Label>
+                                    <Input 
+                                      id="fieldKey"
+                                      value={editingField.key}
+                                      onChange={(e) => setEditingField({ ...editingField, key: e.target.value })}
+                                    />
+                                  </div>
+                                </div>
+                                
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <Label htmlFor="fieldType">Type</Label>
+                                    <Select 
+                                      value={editingField.type} 
+                                      onValueChange={(value) => setEditingField({ ...editingField, type: value as FormFieldConfig["type"] })}
+                                    >
+                                      <SelectTrigger>
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="text">Text</SelectItem>
+                                        <SelectItem value="email">Email</SelectItem>
+                                        <SelectItem value="tel">Phone</SelectItem>
+                                        <SelectItem value="date">Date</SelectItem>
+                                        <SelectItem value="select">Select/Dropdown</SelectItem>
+                                        <SelectItem value="textarea">Text Area</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  <div>
+                                    <Label htmlFor="fieldPlaceholder">Placeholder</Label>
+                                    <Input 
+                                      id="fieldPlaceholder"
+                                      value={editingField.placeholder || ""}
+                                      onChange={(e) => setEditingField({ ...editingField, placeholder: e.target.value })}
+                                    />
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <Label htmlFor="fieldHelpText">Help Text (optional)</Label>
+                                  <Input 
+                                    id="fieldHelpText"
+                                    value={editingField.helpText || ""}
+                                    onChange={(e) => setEditingField({ ...editingField, helpText: e.target.value })}
+                                    placeholder="Additional context for this field"
+                                  />
+                                </div>
+
+                                <div className="flex gap-6">
+                                  <div className="flex items-center gap-2">
+                                    <Switch 
+                                      id="fieldRequired"
+                                      checked={editingField.required}
+                                      onCheckedChange={(checked) => setEditingField({ ...editingField, required: checked })}
+                                    />
+                                    <Label htmlFor="fieldRequired">Required</Label>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <Switch 
+                                      id="fieldEnabled"
+                                      checked={editingField.enabled}
+                                      onCheckedChange={(checked) => setEditingField({ ...editingField, enabled: checked })}
+                                    />
+                                    <Label htmlFor="fieldEnabled">Enabled</Label>
+                                  </div>
+                                </div>
+
+                                {editingField.type === "select" && (
+                                  <div className="space-y-3">
+                                    <Label>Options</Label>
+                                    <div className="border rounded-lg p-3 space-y-2 max-h-48 overflow-y-auto">
+                                      {editingField.options?.map((option, index) => (
+                                        <div key={index} className="flex items-center justify-between bg-muted/50 px-3 py-2 rounded">
+                                          <div>
+                                            <span className="font-medium">{option.label}</span>
+                                            <span className="text-xs text-muted-foreground ml-2">({option.value})</span>
+                                          </div>
+                                          <Button 
+                                            variant="ghost" 
+                                            size="sm"
+                                            onClick={() => handleRemoveFieldOption(index)}
+                                          >
+                                            <Trash2 className="h-3 w-3 text-destructive" />
+                                          </Button>
+                                        </div>
+                                      ))}
+                                      {(!editingField.options || editingField.options.length === 0) && (
+                                        <p className="text-sm text-muted-foreground text-center py-2">No options defined</p>
+                                      )}
+                                    </div>
+                                    <div className="flex gap-2">
+                                      <Input 
+                                        placeholder="Label"
+                                        value={newOptionLabel}
+                                        onChange={(e) => setNewOptionLabel(e.target.value)}
+                                        className="flex-1"
+                                      />
+                                      <Input 
+                                        placeholder="Value"
+                                        value={newOptionValue}
+                                        onChange={(e) => setNewOptionValue(e.target.value)}
+                                        className="flex-1"
+                                      />
+                                      <Button 
+                                        variant="outline" 
+                                        onClick={handleAddFieldOption}
+                                        disabled={!newOptionLabel || !newOptionValue}
+                                      >
+                                        <Plus className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                )}
+
+                                <div className="flex justify-end gap-2 pt-4">
+                                  <Button variant="outline" onClick={() => setIsFieldDialogOpen(false)}>
+                                    Cancel
+                                  </Button>
+                                  <Button onClick={handleSaveFieldEdit}>
+                                    Save Field
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                          </DialogContent>
+                        </Dialog>
+                      </>
+                    )}
+                  </div>
                 </TabsContent>
 
                 {/* Site Copy Tab */}
