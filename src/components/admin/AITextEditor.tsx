@@ -238,7 +238,7 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
   if (!editor) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-sm overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-sm overflow-y-auto flex flex-col">
       {/* Header */}
       <div className="border-b bg-card px-4 py-3 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
@@ -284,7 +284,7 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
         </div>
       </div>
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex min-h-0">
         {/* Main Editor */}
         <div className="flex-1 flex flex-col overflow-hidden">
           <Tabs defaultValue="content" className="flex-1 flex flex-col">
@@ -295,8 +295,8 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
               </TabsList>
             </div>
 
-            <TabsContent value="content" className="flex-1 overflow-hidden m-0 p-4 h-full">
-              <div className="flex flex-col gap-4 h-full overflow-auto">
+            <TabsContent value="content" className="flex-1 overflow-auto m-0 p-4">
+              <div className="flex flex-col gap-4 min-h-full">
                 {/* Title */}
                 <Input
                   value={title}
@@ -374,7 +374,7 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
                 </div>
 
                 {/* Rich Text Editor */}
-                <div className="min-h-[300px] border rounded-lg bg-card overflow-auto">
+                <div className="min-h-[300px] border rounded-lg bg-card">
                   <EditorContent editor={editor} className="min-h-full p-4" />
                 </div>
 
