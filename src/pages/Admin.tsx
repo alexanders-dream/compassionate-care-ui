@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Plus, Pencil, Trash2, FileText, Users, Star, HelpCircle, Briefcase, 
   Sparkles, Mail, Send, ClipboardList, BookOpen, CheckCircle2, CalendarDays,
@@ -31,6 +32,7 @@ import AppointmentScheduler, { ScheduleDialog, AppointmentFormData } from "@/com
 import { Appointment } from "@/data/siteContent";
 import IconPicker from "@/components/admin/IconPicker";
 import { defaultSiteCopy, SiteCopySection } from "@/data/siteCopy";
+import AdminSidebar, { AdminSection } from "@/components/admin/AdminSidebar";
 
 interface ExtendedBlogPost extends BlogPost {
   status?: "draft" | "published" | "scheduled";
@@ -59,8 +61,9 @@ const Admin = () => {
   const [isFieldDialogOpen, setIsFieldDialogOpen] = useState(false);
   const [newOptionLabel, setNewOptionLabel] = useState("");
   const [newOptionValue, setNewOptionValue] = useState("");
+  const [activeSection, setActiveSection] = useState<AdminSection>("submissions");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  // Dialog states
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const [editingTestimonial, setEditingTestimonial] = useState<Testimonial | null>(null);
   const [editingService, setEditingService] = useState<Service | null>(null);
@@ -597,72 +600,37 @@ const Admin = () => {
   };
 
   return (
-    <Layout>
+    <>
       <Helmet>
         <title>Admin Dashboard | AR Advanced Woundcare Solutions</title>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 
-      <section className="py-12 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <h1 className="text-3xl md:text-4xl font-bold text-primary mb-2">Admin Dashboard</h1>
-          <p className="text-muted-foreground">Manage all website content</p>
-        </div>
-      </section>
+      <div className="min-h-screen flex bg-background">
+        {/* Sidebar */}
+        <AdminSidebar 
+          activeSection={activeSection}
+          onSectionChange={setActiveSection}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+        />
 
-      <section className="py-8">
-        <div className="container mx-auto px-4">
-          <Card>
-            <CardContent className="pt-6">
-              <Tabs defaultValue="submissions" className="w-full">
-                <TabsList className="grid w-full grid-cols-5 md:grid-cols-10 mb-6">
-                  <TabsTrigger value="submissions" className="flex items-center gap-2">
-                    <ClipboardList className="h-4 w-4" />
-                    <span className="hidden sm:inline">Submissions</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="appointments" className="flex items-center gap-2">
-                    <CalendarDays className="h-4 w-4" />
-                    <span className="hidden sm:inline">Appointments</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="forms" className="flex items-center gap-2">
-                    <Settings2 className="h-4 w-4" />
-                    <span className="hidden sm:inline">Forms</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="site-copy" className="flex items-center gap-2">
-                    <Type className="h-4 w-4" />
-                    <span className="hidden sm:inline">Site Copy</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="resources" className="flex items-center gap-2">
-                    <BookOpen className="h-4 w-4" />
-                    <span className="hidden sm:inline">Resources</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="blog" className="flex items-center gap-2">
-                    <FileText className="h-4 w-4" />
-                    <span className="hidden sm:inline">Blog</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="testimonials" className="flex items-center gap-2">
-                    <Star className="h-4 w-4" />
-                    <span className="hidden sm:inline">Testimonials</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="services" className="flex items-center gap-2">
-                    <Briefcase className="h-4 w-4" />
-                    <span className="hidden sm:inline">Services</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="team" className="flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    <span className="hidden sm:inline">Team</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="faqs" className="flex items-center gap-2">
-                    <HelpCircle className="h-4 w-4" />
-                    <span className="hidden sm:inline">FAQs</span>
-                  </TabsTrigger>
-                </TabsList>
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Header */}
+          <header className="bg-muted/30 border-b border-border px-6 py-6">
+            <h1 className="text-2xl md:text-3xl font-bold text-primary">Admin Dashboard</h1>
+            <p className="text-muted-foreground text-sm mt-1">Manage all website content</p>
+          </header>
 
-                {/* Form Submissions Tab */}
-                <TabsContent value="submissions">
-                  <div className="space-y-8">
-                    {/* Visit Requests */}
-                    <div>
+          {/* Content Area */}
+          <ScrollArea className="flex-1">
+            <main className="p-6">
+              {/* Form Submissions Section */}
+              {activeSection === "submissions" && (
+                <div className="space-y-8">
+                  {/* Visit Requests */}
+                  <div>
                       <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
                         <Mail className="h-5 w-5 text-primary" />
                         Visit Requests ({visitRequests.length})
@@ -844,23 +812,24 @@ const Admin = () => {
                     onSchedule={handleInlineSchedule}
                     existingAppointments={allAppointments}
                   />
-                </TabsContent>
+                </div>
+              )}
 
-                {/* Appointments Tab */}
-                <TabsContent value="appointments">
-                  <AppointmentScheduler 
-                    visitRequests={visitRequests}
-                    referrals={referrals}
-                    onUpdateVisitStatus={updateVisitStatus}
-                    onUpdateReferralStatus={updateReferralStatus}
-                    externalAppointments={allAppointments}
-                    onAppointmentsChange={handleAppointmentsChange}
-                  />
-                </TabsContent>
+              {/* Appointments Section */}
+              {activeSection === "appointments" && (
+                <AppointmentScheduler 
+                  visitRequests={visitRequests}
+                  referrals={referrals}
+                  onUpdateVisitStatus={updateVisitStatus}
+                  onUpdateReferralStatus={updateReferralStatus}
+                  externalAppointments={allAppointments}
+                  onAppointmentsChange={handleAppointmentsChange}
+                />
+              )}
 
-                {/* Forms Management Tab */}
-                <TabsContent value="forms">
-                  <div className="space-y-6">
+              {/* Forms Management Section */}
+              {activeSection === "forms" && (
+                <div className="space-y-6">
                     <div className="flex justify-between items-center">
                       <h2 className="text-xl font-semibold">Form Configuration</h2>
                       <div className="flex gap-3">
@@ -1110,11 +1079,11 @@ const Admin = () => {
                       </>
                     )}
                   </div>
-                </TabsContent>
+                )}
 
-                {/* Site Copy Tab */}
-                <TabsContent value="site-copy">
-                  <div className="space-y-6">
+              {/* Site Copy Section */}
+              {activeSection === "site-copy" && (
+                <div className="space-y-6">
                     <div className="flex justify-between items-center">
                       <h2 className="text-xl font-semibold">Site Copy Management</h2>
                       <Select value={selectedCopyPage} onValueChange={setSelectedCopyPage}>
@@ -1220,10 +1189,12 @@ const Admin = () => {
                       ))}
                     </div>
                   </div>
-                </TabsContent>
+                )}
 
-                {/* Patient Resources Tab */}
-                <TabsContent value="resources">
+
+              {/* Patient Resources Section */}
+              {activeSection === "resources" && (
+                <>
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-semibold">Patient Resources ({patientResources.length})</h2>
                     <Dialog open={isResourceDialogOpen} onOpenChange={setIsResourceDialogOpen}>
@@ -1357,10 +1328,12 @@ const Admin = () => {
                       ))}
                     </TableBody>
                   </Table>
-                </TabsContent>
+                </>
+              )}
 
-                {/* Blog Posts Tab */}
-                <TabsContent value="blog">
+              {/* Blog Posts Section */}
+              {activeSection === "blog" && (
+                <>
                   {showAIGenerator ? (
                     <div className="space-y-4">
                       <div className="flex justify-between items-center">
@@ -1498,10 +1471,11 @@ const Admin = () => {
                       </Table>
                     </>
                   )}
-                </TabsContent>
-
-                {/* Testimonials Tab */}
-                <TabsContent value="testimonials">
+                </>
+              )}
+              {/* Testimonials Section */}
+              {activeSection === "testimonials" && (
+                <>
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-semibold">Testimonials ({testimonials.length})</h2>
                     <Dialog open={isTestimonialDialogOpen} onOpenChange={setIsTestimonialDialogOpen}>
@@ -1563,10 +1537,12 @@ const Admin = () => {
                       ))}
                     </TableBody>
                   </Table>
-                </TabsContent>
+                </>
+              )}
 
-                {/* Services Tab */}
-                <TabsContent value="services">
+              {/* Services Section */}
+              {activeSection === "services" && (
+                <>
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-semibold">Services ({services.length})</h2>
                     <Dialog open={isServiceDialogOpen} onOpenChange={setIsServiceDialogOpen}>
@@ -1624,10 +1600,12 @@ const Admin = () => {
                       ))}
                     </TableBody>
                   </Table>
-                </TabsContent>
+                </>
+              )}
 
-                {/* Team Tab */}
-                <TabsContent value="team">
+              {/* Team Section */}
+              {activeSection === "team" && (
+                <>
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-semibold">Team Members ({team.length})</h2>
                     <Dialog open={isTeamDialogOpen} onOpenChange={setIsTeamDialogOpen}>
@@ -1720,10 +1698,12 @@ const Admin = () => {
                       ))}
                     </TableBody>
                   </Table>
-                </TabsContent>
+                </>
+              )}
 
-                {/* FAQs Tab */}
-                <TabsContent value="faqs">
+              {/* FAQs Section */}
+              {activeSection === "faqs" && (
+                <>
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-semibold">FAQs ({faqs.length})</h2>
                     <Dialog open={isFaqDialogOpen} onOpenChange={setIsFaqDialogOpen}>
@@ -1779,16 +1759,16 @@ const Admin = () => {
                       ))}
                     </TableBody>
                   </Table>
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
+                </>
+              )}
 
-          <p className="text-sm text-muted-foreground mt-4 text-center">
-            Note: Changes are stored in memory only. For persistent storage, enable Lovable Cloud.
-          </p>
+              <p className="text-sm text-muted-foreground mt-8 text-center">
+                Note: Changes are stored in memory only. For persistent storage, enable Lovable Cloud.
+              </p>
+            </main>
+          </ScrollArea>
         </div>
-      </section>
+      </div>
 
       {/* Email Dialog */}
       <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
@@ -1838,7 +1818,7 @@ const Admin = () => {
           </div>
         </DialogContent>
       </Dialog>
-    </Layout>
+    </>
   );
 };
 
