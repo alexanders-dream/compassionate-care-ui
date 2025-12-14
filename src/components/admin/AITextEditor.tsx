@@ -257,7 +257,7 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
   if (!editor) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-sm overflow-y-auto flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <div className="border-b bg-card px-4 py-3 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">

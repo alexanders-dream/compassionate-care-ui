@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,7 +33,6 @@ import {
   VisitRequest, ProviderReferralSubmission 
 } from "@/data/siteContent";
 import AIArticleGenerator, { ArticleMedia } from "@/components/admin/AIArticleGenerator";
-import AITextEditor from "@/components/admin/AITextEditor";
 import AppointmentScheduler, { ScheduleDialog, AppointmentFormData } from "@/components/admin/AppointmentScheduler";
 import { Appointment } from "@/data/siteContent";
 import IconPicker from "@/components/admin/IconPicker";
@@ -48,6 +48,7 @@ interface ExtendedBlogPost extends BlogPost {
 
 const Admin = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const { 
     testimonials, setTestimonials,
     services, setServices,
@@ -60,8 +61,6 @@ const Admin = () => {
   // State for content types not in context
   const [posts, setPosts] = useState<ExtendedBlogPost[]>(blogPosts.map(p => ({ ...p, status: "published" as const })));
   const [showAIGenerator, setShowAIGenerator] = useState(false);
-  const [showAITextEditor, setShowAITextEditor] = useState(false);
-  const [aiEditingPost, setAiEditingPost] = useState<ExtendedBlogPost | null>(null);
   const [visitRequests, setVisitRequests] = useState<VisitRequest[]>(sampleVisitRequests);
   const [referrals, setReferrals] = useState<ProviderReferralSubmission[]>(sampleReferrals);
   const [siteCopy, setSiteCopy] = useState<SiteCopySection[]>(defaultSiteCopy);
@@ -1361,21 +1360,7 @@ const Admin = () => {
                           <Button variant="outline" onClick={() => setShowAIGenerator(true)}>
                             <Sparkles className="h-4 w-4 mr-2" /> AI Generate
                           </Button>
-                          <Button onClick={() => { 
-                            const newPost: ExtendedBlogPost = {
-                              id: `post-${Date.now()}`,
-                              title: "",
-                              excerpt: "",
-                              content: "",
-                              category: "prevention",
-                              author: "",
-                              date: new Date().toISOString().split("T")[0],
-                              readTime: "5 min read",
-                              status: "draft"
-                            };
-                            setAiEditingPost(newPost);
-                            setShowAITextEditor(true);
-                          }}>
+                          <Button onClick={() => navigate("/admin/blog/new?new=true")}>
                             <Plus className="h-4 w-4 mr-2" /> Add Post
                           </Button>
                         </div>
@@ -1403,7 +1388,7 @@ const Admin = () => {
                                 <Button 
                                   variant="ghost" 
                                   size="sm" 
-                                  onClick={() => { setAiEditingPost(post); setShowAITextEditor(true); }}
+                                  onClick={() => navigate(`/admin/blog/${post.id}`)}
                                   title="Edit Post"
                                 >
                                   <Pencil className="h-4 w-4" />
@@ -1814,22 +1799,6 @@ const Admin = () => {
         </DialogContent>
       </Dialog>
 
-      {/* AI Text Editor Modal */}
-      {showAITextEditor && aiEditingPost && (
-        <AITextEditor
-          post={aiEditingPost}
-          onSave={(updatedPost) => {
-            setPosts(posts.map(p => p.id === updatedPost.id ? { ...p, ...updatedPost } : p));
-            setShowAITextEditor(false);
-            setAiEditingPost(null);
-            toast({ title: updatedPost.status === "published" ? "Post published!" : "Draft saved!" });
-          }}
-          onClose={() => {
-            setShowAITextEditor(false);
-            setAiEditingPost(null);
-          }}
-        />
-      )}
     </>
   );
 };
