@@ -25,6 +25,7 @@ import {
   VisitRequest, ProviderReferralSubmission 
 } from "@/data/siteContent";
 import AIArticleGenerator, { ArticleMedia } from "@/components/admin/AIArticleGenerator";
+import AITextEditor from "@/components/admin/AITextEditor";
 import AppointmentScheduler, { ScheduleDialog, AppointmentFormData } from "@/components/admin/AppointmentScheduler";
 import { Appointment } from "@/data/siteContent";
 import IconPicker from "@/components/admin/IconPicker";
@@ -52,6 +53,8 @@ const Admin = () => {
   // State for content types not in context
   const [posts, setPosts] = useState<ExtendedBlogPost[]>(blogPosts.map(p => ({ ...p, status: "published" as const })));
   const [showAIGenerator, setShowAIGenerator] = useState(false);
+  const [showAITextEditor, setShowAITextEditor] = useState(false);
+  const [aiEditingPost, setAiEditingPost] = useState<ExtendedBlogPost | null>(null);
   const [visitRequests, setVisitRequests] = useState<VisitRequest[]>(sampleVisitRequests);
   const [referrals, setReferrals] = useState<ProviderReferralSubmission[]>(sampleReferrals);
   const [siteCopy, setSiteCopy] = useState<SiteCopySection[]>(defaultSiteCopy);
@@ -1432,7 +1435,7 @@ const Admin = () => {
                                 <Button 
                                   variant="ghost" 
                                   size="sm" 
-                                  onClick={() => { setEditingPost(post); setShowAIGenerator(true); }}
+                                  onClick={() => { setAiEditingPost(post); setShowAITextEditor(true); }}
                                   title="Edit with AI"
                                 >
                                   <Sparkles className="h-4 w-4 text-primary" />
@@ -1807,6 +1810,23 @@ const Admin = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* AI Text Editor Modal */}
+      {showAITextEditor && aiEditingPost && (
+        <AITextEditor
+          post={aiEditingPost}
+          onSave={(updatedPost) => {
+            setPosts(posts.map(p => p.id === updatedPost.id ? { ...p, ...updatedPost } : p));
+            setShowAITextEditor(false);
+            setAiEditingPost(null);
+            toast({ title: updatedPost.status === "published" ? "Post published!" : "Draft saved!" });
+          }}
+          onClose={() => {
+            setShowAITextEditor(false);
+            setAiEditingPost(null);
+          }}
+        />
+      )}
     </>
   );
 };
