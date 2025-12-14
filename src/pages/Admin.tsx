@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Plus, Pencil, Trash2, FileText, Users, Star, HelpCircle, Briefcase, 
   Sparkles, Mail, Send, ClipboardList, BookOpen, CheckCircle2, CalendarDays,
-  Upload, Download, File, User
+  Upload, Download, File, User, Type
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { blogPosts, BlogPost, categories } from "@/data/blogPosts";
@@ -28,6 +28,7 @@ import AIArticleGenerator, { ArticleMedia } from "@/components/admin/AIArticleGe
 import AppointmentScheduler, { ScheduleDialog, AppointmentFormData } from "@/components/admin/AppointmentScheduler";
 import { Appointment } from "@/data/siteContent";
 import IconPicker from "@/components/admin/IconPicker";
+import { defaultSiteCopy, SiteCopySection } from "@/data/siteCopy";
 
 interface ExtendedBlogPost extends BlogPost {
   status?: "draft" | "published" | "scheduled";
@@ -48,6 +49,8 @@ const Admin = () => {
   const [patientResources, setPatientResources] = useState<PatientResource[]>(defaultPatientResources);
   const [visitRequests, setVisitRequests] = useState<VisitRequest[]>(sampleVisitRequests);
   const [referrals, setReferrals] = useState<ProviderReferralSubmission[]>(sampleReferrals);
+  const [siteCopy, setSiteCopy] = useState<SiteCopySection[]>(defaultSiteCopy);
+  const [selectedCopyPage, setSelectedCopyPage] = useState<string>("all");
 
   // Dialog states
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
@@ -438,6 +441,30 @@ const Admin = () => {
     setAllAppointments(appointments);
   };
 
+  // Site Copy handlers
+  const handleUpdateCopyField = (sectionId: string, fieldKey: string, newValue: string) => {
+    setSiteCopy(siteCopy.map(section => {
+      if (section.id === sectionId) {
+        return {
+          ...section,
+          fields: section.fields.map(field => 
+            field.key === fieldKey ? { ...field, value: newValue } : field
+          )
+        };
+      }
+      return section;
+    }));
+  };
+
+  const handleSaveCopySection = (sectionId: string) => {
+    toast({ title: "Site copy updated", description: "Changes saved successfully" });
+  };
+
+  const uniquePages = ["all", ...new Set(siteCopy.map(s => s.page))];
+  const filteredCopySections = selectedCopyPage === "all" 
+    ? siteCopy 
+    : siteCopy.filter(s => s.page === selectedCopyPage);
+
   return (
     <Layout>
       <Helmet>
@@ -457,7 +484,7 @@ const Admin = () => {
           <Card>
             <CardContent className="pt-6">
               <Tabs defaultValue="submissions" className="w-full">
-                <TabsList className="grid w-full grid-cols-4 md:grid-cols-8 mb-6">
+                <TabsList className="grid w-full grid-cols-5 md:grid-cols-9 mb-6">
                   <TabsTrigger value="submissions" className="flex items-center gap-2">
                     <ClipboardList className="h-4 w-4" />
                     <span className="hidden sm:inline">Submissions</span>
@@ -465,6 +492,10 @@ const Admin = () => {
                   <TabsTrigger value="appointments" className="flex items-center gap-2">
                     <CalendarDays className="h-4 w-4" />
                     <span className="hidden sm:inline">Appointments</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="site-copy" className="flex items-center gap-2">
+                    <Type className="h-4 w-4" />
+                    <span className="hidden sm:inline">Site Copy</span>
                   </TabsTrigger>
                   <TabsTrigger value="resources" className="flex items-center gap-2">
                     <BookOpen className="h-4 w-4" />
@@ -690,6 +721,76 @@ const Admin = () => {
                     externalAppointments={allAppointments}
                     onAppointmentsChange={handleAppointmentsChange}
                   />
+                </TabsContent>
+
+                {/* Site Copy Tab */}
+                <TabsContent value="site-copy">
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-center">
+                      <h2 className="text-xl font-semibold">Site Copy Management</h2>
+                      <Select value={selectedCopyPage} onValueChange={setSelectedCopyPage}>
+                        <SelectTrigger className="w-48">
+                          <SelectValue placeholder="Filter by page" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {uniquePages.map(page => (
+                            <SelectItem key={page} value={page}>
+                              {page === "all" ? "All Pages" : page}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <p className="text-sm text-muted-foreground">
+                      Edit the text content displayed across your website. Changes will be reflected site-wide.
+                    </p>
+
+                    <div className="space-y-6">
+                      {filteredCopySections.map(section => (
+                        <Card key={section.id}>
+                          <CardHeader className="pb-3">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <Badge variant="outline" className="mb-2">{section.page}</Badge>
+                                <CardTitle className="text-lg">{section.section}</CardTitle>
+                              </div>
+                              <Button 
+                                size="sm" 
+                                onClick={() => handleSaveCopySection(section.id)}
+                              >
+                                <CheckCircle2 className="h-4 w-4 mr-2" />
+                                Save Changes
+                              </Button>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            {section.fields.map(field => (
+                              <div key={field.key}>
+                                <Label htmlFor={`${section.id}-${field.key}`}>{field.label}</Label>
+                                {field.type === "textarea" ? (
+                                  <Textarea
+                                    id={`${section.id}-${field.key}`}
+                                    value={field.value}
+                                    onChange={(e) => handleUpdateCopyField(section.id, field.key, e.target.value)}
+                                    rows={3}
+                                    className="mt-1"
+                                  />
+                                ) : (
+                                  <Input
+                                    id={`${section.id}-${field.key}`}
+                                    value={field.value}
+                                    onChange={(e) => handleUpdateCopyField(section.id, field.key, e.target.value)}
+                                    className="mt-1"
+                                  />
+                                )}
+                              </div>
+                            ))}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
                 </TabsContent>
 
                 {/* Patient Resources Tab */}
