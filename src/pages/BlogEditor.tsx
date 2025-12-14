@@ -54,11 +54,11 @@ const BlogEditor = () => {
     toast({ 
       title: updatedPost.status === "published" ? "Post published!" : "Draft saved!" 
     });
-    navigate("/admin");
+    navigate("/admin?tab=blog");
   };
 
   const handleClose = () => {
-    navigate("/admin");
+    navigate("/admin?tab=blog");
   };
 
   if (!post) {

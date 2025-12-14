@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -49,6 +49,7 @@ interface ExtendedBlogPost extends BlogPost {
 const Admin = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { 
     testimonials, setTestimonials,
     services, setServices,
@@ -70,8 +71,19 @@ const Admin = () => {
   const [isFieldDialogOpen, setIsFieldDialogOpen] = useState(false);
   const [newOptionLabel, setNewOptionLabel] = useState("");
   const [newOptionValue, setNewOptionValue] = useState("");
-  const [activeSection, setActiveSection] = useState<AdminSection>("submissions");
+  const [activeSection, setActiveSection] = useState<AdminSection>(() => {
+    const tab = searchParams.get("tab");
+    return (tab as AdminSection) || "submissions";
+  });
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  // Sync activeSection with URL tab param
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab && tab !== activeSection) {
+      setActiveSection(tab as AdminSection);
+    }
+  }, [searchParams]);
 
   const [editingTestimonial, setEditingTestimonial] = useState<Testimonial | null>(null);
   const [editingService, setEditingService] = useState<Service | null>(null);
