@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Heart, Shield, Users, Award, Target, Eye } from "lucide-react";
 import heroClinician from "@/assets/hero-clinician.jpg";
-import { defaultTeamMembers } from "@/data/siteContent";
+import { useSiteData } from "@/contexts/SiteDataContext";
 
 const values = [
   {
@@ -37,6 +37,7 @@ const stats = [
 ];
 
 const About = () => {
+  const { teamMembers } = useSiteData();
   return (
     <Layout>
       <Helmet>
@@ -160,7 +161,7 @@ const About = () => {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {defaultTeamMembers.map((member) => (
+            {teamMembers.map((member) => (
               <div 
                 key={member.id}
                 className="bg-card rounded-2xl overflow-hidden shadow-soft group"
