@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
@@ -61,6 +61,25 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [customPrompt, setCustomPrompt] = useState("");
   const [selectedText, setSelectedText] = useState("");
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  // Handle scroll progress
+  useEffect(() => {
+    const contentEl = contentRef.current;
+    if (!contentEl) return;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = contentEl;
+      const progress = scrollHeight > clientHeight 
+        ? (scrollTop / (scrollHeight - clientHeight)) * 100 
+        : 0;
+      setScrollProgress(progress);
+    };
+
+    contentEl.addEventListener("scroll", handleScroll);
+    return () => contentEl.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const categoryOptions = categories.filter(c => c.id !== "all");
   const provider = getProviderById(selectedProvider);
@@ -288,14 +307,21 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
         {/* Main Editor */}
         <div className="flex-1 flex flex-col overflow-hidden">
           <Tabs defaultValue="content" className="flex-1 flex flex-col">
-            <div className="border-b px-4 shrink-0">
+            <div className="border-b px-4 shrink-0 relative">
               <TabsList className="h-10">
                 <TabsTrigger value="content">Content</TabsTrigger>
                 <TabsTrigger value="settings">Settings</TabsTrigger>
               </TabsList>
+              {/* Scroll Progress Indicator */}
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-muted">
+                <div 
+                  className="h-full bg-primary transition-all duration-150 ease-out"
+                  style={{ width: `${scrollProgress}%` }}
+                />
+              </div>
             </div>
 
-            <TabsContent value="content" className="flex-1 overflow-auto m-0 p-4">
+            <TabsContent value="content" ref={contentRef} className="flex-1 overflow-auto m-0 p-4">
               <div className="flex flex-col gap-4 min-h-full">
                 {/* Title */}
                 <Input
