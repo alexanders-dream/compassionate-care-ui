@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,31 +18,315 @@ import {
   VisitRequest, ProviderReferralSubmission 
 } from "@/data/siteContent";
 
-interface AppointmentSchedulerProps {
-  visitRequests: VisitRequest[];
-  referrals: ProviderReferralSubmission[];
-  onUpdateVisitStatus: (id: string, status: VisitRequest["status"]) => void;
-  onUpdateReferralStatus: (id: string, status: ProviderReferralSubmission["status"]) => void;
-}
-
-const clinicians = [
+// Shared constants
+export const clinicians = [
   "Dr. Amanda Richards",
   "James Thompson, RN",
   "Lisa Chen"
 ];
 
-const appointmentTypes = [
+export const appointmentTypes = [
   { value: "initial", label: "Initial Assessment" },
   { value: "follow-up", label: "Follow-up Visit" },
   { value: "wound-assessment", label: "Wound Assessment" },
   { value: "dressing-change", label: "Dressing Change" }
 ];
 
-const timeSlots = [
+export const timeSlots = [
   "08:00", "08:30", "09:00", "09:30", "10:00", "10:30",
   "11:00", "11:30", "12:00", "12:30", "13:00", "13:30",
   "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00"
 ];
+
+// Reusable appointment form data type
+export interface AppointmentFormData {
+  patientName: string;
+  patientPhone: string;
+  patientEmail: string;
+  appointmentTime: string;
+  duration: number;
+  type: Appointment["type"];
+  clinician: string;
+  location: Appointment["location"];
+  address: string;
+  notes: string;
+  linkedSubmissionId: string;
+  linkedSubmissionType: "visit" | "referral" | "";
+}
+
+export const getDefaultFormData = (): AppointmentFormData => ({
+  patientName: "",
+  patientPhone: "",
+  patientEmail: "",
+  appointmentTime: "09:00",
+  duration: 60,
+  type: "initial",
+  clinician: clinicians[0],
+  location: "in-home",
+  address: "",
+  notes: "",
+  linkedSubmissionId: "",
+  linkedSubmissionType: ""
+});
+
+// Standalone Scheduling Dialog Component
+interface ScheduleDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  initialData?: Partial<AppointmentFormData>;
+  onSchedule: (appointment: Appointment) => void;
+  editingAppointment?: Appointment | null;
+}
+
+export const ScheduleDialog = ({ 
+  open, 
+  onOpenChange, 
+  initialData, 
+  onSchedule,
+  editingAppointment 
+}: ScheduleDialogProps) => {
+  const { toast } = useToast();
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
+    editingAppointment ? new Date(editingAppointment.appointmentDate) : new Date()
+  );
+  const [formData, setFormData] = useState<AppointmentFormData>(() => ({
+    ...getDefaultFormData(),
+    ...initialData,
+    ...(editingAppointment && {
+      patientName: editingAppointment.patientName,
+      patientPhone: editingAppointment.patientPhone,
+      patientEmail: editingAppointment.patientEmail,
+      appointmentTime: editingAppointment.appointmentTime,
+      duration: editingAppointment.duration,
+      type: editingAppointment.type,
+      clinician: editingAppointment.clinician,
+      location: editingAppointment.location,
+      address: editingAppointment.address || "",
+      notes: editingAppointment.notes || "",
+      linkedSubmissionId: editingAppointment.linkedSubmissionId || "",
+      linkedSubmissionType: editingAppointment.linkedSubmissionType || ""
+    })
+  }));
+
+  const handleSave = () => {
+    if (!selectedDate || !formData.patientName || !formData.appointmentTime) {
+      toast({ title: "Please fill in required fields", variant: "destructive" });
+      return;
+    }
+
+    const appointmentData: Appointment = {
+      id: editingAppointment?.id || `apt${Date.now()}`,
+      patientName: formData.patientName,
+      patientPhone: formData.patientPhone,
+      patientEmail: formData.patientEmail,
+      appointmentDate: format(selectedDate, "yyyy-MM-dd"),
+      appointmentTime: formData.appointmentTime,
+      duration: formData.duration,
+      type: formData.type,
+      clinician: formData.clinician,
+      location: formData.location,
+      address: formData.location === "in-home" ? formData.address : undefined,
+      notes: formData.notes || undefined,
+      status: editingAppointment?.status || "scheduled",
+      linkedSubmissionId: formData.linkedSubmissionId || undefined,
+      linkedSubmissionType: formData.linkedSubmissionType as "visit" | "referral" | undefined,
+      createdAt: editingAppointment?.createdAt || new Date().toISOString()
+    };
+
+    onSchedule(appointmentData);
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{editingAppointment ? "Edit Appointment" : "Schedule Appointment"}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          {/* Patient Info */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Label>Patient Name *</Label>
+              <Input 
+                value={formData.patientName} 
+                onChange={(e) => setFormData(prev => ({ ...prev, patientName: e.target.value }))}
+                placeholder="Full name"
+              />
+            </div>
+            <div>
+              <Label>Phone</Label>
+              <Input 
+                value={formData.patientPhone}
+                onChange={(e) => setFormData(prev => ({ ...prev, patientPhone: e.target.value }))}
+                placeholder="(555) 123-4567"
+              />
+            </div>
+            <div>
+              <Label>Email</Label>
+              <Input 
+                type="email"
+                value={formData.patientEmail}
+                onChange={(e) => setFormData(prev => ({ ...prev, patientEmail: e.target.value }))}
+                placeholder="patient@email.com"
+              />
+            </div>
+          </div>
+
+          {/* Date & Time */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Label>Date *</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !selectedDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div>
+              <Label>Time *</Label>
+              <Select 
+                value={formData.appointmentTime}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, appointmentTime: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {timeSlots.map(time => (
+                    <SelectItem key={time} value={time}>{time}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Duration (minutes)</Label>
+              <Select 
+                value={String(formData.duration)}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, duration: Number(value) }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="30">30 min</SelectItem>
+                  <SelectItem value="45">45 min</SelectItem>
+                  <SelectItem value="60">60 min</SelectItem>
+                  <SelectItem value="90">90 min</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Appointment Details */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label>Appointment Type</Label>
+              <Select 
+                value={formData.type}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, type: value as Appointment["type"] }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {appointmentTypes.map(t => (
+                    <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Clinician</Label>
+              <Select 
+                value={formData.clinician}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, clinician: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {clinicians.map(c => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Location */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label>Location</Label>
+              <Select 
+                value={formData.location}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, location: value as Appointment["location"] }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="in-home">In-Home Visit</SelectItem>
+                  <SelectItem value="clinic">Clinic</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {formData.location === "in-home" && (
+              <div>
+                <Label>Address</Label>
+                <Input 
+                  value={formData.address}
+                  onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                  placeholder="Patient's address"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Notes */}
+          <div>
+            <Label>Notes</Label>
+            <Textarea 
+              value={formData.notes}
+              onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+              placeholder="Additional notes..."
+              rows={3}
+            />
+          </div>
+
+          <Button onClick={handleSave} className="w-full">
+            {editingAppointment ? "Update Appointment" : "Schedule Appointment"}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+// Main Scheduler Props
+interface AppointmentSchedulerProps {
+  visitRequests: VisitRequest[];
+  referrals: ProviderReferralSubmission[];
+  onUpdateVisitStatus: (id: string, status: VisitRequest["status"]) => void;
+  onUpdateReferralStatus: (id: string, status: ProviderReferralSubmission["status"]) => void;
+}
 
 const AppointmentScheduler = ({ 
   visitRequests, 
@@ -56,36 +339,10 @@ const AppointmentScheduler = ({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [formData, setFormData] = useState({
-    patientName: "",
-    patientPhone: "",
-    patientEmail: "",
-    appointmentTime: "09:00",
-    duration: 60,
-    type: "initial" as Appointment["type"],
-    clinician: clinicians[0],
-    location: "in-home" as Appointment["location"],
-    address: "",
-    notes: "",
-    linkedSubmissionId: "",
-    linkedSubmissionType: "" as "visit" | "referral" | ""
-  });
+  const [formData, setFormData] = useState<AppointmentFormData>(getDefaultFormData());
 
   const resetForm = () => {
-    setFormData({
-      patientName: "",
-      patientPhone: "",
-      patientEmail: "",
-      appointmentTime: "09:00",
-      duration: 60,
-      type: "initial",
-      clinician: clinicians[0],
-      location: "in-home",
-      address: "",
-      notes: "",
-      linkedSubmissionId: "",
-      linkedSubmissionType: ""
-    });
+    setFormData(getDefaultFormData());
     setSelectedDate(new Date());
     setEditingAppointment(null);
   };
