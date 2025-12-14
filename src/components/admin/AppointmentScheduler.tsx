@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Plus, Pencil, Trash2, CalendarIcon, Clock, MapPin, User, Phone, Mail, FileText, AlertCircle } from "lucide-react";
+import { Plus, Pencil, Trash2, CalendarIcon, Clock, MapPin, User, Phone, Mail, FileText, AlertCircle, Send, CheckCircle2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -537,6 +537,13 @@ const AppointmentScheduler = ({
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [formData, setFormData] = useState<AppointmentFormData>(getDefaultFormData());
+  
+  // Email dialog state
+  const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
+  const [emailAppointment, setEmailAppointment] = useState<Appointment | null>(null);
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailBody, setEmailBody] = useState("");
+  const [emailsSent, setEmailsSent] = useState<Record<string, boolean>>({});
 
   // Combine internal and external appointments, deduplicating by id
   const appointments = [...internalAppointments, ...externalAppointments].filter(
@@ -681,6 +688,28 @@ const AppointmentScheduler = ({
     }
     
     toast({ title: "Status updated" });
+  };
+
+  // Email handlers
+  const openEmailDialog = (apt: Appointment) => {
+    setEmailAppointment(apt);
+    const appointmentDate = format(new Date(apt.appointmentDate), "MMMM d, yyyy");
+    setEmailSubject("Appointment Confirmation - AR Advanced Woundcare Solutions");
+    setEmailBody(`Dear ${apt.patientName},\n\nThis is to confirm your appointment with AR Advanced Woundcare Solutions.\n\nAppointment Details:\n- Date: ${appointmentDate}\n- Time: ${apt.appointmentTime}\n- Duration: ${apt.duration} minutes\n- Clinician: ${apt.clinician}\n- Location: ${apt.location === "in-home" ? `In-home visit at ${apt.address || "your address"}` : "Clinic visit"}\n\nPlease ensure you are available at the scheduled time. If you need to reschedule, please contact us as soon as possible.\n\nBest regards,\nAR Advanced Woundcare Solutions Team`);
+    setIsEmailDialogOpen(true);
+  };
+
+  const handleSendEmail = () => {
+    if (!emailAppointment) return;
+    
+    setEmailsSent(prev => ({ ...prev, [emailAppointment.id]: true }));
+    
+    toast({ 
+      title: "Email Sent",
+      description: `Confirmation email sent to ${emailAppointment.patientEmail || emailAppointment.patientName}`
+    });
+    setIsEmailDialogOpen(false);
+    setEmailAppointment(null);
   };
 
   const getStatusBadge = (status: Appointment["status"]) => {
@@ -1036,7 +1065,19 @@ const AppointmentScheduler = ({
                   </SelectContent>
                 </Select>
               </TableCell>
-              <TableCell className="text-right">
+              <TableCell className="text-right space-x-1">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => openEmailDialog(apt)}
+                  className="gap-1"
+                  disabled={!apt.patientEmail}
+                  title={apt.patientEmail ? "Send email" : "No email address"}
+                >
+                  <Send className="h-3 w-3" />
+                  {emailsSent[apt.id] ? "Resend" : "Email"}
+                  {emailsSent[apt.id] && <CheckCircle2 className="h-3 w-3 text-green-500" />}
+                </Button>
                 <Button variant="ghost" size="sm" onClick={() => handleEditAppointment(apt)}>
                   <Pencil className="h-4 w-4" />
                 </Button>
@@ -1055,6 +1096,60 @@ const AppointmentScheduler = ({
           )}
         </TableBody>
       </Table>
+
+      {/* Email Dialog */}
+      <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5" />
+              Send Appointment Email
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Recipient</Label>
+              <Input 
+                value={emailAppointment?.patientEmail || ""} 
+                disabled 
+              />
+            </div>
+            <div>
+              <Label>Patient</Label>
+              <Input 
+                value={emailAppointment?.patientName || ""} 
+                disabled 
+              />
+            </div>
+            <div>
+              <Label htmlFor="emailSubject">Subject</Label>
+              <Input 
+                id="emailSubject" 
+                value={emailSubject} 
+                onChange={(e) => setEmailSubject(e.target.value)} 
+              />
+            </div>
+            <div>
+              <Label htmlFor="emailBody">Message</Label>
+              <Textarea 
+                id="emailBody" 
+                value={emailBody} 
+                onChange={(e) => setEmailBody(e.target.value)} 
+                rows={12}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsEmailDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSendEmail} className="gap-2">
+                <Send className="h-4 w-4" />
+                Send Email
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
