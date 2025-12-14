@@ -2,35 +2,20 @@ import { Helmet } from "react-helmet-async";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Stethoscope, Heart, Bandage, Users, ShieldCheck, Clock } from "lucide-react";
+import { Stethoscope, Heart, Bandage, Users, ShieldCheck, Clock, Home, Scissors } from "lucide-react";
 import homeCareVisit from "@/assets/home-care-visit.jpg";
+import { useSiteData } from "@/contexts/SiteDataContext";
 
-const services = [
-  {
-    icon: Bandage,
-    title: "Chronic Wound Care",
-    description: "Expert treatment for diabetic ulcers, pressure injuries, venous ulcers, and non-healing surgical wounds with evidence-based protocols.",
-    conditions: ["Diabetic foot ulcers", "Pressure injuries", "Venous leg ulcers", "Arterial ulcers"]
-  },
-  {
-    icon: Stethoscope,
-    title: "Post-Surgical Wound Management",
-    description: "Specialized care for surgical incisions, wound dehiscence, and complex post-operative healing to ensure optimal recovery.",
-    conditions: ["Surgical incisions", "Wound dehiscence", "Skin grafts", "Flap care"]
-  },
-  {
-    icon: Heart,
-    title: "Palliative Wound Care",
-    description: "Compassionate wound management focused on comfort, odor control, and quality of life for patients with serious illness.",
-    conditions: ["Malignant wounds", "End-of-life care", "Comfort-focused treatment", "Pain management"]
-  },
-  {
-    icon: Users,
-    title: "In-Home Assessments",
-    description: "Comprehensive wound evaluations in the comfort of your home, including risk assessment and personalized treatment planning.",
-    conditions: ["Initial evaluations", "Progress monitoring", "Treatment adjustments", "Family education"]
-  }
-];
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  Stethoscope,
+  Heart,
+  Bandage,
+  Users,
+  ShieldCheck,
+  Clock,
+  Home,
+  Scissors,
+};
 
 const benefits = [
   { icon: ShieldCheck, title: "Licensed Clinicians", description: "All care provided by certified wound care specialists" },
@@ -39,6 +24,7 @@ const benefits = [
 ];
 
 const Services = () => {
+  const { services } = useSiteData();
   return (
     <Layout>
       <Helmet>
@@ -91,32 +77,25 @@ const Services = () => {
           </div>
 
           <div className="grid md:grid-cols-2 gap-8">
-            {services.map((service, index) => (
-              <div 
-                key={index}
-                className="bg-card rounded-2xl p-8 shadow-soft hover:shadow-elegant transition-shadow"
-              >
-                <div className="w-14 h-14 rounded-xl bg-primary/15 flex items-center justify-center mb-6">
-                  <service.icon className="w-7 h-7 text-primary" />
+            {services.map((service, index) => {
+              const IconComponent = iconMap[service.icon] || Heart;
+              return (
+                <div 
+                  key={service.id || index}
+                  className="bg-card rounded-2xl p-8 shadow-soft hover:shadow-elegant transition-shadow"
+                >
+                  <div className="w-14 h-14 rounded-xl bg-primary/15 flex items-center justify-center mb-6">
+                    <IconComponent className="w-7 h-7 text-primary" />
+                  </div>
+                  <h3 className="font-display text-xl font-semibold text-foreground mb-3">
+                    {service.title}
+                  </h3>
+                  <p className="text-muted-foreground">
+                    {service.description}
+                  </p>
                 </div>
-                <h3 className="font-display text-xl font-semibold text-foreground mb-3">
-                  {service.title}
-                </h3>
-                <p className="text-muted-foreground mb-4">
-                  {service.description}
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {service.conditions.map((condition, idx) => (
-                    <span 
-                      key={idx}
-                      className="text-xs px-3 py-1 rounded-full bg-accent/50 text-foreground"
-                    >
-                      {condition}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>

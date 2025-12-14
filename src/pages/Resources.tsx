@@ -3,66 +3,16 @@ import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { FileText, Download, BookOpen, Video, HelpCircle, Phone } from "lucide-react";
+import { useSiteData } from "@/contexts/SiteDataContext";
 
-const resources = [
-  {
-    icon: FileText,
-    title: "Wound Care Guide",
-    description: "Comprehensive guide to understanding wound types, healing stages, and proper care techniques.",
-    type: "PDF Guide"
-  },
-  {
-    icon: BookOpen,
-    title: "Diabetic Foot Care",
-    description: "Essential information for diabetic patients on preventing foot ulcers and maintaining foot health.",
-    type: "Educational Article"
-  },
-  {
-    icon: Video,
-    title: "Dressing Change Instructions",
-    description: "Step-by-step video guide for proper wound dressing changes between visits.",
-    type: "Video Tutorial"
-  },
-  {
-    icon: FileText,
-    title: "Nutrition for Healing",
-    description: "Learn how proper nutrition supports wound healing and what foods promote recovery.",
-    type: "PDF Guide"
-  },
-  {
-    icon: BookOpen,
-    title: "Pressure Ulcer Prevention",
-    description: "Tips and techniques for preventing pressure ulcers in bedridden or mobility-limited patients.",
-    type: "Educational Article"
-  },
-  {
-    icon: Video,
-    title: "Understanding Your Treatment",
-    description: "Overview of advanced wound care treatments and what to expect during your care journey.",
-    type: "Video Tutorial"
-  }
-];
-
-const faqs = [
-  {
-    question: "How often will I receive visits?",
-    answer: "Visit frequency depends on your wound type and healing progress. Most patients receive 2-3 visits per week initially, which may decrease as healing progresses."
-  },
-  {
-    question: "Will my insurance cover wound care?",
-    answer: "We accept most major insurance plans including Medicare and Medicaid. Our team will verify your coverage before treatment begins."
-  },
-  {
-    question: "What should I do between visits?",
-    answer: "Follow your care plan, keep the wound clean and dressed as instructed, monitor for signs of infection, and contact us immediately if you notice any concerning changes."
-  },
-  {
-    question: "How long until my wound heals?",
-    answer: "Healing time varies based on wound type, size, and your overall health. Your clinician will provide an estimated timeline during your initial assessment."
-  }
-];
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  FileText,
+  BookOpen,
+  Video,
+};
 
 const Resources = () => {
+  const { patientResources, faqs } = useSiteData();
   return (
     <Layout>
       <Helmet>
@@ -90,28 +40,31 @@ const Resources = () => {
             Educational Materials
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {resources.map((resource, index) => (
-              <div key={index} className="bg-card rounded-2xl p-6 shadow-soft hover:shadow-elegant transition-shadow">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
-                    <resource.icon className="w-6 h-6 text-primary" />
-                  </div>
-                  <div className="flex-1">
-                    <span className="text-xs text-primary font-medium">{resource.type}</span>
-                    <h3 className="font-display text-lg font-semibold text-foreground mt-1 mb-2">
-                      {resource.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      {resource.description}
-                    </p>
-                    <Button variant="outline" size="sm" className="gap-2">
-                      <Download className="w-4 h-4" />
-                      Access Resource
-                    </Button>
+            {patientResources.map((resource, index) => {
+              const IconComponent = iconMap[resource.icon] || FileText;
+              return (
+                <div key={resource.id || index} className="bg-card rounded-2xl p-6 shadow-soft hover:shadow-elegant transition-shadow">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
+                      <IconComponent className="w-6 h-6 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <span className="text-xs text-primary font-medium">{resource.type}</span>
+                      <h3 className="font-display text-lg font-semibold text-foreground mt-1 mb-2">
+                        {resource.title}
+                      </h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        {resource.description}
+                      </p>
+                      <Button variant="outline" size="sm" className="gap-2">
+                        <Download className="w-4 h-4" />
+                        Access Resource
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>

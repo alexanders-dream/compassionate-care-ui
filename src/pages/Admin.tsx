@@ -16,12 +16,11 @@ import {
   CheckCircle2, User, Image
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
-import { defaultFormConfigs, FormConfig, FormFieldConfig, FormFieldOption } from "@/data/formConfig";
+import { FormFieldConfig, FormFieldOption } from "@/data/formConfig";
 import { useToast } from "@/hooks/use-toast";
 import { blogPosts, BlogPost, categories } from "@/data/blogPosts";
 import { 
-  defaultTestimonials, defaultServices, defaultTeamMembers, defaultFAQs,
-  defaultPatientResources, sampleVisitRequests, sampleReferrals,
+  sampleVisitRequests, sampleReferrals,
   Testimonial, Service, TeamMember, FAQ, PatientResource, 
   VisitRequest, ProviderReferralSubmission 
 } from "@/data/siteContent";
@@ -31,6 +30,7 @@ import { Appointment } from "@/data/siteContent";
 import IconPicker from "@/components/admin/IconPicker";
 import { defaultSiteCopy, SiteCopySection } from "@/data/siteCopy";
 import AdminSidebar, { AdminSection } from "@/components/admin/AdminSidebar";
+import { useSiteData } from "@/contexts/SiteDataContext";
 
 interface ExtendedBlogPost extends BlogPost {
   status?: "draft" | "published" | "scheduled";
@@ -40,21 +40,23 @@ interface ExtendedBlogPost extends BlogPost {
 
 const Admin = () => {
   const { toast } = useToast();
+  const { 
+    testimonials, setTestimonials,
+    services, setServices,
+    teamMembers: team, setTeamMembers: setTeam,
+    faqs, setFaqs,
+    patientResources, setPatientResources,
+    formConfigs, setFormConfigs
+  } = useSiteData();
   
-  // State for all content types
+  // State for content types not in context
   const [posts, setPosts] = useState<ExtendedBlogPost[]>(blogPosts.map(p => ({ ...p, status: "published" as const })));
   const [showAIGenerator, setShowAIGenerator] = useState(false);
-  const [testimonials, setTestimonials] = useState<Testimonial[]>(defaultTestimonials);
-  const [services, setServices] = useState<Service[]>(defaultServices);
-  const [team, setTeam] = useState<TeamMember[]>(defaultTeamMembers);
-  const [faqs, setFaqs] = useState<FAQ[]>(defaultFAQs);
-  const [patientResources, setPatientResources] = useState<PatientResource[]>(defaultPatientResources);
   const [visitRequests, setVisitRequests] = useState<VisitRequest[]>(sampleVisitRequests);
   const [referrals, setReferrals] = useState<ProviderReferralSubmission[]>(sampleReferrals);
   const [siteCopy, setSiteCopy] = useState<SiteCopySection[]>(defaultSiteCopy);
   const [selectedCopyPage, setSelectedCopyPage] = useState<string>("all");
-  const [formConfigs, setFormConfigs] = useState<FormConfig[]>(defaultFormConfigs);
-  const [selectedFormId, setSelectedFormId] = useState<string>(defaultFormConfigs[0]?.id || "");
+  const [selectedFormId, setSelectedFormId] = useState<string>(formConfigs[0]?.id || "");
   const [editingField, setEditingField] = useState<FormFieldConfig | null>(null);
   const [isFieldDialogOpen, setIsFieldDialogOpen] = useState(false);
   const [newOptionLabel, setNewOptionLabel] = useState("");
