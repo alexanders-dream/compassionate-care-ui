@@ -295,8 +295,8 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
               </TabsList>
             </div>
 
-            <TabsContent value="content" className="flex-1 overflow-auto m-0 p-4">
-              <div className="h-full flex flex-col gap-4">
+            <TabsContent value="content" className="flex-1 overflow-hidden m-0 p-4 h-full">
+              <div className="flex flex-col gap-4 h-full overflow-auto">
                 {/* Title */}
                 <Input
                   value={title}
@@ -374,10 +374,8 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
                 </div>
 
                 {/* Rich Text Editor */}
-                <div className="flex-1 min-h-0 border rounded-lg bg-card overflow-hidden">
-                  <ScrollArea className="h-full">
-                    <EditorContent editor={editor} />
-                  </ScrollArea>
+                <div className="min-h-[300px] border rounded-lg bg-card overflow-auto">
+                  <EditorContent editor={editor} className="min-h-full p-4" />
                 </div>
 
                 {/* Excerpt */}
