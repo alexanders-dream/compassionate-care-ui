@@ -5,15 +5,12 @@ import heroImage from "@/assets/hero-clinician.jpg";
 
 const HeroSection = () => {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-warm via-background to-primary/10">
-      <div className="container-main section-padding">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+    <section className="relative overflow-hidden bg-gradient-to-br from-background via-background to-primary/5">
+      <div className="container-main pt-16 pb-8 md:pt-24 md:pb-12">
+        <div className="grid lg:grid-cols-2 gap-12 items-start">
           {/* Content */}
-          <div className="space-y-8 animate-fade-in">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/15 rounded-full text-sm font-medium text-primary">
-              <Heart size={16} className="text-primary" />
-              <span>Compassionate Expert Care</span>
-            </div>
+          <div className="space-y-8 animate-fade-in lg:pt-12">
+            {/* Badge Removed */}
 
             <h1 className="text-foreground">
               Advanced Wound Care{" "}
@@ -21,8 +18,8 @@ const HeroSection = () => {
             </h1>
 
             <p className="text-lg md:text-xl text-muted-foreground max-w-xl">
-              We bring specialized wound care directly to you. Our team of experienced 
-              clinicians delivers compassionate, evidence-based treatment for faster 
+              We bring specialized wound care directly to you. Our team of experienced
+              clinicians delivers compassionate, evidence-based treatment for faster
               healing and better outcomes.
             </p>
 
@@ -33,7 +30,7 @@ const HeroSection = () => {
                   <ArrowRight size={18} />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" asChild className="text-base border-secondary text-secondary hover:bg-secondary hover:text-secondary-foreground">
+              <Button size="lg" variant="outline" asChild className="text-base">
                 <Link to="/refer">
                   Refer a Patient
                 </Link>
@@ -55,9 +52,9 @@ const HeroSection = () => {
 
           {/* Hero Image */}
           <div className="relative animate-fade-in" style={{ animationDelay: "0.2s" }}>
-            <div className="aspect-square lg:aspect-[4/5] rounded-2xl overflow-hidden soft-shadow border border-primary/20">
-              <img 
-                src={heroImage} 
+            <div className="aspect-square lg:aspect-square rounded-[48%_52%_68%_32%_/_42%_66%_34%_58%] overflow-hidden soft-shadow">
+              <img
+                src={heroImage}
                 alt="Compassionate wound care clinician ready to help"
                 className="w-full h-full object-cover"
               />

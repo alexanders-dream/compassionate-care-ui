@@ -11,8 +11,8 @@ import { Badge } from "@/components/ui/badge";
 const Blog = () => {
   const [activeCategory, setActiveCategory] = useState<string>("all");
 
-  const filteredPosts = activeCategory === "all" 
-    ? blogPosts 
+  const filteredPosts = activeCategory === "all"
+    ? blogPosts
     : blogPosts.filter(post => post.category === activeCategory);
 
   const formatDate = (dateString: string) => {
@@ -30,20 +30,20 @@ const Blog = () => {
     <Layout>
       <Helmet>
         <title>Wound Care Education Blog | AR Advanced Woundcare Solutions</title>
-        <meta 
-          name="description" 
-          content="Expert wound care education, prevention tips, and treatment guides. Learn how to care for wounds, prevent complications, and support healing." 
+        <meta
+          name="description"
+          content="Expert wound care education, prevention tips, and treatment guides. Learn how to care for wounds, prevent complications, and support healing."
         />
       </Helmet>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-warm via-background to-accent/20 py-20 md:py-28">
+      <section className="relative overflow-hidden bg-gradient-to-br from-background via-background to-accent/20 py-20 md:py-28">
         {/* Decorative elements */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
           <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-accent/20 rounded-full blur-3xl" />
         </div>
-        
+
         <div className="container-main relative">
           <div className="max-w-3xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
@@ -54,7 +54,7 @@ const Blog = () => {
               Wound Care <span className="text-primary">Education</span>
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-              Expert insights, prevention tips, and treatment guides to help you understand 
+              Expert insights, prevention tips, and treatment guides to help you understand
               wound care and support your healing journey.
             </p>
           </div>
@@ -71,8 +71,8 @@ const Blog = () => {
                 onClick={() => setActiveCategory(category.id)}
                 className={`
                   px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200
-                  ${activeCategory === category.id 
-                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/25" 
+                  ${activeCategory === category.id
+                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/25"
                     : "bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground"
                   }
                 `}
@@ -91,7 +91,7 @@ const Blog = () => {
           {featuredPost && (
             <Card className="mb-12 overflow-hidden border-0 shadow-xl bg-gradient-to-br from-card to-muted/30 group">
               <div className="md:flex">
-                <div className="md:w-2/5 relative bg-gradient-to-br from-primary/10 via-accent/20 to-warm/30 p-8 md:p-12 flex items-center justify-center min-h-[280px]">
+                <div className="md:w-2/5 relative bg-gradient-to-br from-primary/10 via-accent/20 to-background p-8 md:p-12 flex items-center justify-center min-h-[280px]">
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,hsl(var(--primary)/0.1),transparent_50%)]" />
                   <div className="relative text-center">
                     <div className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-full text-sm font-medium mb-4 shadow-lg">
@@ -144,15 +144,15 @@ const Blog = () => {
           {/* Post Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {remainingPosts.map((post, index) => (
-              <Card 
-                key={post.id} 
+              <Card
+                key={post.id}
                 className="group overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-card"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
-                <div className="relative h-48 bg-gradient-to-br from-primary/5 via-accent/10 to-warm/20 flex items-center justify-center overflow-hidden">
+                <div className="relative h-48 bg-gradient-to-br from-primary/5 via-accent/10 to-background flex items-center justify-center overflow-hidden">
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_70%,hsl(var(--primary)/0.08),transparent_50%)] group-hover:scale-110 transition-transform duration-500" />
-                  <Badge 
-                    variant="secondary" 
+                  <Badge
+                    variant="secondary"
                     className="relative capitalize font-medium px-4 py-1.5 shadow-sm"
                   >
                     {post.category}
@@ -180,7 +180,7 @@ const Blog = () => {
                         {post.readTime}
                       </span>
                     </div>
-                    <Link 
+                    <Link
                       to={`/blog/${post.id}`}
                       className="text-primary font-medium text-sm inline-flex items-center gap-1 group-hover:gap-2 transition-all"
                     >

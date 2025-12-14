@@ -33,7 +33,7 @@ const Services = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-warm via-background to-primary/10 py-16 md:py-24">
+      <section className="bg-gradient-to-br from-background via-background to-primary/5 py-16 md:py-24">
         <div className="container-main">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
@@ -41,7 +41,7 @@ const Services = () => {
                 Expert Wound Care, <span className="text-primary">Delivered to You</span>
               </h1>
               <p className="text-lg text-muted-foreground mb-8">
-                Our certified wound care specialists provide comprehensive treatment for all types of wounds, 
+                Our certified wound care specialists provide comprehensive treatment for all types of wounds,
                 bringing clinical expertise directly to your home for convenient, compassionate care.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
@@ -54,8 +54,8 @@ const Services = () => {
               </div>
             </div>
             <div className="relative">
-              <img 
-                src={homeCareVisit} 
+              <img
+                src={homeCareVisit}
                 alt="Wound care clinician providing in-home treatment"
                 className="rounded-2xl shadow-elegant w-full"
               />
@@ -80,7 +80,7 @@ const Services = () => {
             {services.map((service, index) => {
               const IconComponent = iconMap[service.icon] || Heart;
               return (
-                <div 
+                <div
                   key={service.id || index}
                   className="bg-card rounded-2xl p-8 shadow-soft hover:shadow-elegant transition-shadow"
                 >
