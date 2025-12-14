@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { Helmet } from "react-helmet-async";
-import Layout from "@/components/layout/Layout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,9 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
-  Plus, Pencil, Trash2, FileText, Users, Star, HelpCircle, Briefcase, 
-  Sparkles, Mail, Send, ClipboardList, BookOpen, CheckCircle2, CalendarDays,
-  Upload, Download, File, User, Type, Image, Settings2, GripVertical, Eye, EyeOff
+  Plus, Pencil, Trash2, 
+  Sparkles, Mail, Send, CalendarDays,
+  CheckCircle2, User, Image
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { defaultFormConfigs, FormConfig, FormFieldConfig, FormFieldOption } from "@/data/formConfig";
@@ -90,6 +88,11 @@ const Admin = () => {
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
   const [scheduleInitialData, setScheduleInitialData] = useState<Partial<AppointmentFormData> | undefined>(undefined);
   const [allAppointments, setAllAppointments] = useState<Appointment[]>([]);
+
+  // Team member image states
+  const [teamMemberImage, setTeamMemberImage] = useState<File | null>(null);
+  const [teamMemberImagePreview, setTeamMemberImagePreview] = useState<string | null>(null);
+  const [resourceFile, setResourceFile] = useState<File | null>(null);
 
   const categoryOptions = categories.filter(c => c.id !== "all");
 
@@ -219,9 +222,6 @@ const Admin = () => {
   };
 
   // Team Member handlers
-  const [teamMemberImage, setTeamMemberImage] = useState<File | null>(null);
-  const [teamMemberImagePreview, setTeamMemberImagePreview] = useState<string | null>(null);
-
   const handleTeamMemberImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -292,8 +292,6 @@ const Admin = () => {
   };
 
   // Patient Resource handlers
-  const [resourceFile, setResourceFile] = useState<File | null>(null);
-
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -359,7 +357,6 @@ const Admin = () => {
       ? (emailRecipient.data as VisitRequest).email 
       : (emailRecipient.data as ProviderReferralSubmission).providerEmail;
     
-    // Update the email sent status
     if (emailRecipient.type === "visit") {
       setVisitRequests(visitRequests.map(vr => 
         vr.id === emailRecipient.data.id ? { ...vr, emailSent: true, status: "contacted" as const } : vr
@@ -400,7 +397,6 @@ const Admin = () => {
         linkedSubmissionId: request.id,
         linkedSubmissionType: "visit",
         notes: request.additionalInfo || "",
-        // Submission context data
         woundType: request.woundType,
         preferredContact: request.preferredContact,
         additionalInfo: request.additionalInfo,
@@ -416,7 +412,6 @@ const Admin = () => {
         linkedSubmissionId: referral.id,
         linkedSubmissionType: "referral",
         notes: referral.clinicalNotes || "",
-        // Submission context data
         woundType: referral.woundType,
         urgency: referral.urgency,
         providerName: referral.providerName,
@@ -432,7 +427,6 @@ const Admin = () => {
   const handleInlineSchedule = (appointment: Appointment) => {
     setAllAppointments(prev => [...prev, appointment]);
     
-    // Update linked submission status
     if (appointment.linkedSubmissionId && appointment.linkedSubmissionType) {
       if (appointment.linkedSubmissionType === "visit") {
         setVisitRequests(visitRequests.map(vr => 
@@ -607,7 +601,6 @@ const Admin = () => {
       </Helmet>
 
       <div className="min-h-screen flex bg-background">
-        {/* Sidebar */}
         <AdminSidebar 
           activeSection={activeSection}
           onSectionChange={setActiveSection}
@@ -615,203 +608,188 @@ const Admin = () => {
           onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
         />
 
-        {/* Main Content */}
         <div className="flex-1 flex flex-col min-w-0">
-          {/* Header */}
           <header className="bg-muted/30 border-b border-border px-6 py-6">
             <h1 className="text-2xl md:text-3xl font-bold text-primary">Admin Dashboard</h1>
             <p className="text-muted-foreground text-sm mt-1">Manage all website content</p>
           </header>
 
-          {/* Content Area */}
           <ScrollArea className="flex-1">
             <main className="p-6">
-              {/* Form Submissions Section */}
+              {/* Submissions Section */}
               {activeSection === "submissions" && (
                 <div className="space-y-8">
-                  {/* Visit Requests */}
                   <div>
-                      <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                        <Mail className="h-5 w-5 text-primary" />
-                        Visit Requests ({visitRequests.length})
-                      </h2>
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Contact</TableHead>
-                            <TableHead>Wound Type</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Submitted</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {visitRequests.map(request => (
-                            <TableRow key={request.id}>
-                              <TableCell className="font-medium">
-                                {request.firstName} {request.lastName}
-                              </TableCell>
-                              <TableCell>
-                                <div className="text-sm">
-                                  <div>{request.email}</div>
-                                  <div className="text-muted-foreground">{request.phone}</div>
-                                </div>
-                              </TableCell>
-                              <TableCell className="capitalize">{request.woundType}</TableCell>
-                              <TableCell>
-                                <Select 
-                                  value={request.status} 
-                                  onValueChange={(value) => updateVisitStatus(request.id, value as VisitRequest["status"])}
-                                >
-                                  <SelectTrigger className="w-32">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="pending">Pending</SelectItem>
-                                    <SelectItem value="contacted">Contacted</SelectItem>
-                                    <SelectItem value="scheduled">Scheduled</SelectItem>
-                                    <SelectItem value="completed">Completed</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </TableCell>
-                              <TableCell>{new Date(request.submittedAt).toLocaleDateString()}</TableCell>
-                              <TableCell className="text-right space-x-1">
-                                {request.status !== "scheduled" && request.status !== "completed" && (
-                                  <Button 
-                                    variant="default" 
-                                    size="sm" 
-                                    onClick={() => openScheduleDialog("visit", request)}
-                                    className="gap-1"
-                                  >
-                                    <CalendarDays className="h-3 w-3" />
-                                    Schedule
-                                  </Button>
-                                )}
+                    <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                      <Mail className="h-5 w-5 text-primary" />
+                      Visit Requests ({visitRequests.length})
+                    </h2>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Contact</TableHead>
+                          <TableHead>Wound Type</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Submitted</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {visitRequests.map(request => (
+                          <TableRow key={request.id}>
+                            <TableCell className="font-medium">
+                              {request.firstName} {request.lastName}
+                            </TableCell>
+                            <TableCell>
+                              <div className="text-sm">
+                                <div>{request.email}</div>
+                                <div className="text-muted-foreground">{request.phone}</div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="capitalize">{request.woundType}</TableCell>
+                            <TableCell>
+                              <Select 
+                                value={request.status} 
+                                onValueChange={(value) => updateVisitStatus(request.id, value as VisitRequest["status"])}
+                              >
+                                <SelectTrigger className="w-32">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="pending">Pending</SelectItem>
+                                  <SelectItem value="contacted">Contacted</SelectItem>
+                                  <SelectItem value="scheduled">Scheduled</SelectItem>
+                                  <SelectItem value="completed">Completed</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </TableCell>
+                            <TableCell>{new Date(request.submittedAt).toLocaleDateString()}</TableCell>
+                            <TableCell className="text-right space-x-1">
+                              {request.status !== "scheduled" && request.status !== "completed" && (
                                 <Button 
-                                  variant="outline" 
+                                  variant="default" 
                                   size="sm" 
-                                  onClick={() => openEmailDialog("visit", request)}
+                                  onClick={() => openScheduleDialog("visit", request)}
                                   className="gap-1"
                                 >
-                                  <Send className="h-3 w-3" />
-                                  {request.emailSent ? "Resend" : "Email"}
+                                  <CalendarDays className="h-3 w-3" />
+                                  Schedule
                                 </Button>
-                                {request.emailSent && (
-                                  <CheckCircle2 className="h-4 w-4 text-green-500 inline ml-1" />
-                                )}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                          {visitRequests.length === 0 && (
-                            <TableRow>
-                              <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                                No visit requests yet
-                              </TableCell>
-                            </TableRow>
-                          )}
-                        </TableBody>
-                      </Table>
-                    </div>
-
-                    {/* Provider Referrals */}
-                    <div>
-                      <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                        <Briefcase className="h-5 w-5 text-primary" />
-                        Provider Referrals ({referrals.length})
-                      </h2>
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Patient</TableHead>
-                            <TableHead>Provider</TableHead>
-                            <TableHead>Wound Type</TableHead>
-                            <TableHead>Urgency</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
+                              )}
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => openEmailDialog("visit", request)}
+                                className="gap-1"
+                              >
+                                <Send className="h-3 w-3" />
+                                {request.emailSent ? "Resend" : "Email"}
+                              </Button>
+                              {request.emailSent && (
+                                <CheckCircle2 className="h-4 w-4 text-green-500 inline ml-1" />
+                              )}
+                            </TableCell>
                           </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {referrals.map(referral => (
-                            <TableRow key={referral.id}>
-                              <TableCell className="font-medium">
-                                {referral.patientFirstName} {referral.patientLastName}
-                              </TableCell>
-                              <TableCell>
-                                <div className="text-sm">
-                                  <div>{referral.providerName}</div>
-                                  <div className="text-muted-foreground">{referral.practiceName}</div>
-                                </div>
-                              </TableCell>
-                              <TableCell className="capitalize">{referral.woundType}</TableCell>
-                              <TableCell>
-                                <Badge variant={referral.urgency === "urgent" ? "destructive" : "secondary"}>
-                                  {referral.urgency}
-                                </Badge>
-                              </TableCell>
-                              <TableCell>
-                                <Select 
-                                  value={referral.status} 
-                                  onValueChange={(value) => updateReferralStatus(referral.id, value as ProviderReferralSubmission["status"])}
-                                >
-                                  <SelectTrigger className="w-32">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="pending">Pending</SelectItem>
-                                    <SelectItem value="contacted">Contacted</SelectItem>
-                                    <SelectItem value="scheduled">Scheduled</SelectItem>
-                                    <SelectItem value="completed">Completed</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </TableCell>
-                              <TableCell className="text-right space-x-1">
-                                {referral.status !== "scheduled" && referral.status !== "completed" && (
-                                  <Button 
-                                    variant="default" 
-                                    size="sm" 
-                                    onClick={() => openScheduleDialog("referral", referral)}
-                                    className="gap-1"
-                                  >
-                                    <CalendarDays className="h-3 w-3" />
-                                    Schedule
-                                  </Button>
-                                )}
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  onClick={() => openEmailDialog("referral", referral)}
-                                  className="gap-1"
-                                >
-                                  <Send className="h-3 w-3" />
-                                  {referral.emailSent ? "Resend" : "Email"}
-                                </Button>
-                                {referral.emailSent && (
-                                  <CheckCircle2 className="h-4 w-4 text-green-500 inline ml-1" />
-                                )}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                          {referrals.length === 0 && (
-                            <TableRow>
-                              <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                                No provider referrals yet
-                              </TableCell>
-                            </TableRow>
-                          )}
-                        </TableBody>
-                      </Table>
-                    </div>
+                        ))}
+                        {visitRequests.length === 0 && (
+                          <TableRow>
+                            <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                              No visit requests yet
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
                   </div>
 
-                  {/* Inline Scheduling Dialog */}
-                  <ScheduleDialog 
-                    open={isScheduleDialogOpen}
-                    onOpenChange={setIsScheduleDialogOpen}
-                    initialData={scheduleInitialData}
-                    onSchedule={handleInlineSchedule}
-                    existingAppointments={allAppointments}
-                  />
+                  <div>
+                    <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                      <User className="h-5 w-5 text-primary" />
+                      Provider Referrals ({referrals.length})
+                    </h2>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Patient</TableHead>
+                          <TableHead>Provider</TableHead>
+                          <TableHead>Wound Type</TableHead>
+                          <TableHead>Urgency</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {referrals.map(referral => (
+                          <TableRow key={referral.id}>
+                            <TableCell className="font-medium">
+                              {referral.patientFirstName} {referral.patientLastName}
+                            </TableCell>
+                            <TableCell>
+                              <div className="text-sm">
+                                <div>{referral.providerName}</div>
+                                <div className="text-muted-foreground">{referral.practiceName}</div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="capitalize">{referral.woundType}</TableCell>
+                            <TableCell>
+                              <Badge variant={referral.urgency === "urgent" ? "destructive" : "secondary"}>
+                                {referral.urgency}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Select 
+                                value={referral.status} 
+                                onValueChange={(value) => updateReferralStatus(referral.id, value as ProviderReferralSubmission["status"])}
+                              >
+                                <SelectTrigger className="w-32">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="pending">Pending</SelectItem>
+                                  <SelectItem value="contacted">Contacted</SelectItem>
+                                  <SelectItem value="scheduled">Scheduled</SelectItem>
+                                  <SelectItem value="completed">Completed</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </TableCell>
+                            <TableCell className="text-right space-x-1">
+                              {referral.status !== "scheduled" && referral.status !== "completed" && (
+                                <Button 
+                                  variant="default" 
+                                  size="sm" 
+                                  onClick={() => openScheduleDialog("referral", referral)}
+                                  className="gap-1"
+                                >
+                                  <CalendarDays className="h-3 w-3" />
+                                  Schedule
+                                </Button>
+                              )}
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => openEmailDialog("referral", referral)}
+                                className="gap-1"
+                              >
+                                <Send className="h-3 w-3" />
+                                {referral.emailSent ? "Resend" : "Email"}
+                              </Button>
+                              {referral.emailSent && (
+                                <CheckCircle2 className="h-4 w-4 text-green-500 inline ml-1" />
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                        {referrals.length === 0 && (
+                          <TableRow>
+                            <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                              No provider referrals yet
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </div>
               )}
 
@@ -827,372 +805,353 @@ const Admin = () => {
                 />
               )}
 
-              {/* Forms Management Section */}
+              {/* Forms Section */}
               {activeSection === "forms" && (
                 <div className="space-y-6">
-                    <div className="flex justify-between items-center">
-                      <h2 className="text-xl font-semibold">Form Configuration</h2>
-                      <div className="flex gap-3">
-                        <Select value={selectedFormId} onValueChange={setSelectedFormId}>
-                          <SelectTrigger className="w-56">
-                            <SelectValue placeholder="Select form" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {formConfigs.map(form => (
-                              <SelectItem key={form.id} value={form.id}>
-                                {form.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Button onClick={handleSaveFormConfig}>
-                          <CheckCircle2 className="h-4 w-4 mr-2" />
-                          Save Changes
-                        </Button>
-                      </div>
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-xl font-semibold">Form Configuration</h2>
+                    <div className="flex gap-3">
+                      <Select value={selectedFormId} onValueChange={setSelectedFormId}>
+                        <SelectTrigger className="w-56">
+                          <SelectValue placeholder="Select a form" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {formConfigs.map(form => (
+                            <SelectItem key={form.id} value={form.id}>{form.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button onClick={handleAddNewField}>
+                        <Plus className="h-4 w-4 mr-2" /> Add Field
+                      </Button>
+                      <Button variant="secondary" onClick={handleSaveFormConfig}>
+                        Save Changes
+                      </Button>
                     </div>
-                    
-                    {selectedForm && (
-                      <>
-                        <Card className="bg-muted/50">
-                          <CardContent className="pt-4">
-                            <p className="text-sm text-muted-foreground">{selectedForm.description}</p>
-                          </CardContent>
-                        </Card>
+                  </div>
 
-                        <div className="flex justify-between items-center">
-                          <h3 className="font-semibold">Form Fields ({selectedForm.fields.length})</h3>
-                          <Button variant="outline" onClick={handleAddNewField}>
-                            <Plus className="h-4 w-4 mr-2" />
-                            Add Field
-                          </Button>
-                        </div>
+                  {selectedForm && (
+                    <>
+                      <p className="text-sm text-muted-foreground">
+                        Configure fields for "{selectedForm.name}". Toggle fields on/off or edit their properties.
+                      </p>
 
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead className="w-8"></TableHead>
-                              <TableHead>Field Label</TableHead>
-                              <TableHead>Type</TableHead>
-                              <TableHead className="text-center">Required</TableHead>
-                              <TableHead className="text-center">Enabled</TableHead>
-                              <TableHead className="text-right">Actions</TableHead>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Label</TableHead>
+                            <TableHead>Key</TableHead>
+                            <TableHead>Type</TableHead>
+                            <TableHead className="text-center">Required</TableHead>
+                            <TableHead className="text-center">Enabled</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {selectedForm.fields.sort((a, b) => a.order - b.order).map(field => (
+                            <TableRow key={field.id} className={!field.enabled ? "opacity-50" : ""}>
+                              <TableCell className="font-medium">{field.label}</TableCell>
+                              <TableCell className="text-muted-foreground text-sm">{field.key}</TableCell>
+                              <TableCell>
+                                <Badge variant="outline">{field.type}</Badge>
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <Switch 
+                                  checked={field.required}
+                                  onCheckedChange={() => handleToggleFieldRequired(field.id)}
+                                  disabled={!field.enabled}
+                                />
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <Switch 
+                                  checked={field.enabled}
+                                  onCheckedChange={() => handleToggleFieldEnabled(field.id)}
+                                />
+                              </TableCell>
+                              <TableCell className="text-right space-x-1">
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => {
+                                    setEditingField({ ...field });
+                                    setIsFieldDialogOpen(true);
+                                  }}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => handleDeleteField(field.id)}
+                                >
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </TableCell>
                             </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {selectedForm.fields.sort((a, b) => a.order - b.order).map(field => (
-                              <TableRow key={field.id} className={!field.enabled ? "opacity-50" : ""}>
-                                <TableCell>
-                                  <GripVertical className="h-4 w-4 text-muted-foreground cursor-move" />
-                                </TableCell>
-                                <TableCell>
-                                  <div className="font-medium">{field.label}</div>
-                                  <div className="text-xs text-muted-foreground">{field.key}</div>
-                                </TableCell>
-                                <TableCell>
-                                  <Badge variant="secondary" className="capitalize">
-                                    {field.type}
-                                  </Badge>
-                                </TableCell>
-                                <TableCell className="text-center">
-                                  <Switch 
-                                    checked={field.required}
-                                    onCheckedChange={() => handleToggleFieldRequired(field.id)}
-                                    disabled={!field.enabled}
-                                  />
-                                </TableCell>
-                                <TableCell className="text-center">
-                                  <Switch 
-                                    checked={field.enabled}
-                                    onCheckedChange={() => handleToggleFieldEnabled(field.id)}
-                                  />
-                                </TableCell>
-                                <TableCell className="text-right space-x-1">
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm"
-                                    onClick={() => {
-                                      setEditingField({ ...field });
-                                      setIsFieldDialogOpen(true);
-                                    }}
-                                  >
-                                    <Pencil className="h-4 w-4" />
-                                  </Button>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm"
-                                    onClick={() => handleDeleteField(field.id)}
-                                  >
-                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                  </Button>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
+                          ))}
+                        </TableBody>
+                      </Table>
 
-                        {/* Field Edit Dialog */}
-                        <Dialog open={isFieldDialogOpen} onOpenChange={setIsFieldDialogOpen}>
-                          <DialogContent className="max-w-lg">
-                            <DialogHeader>
-                              <DialogTitle>Edit Field: {editingField?.label}</DialogTitle>
-                            </DialogHeader>
-                            {editingField && (
-                              <div className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div>
-                                    <Label htmlFor="fieldLabel">Label</Label>
-                                    <Input 
-                                      id="fieldLabel"
-                                      value={editingField.label}
-                                      onChange={(e) => setEditingField({ ...editingField, label: e.target.value })}
-                                    />
-                                  </div>
-                                  <div>
-                                    <Label htmlFor="fieldKey">Field Key</Label>
-                                    <Input 
-                                      id="fieldKey"
-                                      value={editingField.key}
-                                      onChange={(e) => setEditingField({ ...editingField, key: e.target.value })}
-                                    />
-                                  </div>
-                                </div>
-                                
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div>
-                                    <Label htmlFor="fieldType">Type</Label>
-                                    <Select 
-                                      value={editingField.type} 
-                                      onValueChange={(value) => setEditingField({ ...editingField, type: value as FormFieldConfig["type"] })}
-                                    >
-                                      <SelectTrigger>
-                                        <SelectValue />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="text">Text</SelectItem>
-                                        <SelectItem value="email">Email</SelectItem>
-                                        <SelectItem value="tel">Phone</SelectItem>
-                                        <SelectItem value="date">Date</SelectItem>
-                                        <SelectItem value="select">Select/Dropdown</SelectItem>
-                                        <SelectItem value="textarea">Text Area</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-                                  <div>
-                                    <Label htmlFor="fieldPlaceholder">Placeholder</Label>
-                                    <Input 
-                                      id="fieldPlaceholder"
-                                      value={editingField.placeholder || ""}
-                                      onChange={(e) => setEditingField({ ...editingField, placeholder: e.target.value })}
-                                    />
-                                  </div>
-                                </div>
-
+                      <Dialog open={isFieldDialogOpen} onOpenChange={setIsFieldDialogOpen}>
+                        <DialogContent className="max-w-lg">
+                          <DialogHeader>
+                            <DialogTitle>Edit Field: {editingField?.label}</DialogTitle>
+                          </DialogHeader>
+                          {editingField && (
+                            <div className="space-y-4">
+                              <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                  <Label htmlFor="fieldHelpText">Help Text (optional)</Label>
+                                  <Label htmlFor="fieldLabel">Label</Label>
                                   <Input 
-                                    id="fieldHelpText"
-                                    value={editingField.helpText || ""}
-                                    onChange={(e) => setEditingField({ ...editingField, helpText: e.target.value })}
-                                    placeholder="Additional context for this field"
+                                    id="fieldLabel"
+                                    value={editingField.label}
+                                    onChange={(e) => setEditingField({ ...editingField, label: e.target.value })}
                                   />
                                 </div>
-
-                                <div className="flex gap-6">
-                                  <div className="flex items-center gap-2">
-                                    <Switch 
-                                      id="fieldRequired"
-                                      checked={editingField.required}
-                                      onCheckedChange={(checked) => setEditingField({ ...editingField, required: checked })}
-                                    />
-                                    <Label htmlFor="fieldRequired">Required</Label>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <Switch 
-                                      id="fieldEnabled"
-                                      checked={editingField.enabled}
-                                      onCheckedChange={(checked) => setEditingField({ ...editingField, enabled: checked })}
-                                    />
-                                    <Label htmlFor="fieldEnabled">Enabled</Label>
-                                  </div>
-                                </div>
-
-                                {editingField.type === "select" && (
-                                  <div className="space-y-3">
-                                    <Label>Options</Label>
-                                    <div className="border rounded-lg p-3 space-y-2 max-h-48 overflow-y-auto">
-                                      {editingField.options?.map((option, index) => (
-                                        <div key={index} className="flex items-center justify-between bg-muted/50 px-3 py-2 rounded">
-                                          <div>
-                                            <span className="font-medium">{option.label}</span>
-                                            <span className="text-xs text-muted-foreground ml-2">({option.value})</span>
-                                          </div>
-                                          <Button 
-                                            variant="ghost" 
-                                            size="sm"
-                                            onClick={() => handleRemoveFieldOption(index)}
-                                          >
-                                            <Trash2 className="h-3 w-3 text-destructive" />
-                                          </Button>
-                                        </div>
-                                      ))}
-                                      {(!editingField.options || editingField.options.length === 0) && (
-                                        <p className="text-sm text-muted-foreground text-center py-2">No options defined</p>
-                                      )}
-                                    </div>
-                                    <div className="flex gap-2">
-                                      <Input 
-                                        placeholder="Label"
-                                        value={newOptionLabel}
-                                        onChange={(e) => setNewOptionLabel(e.target.value)}
-                                        className="flex-1"
-                                      />
-                                      <Input 
-                                        placeholder="Value"
-                                        value={newOptionValue}
-                                        onChange={(e) => setNewOptionValue(e.target.value)}
-                                        className="flex-1"
-                                      />
-                                      <Button 
-                                        variant="outline" 
-                                        onClick={handleAddFieldOption}
-                                        disabled={!newOptionLabel || !newOptionValue}
-                                      >
-                                        <Plus className="h-4 w-4" />
-                                      </Button>
-                                    </div>
-                                  </div>
-                                )}
-
-                                <div className="flex justify-end gap-2 pt-4">
-                                  <Button variant="outline" onClick={() => setIsFieldDialogOpen(false)}>
-                                    Cancel
-                                  </Button>
-                                  <Button onClick={handleSaveFieldEdit}>
-                                    Save Field
-                                  </Button>
+                                <div>
+                                  <Label htmlFor="fieldKey">Field Key</Label>
+                                  <Input 
+                                    id="fieldKey"
+                                    value={editingField.key}
+                                    onChange={(e) => setEditingField({ ...editingField, key: e.target.value })}
+                                  />
                                 </div>
                               </div>
-                            )}
-                          </DialogContent>
-                        </Dialog>
-                      </>
-                    )}
-                  </div>
-                )}
+                              
+                              <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <Label htmlFor="fieldType">Type</Label>
+                                  <Select 
+                                    value={editingField.type} 
+                                    onValueChange={(value) => setEditingField({ ...editingField, type: value as FormFieldConfig["type"] })}
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="text">Text</SelectItem>
+                                      <SelectItem value="email">Email</SelectItem>
+                                      <SelectItem value="tel">Phone</SelectItem>
+                                      <SelectItem value="date">Date</SelectItem>
+                                      <SelectItem value="select">Select/Dropdown</SelectItem>
+                                      <SelectItem value="textarea">Text Area</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div>
+                                  <Label htmlFor="fieldPlaceholder">Placeholder</Label>
+                                  <Input 
+                                    id="fieldPlaceholder"
+                                    value={editingField.placeholder || ""}
+                                    onChange={(e) => setEditingField({ ...editingField, placeholder: e.target.value })}
+                                  />
+                                </div>
+                              </div>
+
+                              <div>
+                                <Label htmlFor="fieldHelpText">Help Text (optional)</Label>
+                                <Input 
+                                  id="fieldHelpText"
+                                  value={editingField.helpText || ""}
+                                  onChange={(e) => setEditingField({ ...editingField, helpText: e.target.value })}
+                                  placeholder="Additional context for this field"
+                                />
+                              </div>
+
+                              <div className="flex gap-6">
+                                <div className="flex items-center gap-2">
+                                  <Switch 
+                                    id="fieldRequired"
+                                    checked={editingField.required}
+                                    onCheckedChange={(checked) => setEditingField({ ...editingField, required: checked })}
+                                  />
+                                  <Label htmlFor="fieldRequired">Required</Label>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Switch 
+                                    id="fieldEnabled"
+                                    checked={editingField.enabled}
+                                    onCheckedChange={(checked) => setEditingField({ ...editingField, enabled: checked })}
+                                  />
+                                  <Label htmlFor="fieldEnabled">Enabled</Label>
+                                </div>
+                              </div>
+
+                              {editingField.type === "select" && (
+                                <div className="space-y-3">
+                                  <Label>Options</Label>
+                                  <div className="border rounded-lg p-3 space-y-2 max-h-48 overflow-y-auto">
+                                    {editingField.options?.map((option, index) => (
+                                      <div key={index} className="flex items-center justify-between bg-muted/50 px-3 py-2 rounded">
+                                        <div>
+                                          <span className="font-medium">{option.label}</span>
+                                          <span className="text-xs text-muted-foreground ml-2">({option.value})</span>
+                                        </div>
+                                        <Button 
+                                          variant="ghost" 
+                                          size="sm"
+                                          onClick={() => handleRemoveFieldOption(index)}
+                                        >
+                                          <Trash2 className="h-3 w-3 text-destructive" />
+                                        </Button>
+                                      </div>
+                                    ))}
+                                    {(!editingField.options || editingField.options.length === 0) && (
+                                      <p className="text-sm text-muted-foreground text-center py-2">No options defined</p>
+                                    )}
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <Input 
+                                      placeholder="Label"
+                                      value={newOptionLabel}
+                                      onChange={(e) => setNewOptionLabel(e.target.value)}
+                                      className="flex-1"
+                                    />
+                                    <Input 
+                                      placeholder="Value"
+                                      value={newOptionValue}
+                                      onChange={(e) => setNewOptionValue(e.target.value)}
+                                      className="flex-1"
+                                    />
+                                    <Button 
+                                      variant="outline" 
+                                      onClick={handleAddFieldOption}
+                                      disabled={!newOptionLabel || !newOptionValue}
+                                    >
+                                      <Plus className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              )}
+
+                              <div className="flex justify-end gap-2 pt-4">
+                                <Button variant="outline" onClick={() => setIsFieldDialogOpen(false)}>
+                                  Cancel
+                                </Button>
+                                <Button onClick={handleSaveFieldEdit}>
+                                  Save Field
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                        </DialogContent>
+                      </Dialog>
+                    </>
+                  )}
+                </div>
+              )}
 
               {/* Site Copy Section */}
               {activeSection === "site-copy" && (
                 <div className="space-y-6">
-                    <div className="flex justify-between items-center">
-                      <h2 className="text-xl font-semibold">Site Copy Management</h2>
-                      <Select value={selectedCopyPage} onValueChange={setSelectedCopyPage}>
-                        <SelectTrigger className="w-48">
-                          <SelectValue placeholder="Filter by page" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {uniquePages.map(page => (
-                            <SelectItem key={page} value={page}>
-                              {page === "all" ? "All Pages" : page}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <p className="text-sm text-muted-foreground">
-                      Edit the text content displayed across your website. Changes will be reflected site-wide.
-                    </p>
-
-                    <div className="space-y-6">
-                      {filteredCopySections.map(section => (
-                        <Card key={section.id}>
-                          <CardHeader className="pb-3">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <Badge variant="outline" className="mb-2">{section.page}</Badge>
-                                <CardTitle className="text-lg">{section.section}</CardTitle>
-                              </div>
-                              <Button 
-                                size="sm" 
-                                onClick={() => handleSaveCopySection(section.id)}
-                              >
-                                <CheckCircle2 className="h-4 w-4 mr-2" />
-                                Save Changes
-                              </Button>
-                            </div>
-                          </CardHeader>
-                          <CardContent className="space-y-4">
-                            {section.fields.map(field => (
-                              <div key={field.key}>
-                                <Label htmlFor={`${section.id}-${field.key}`}>{field.label}</Label>
-                                {field.type === "image" ? (
-                                  <div className="mt-1 space-y-3">
-                                    {field.value && (
-                                      <div className="relative w-full max-w-xs aspect-video rounded-lg overflow-hidden border bg-muted">
-                                        <img 
-                                          src={field.value} 
-                                          alt={field.label}
-                                          className="w-full h-full object-cover"
-                                        />
-                                      </div>
-                                    )}
-                                    <div className="flex items-center gap-3">
-                                      <label 
-                                        htmlFor={`${section.id}-${field.key}`}
-                                        className="flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md cursor-pointer hover:bg-secondary/80 transition-colors text-sm font-medium"
-                                      >
-                                        <Image className="h-4 w-4" />
-                                        {field.value ? "Change Image" : "Upload Image"}
-                                      </label>
-                                      <input
-                                        type="file"
-                                        id={`${section.id}-${field.key}`}
-                                        accept="image/*"
-                                        onChange={(e) => handleCopyImageUpload(section.id, field.key, e)}
-                                        className="hidden"
-                                      />
-                                      {field.value && (
-                                        <Button
-                                          type="button"
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => handleUpdateCopyField(section.id, field.key, "")}
-                                          className="text-destructive hover:text-destructive"
-                                        >
-                                          <Trash2 className="h-4 w-4 mr-1" />
-                                          Remove
-                                        </Button>
-                                      )}
-                                    </div>
-                                  </div>
-                                ) : field.type === "textarea" ? (
-                                  <Textarea
-                                    id={`${section.id}-${field.key}`}
-                                    value={field.value}
-                                    onChange={(e) => handleUpdateCopyField(section.id, field.key, e.target.value)}
-                                    rows={3}
-                                    className="mt-1"
-                                  />
-                                ) : (
-                                  <Input
-                                    id={`${section.id}-${field.key}`}
-                                    value={field.value}
-                                    onChange={(e) => handleUpdateCopyField(section.id, field.key, e.target.value)}
-                                    className="mt-1"
-                                  />
-                                )}
-                              </div>
-                            ))}
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-xl font-semibold">Site Copy Management</h2>
+                    <Select value={selectedCopyPage} onValueChange={setSelectedCopyPage}>
+                      <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Filter by page" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {uniquePages.map(page => (
+                          <SelectItem key={page} value={page}>
+                            {page === "all" ? "All Pages" : page}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                )}
+                  
+                  <p className="text-sm text-muted-foreground">
+                    Edit the text content displayed across your website. Changes will be reflected site-wide.
+                  </p>
 
+                  <div className="space-y-6">
+                    {filteredCopySections.map(section => (
+                      <Card key={section.id}>
+                        <CardHeader className="pb-3">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <Badge variant="outline" className="mb-2">{section.page}</Badge>
+                              <CardTitle className="text-lg">{section.section}</CardTitle>
+                            </div>
+                            <Button 
+                              size="sm" 
+                              onClick={() => handleSaveCopySection(section.id)}
+                            >
+                              <CheckCircle2 className="h-4 w-4 mr-2" />
+                              Save Changes
+                            </Button>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          {section.fields.map(field => (
+                            <div key={field.key}>
+                              <Label htmlFor={`${section.id}-${field.key}`}>{field.label}</Label>
+                              {field.type === "image" ? (
+                                <div className="mt-1 space-y-3">
+                                  {field.value && (
+                                    <div className="relative w-full max-w-xs aspect-video rounded-lg overflow-hidden border bg-muted">
+                                      <img 
+                                        src={field.value} 
+                                        alt={field.label}
+                                        className="w-full h-full object-cover"
+                                      />
+                                    </div>
+                                  )}
+                                  <div className="flex items-center gap-3">
+                                    <label 
+                                      htmlFor={`${section.id}-${field.key}`}
+                                      className="flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md cursor-pointer hover:bg-secondary/80 transition-colors text-sm font-medium"
+                                    >
+                                      <Image className="h-4 w-4" />
+                                      {field.value ? "Change Image" : "Upload Image"}
+                                    </label>
+                                    <input
+                                      type="file"
+                                      id={`${section.id}-${field.key}`}
+                                      accept="image/*"
+                                      onChange={(e) => handleCopyImageUpload(section.id, field.key, e)}
+                                      className="hidden"
+                                    />
+                                    {field.value && (
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleUpdateCopyField(section.id, field.key, "")}
+                                        className="text-destructive hover:text-destructive"
+                                      >
+                                        <Trash2 className="h-4 w-4 mr-1" />
+                                        Remove
+                                      </Button>
+                                    )}
+                                  </div>
+                                </div>
+                              ) : field.type === "textarea" ? (
+                                <Textarea
+                                  id={`${section.id}-${field.key}`}
+                                  value={field.value}
+                                  onChange={(e) => handleUpdateCopyField(section.id, field.key, e.target.value)}
+                                  rows={3}
+                                  className="mt-1"
+                                />
+                              ) : (
+                                <Input
+                                  id={`${section.id}-${field.key}`}
+                                  value={field.value}
+                                  onChange={(e) => handleUpdateCopyField(section.id, field.key, e.target.value)}
+                                  className="mt-1"
+                                />
+                              )}
+                            </div>
+                          ))}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-              {/* Patient Resources Section */}
+              {/* Resources Section */}
               {activeSection === "resources" && (
                 <>
                   <div className="flex justify-between items-center mb-4">
@@ -1218,14 +1177,15 @@ const Admin = () => {
                           </div>
                           <div>
                             <Label htmlFor="type">Type</Label>
-                            <Select name="type" defaultValue={editingResource?.type || "PDF Guide"}>
+                            <Select name="type" defaultValue={editingResource?.type || "guide"}>
                               <SelectTrigger>
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="PDF Guide">PDF Guide</SelectItem>
-                                <SelectItem value="Educational Article">Educational Article</SelectItem>
-                                <SelectItem value="Video Tutorial">Video Tutorial</SelectItem>
+                                <SelectItem value="guide">Guide</SelectItem>
+                                <SelectItem value="video">Video</SelectItem>
+                                <SelectItem value="checklist">Checklist</SelectItem>
+                                <SelectItem value="faq">FAQ</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
@@ -1233,44 +1193,26 @@ const Admin = () => {
                             <Label>Icon</Label>
                             <IconPicker value={resourceIcon} onChange={setResourceIcon} name="icon" />
                           </div>
-                          <div className="space-y-2">
-                            <Label>Upload File</Label>
-                            <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
+                          <div>
+                            <Label>File Upload</Label>
+                            <div className="mt-2 border-2 border-dashed border-border rounded-lg p-4 text-center hover:border-primary/50 transition-colors">
                               <input
                                 type="file"
-                                id="resourceFile"
-                                className="hidden"
                                 onChange={handleFileUpload}
-                                accept=".pdf,.doc,.docx,.mp4,.webm"
+                                className="hidden"
+                                id="resource-file"
                               />
-                              <label htmlFor="resourceFile" className="cursor-pointer">
+                              <label htmlFor="resource-file" className="cursor-pointer">
                                 <div className="flex flex-col items-center gap-2">
-                                  <Upload className="h-8 w-8 text-muted-foreground" />
                                   <span className="text-sm text-muted-foreground">
-                                    Click to upload or drag and drop
-                                  </span>
-                                  <span className="text-xs text-muted-foreground">
-                                    PDF, DOC, DOCX, MP4, WEBM
+                                    {resourceFile ? resourceFile.name : "Click to upload file"}
                                   </span>
                                 </div>
                               </label>
-                              {(resourceFile || editingResource?.fileName) && (
-                                <div className="mt-3 p-2 bg-muted rounded flex items-center gap-2">
-                                  <File className="h-4 w-4 text-primary" />
-                                  <span className="text-sm font-medium">
-                                    {resourceFile?.name || editingResource?.fileName}
-                                  </span>
-                                  {(resourceFile || editingResource?.fileSize) && (
-                                    <span className="text-xs text-muted-foreground">
-                                      ({resourceFile ? formatFileSize(resourceFile.size) : editingResource?.fileSize})
-                                    </span>
-                                  )}
-                                </div>
-                              )}
                             </div>
                           </div>
                           <div>
-                            <Label htmlFor="url">External URL (optional - if no file uploaded)</Label>
+                            <Label htmlFor="url">Or External URL</Label>
                             <Input id="url" name="url" defaultValue={editingResource?.url} placeholder="https://..." />
                           </div>
                           <Button type="submit" className="w-full">Save Resource</Button>
@@ -1284,7 +1226,6 @@ const Admin = () => {
                         <TableHead>Title</TableHead>
                         <TableHead>Type</TableHead>
                         <TableHead>File</TableHead>
-                        <TableHead>Description</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -1295,29 +1236,11 @@ const Admin = () => {
                           <TableCell>
                             <Badge variant="outline">{resource.type}</Badge>
                           </TableCell>
-                          <TableCell>
-                            {resource.fileName ? (
-                              <div className="flex items-center gap-1">
-                                <File className="h-4 w-4 text-primary" />
-                                <span className="text-sm">{resource.fileName}</span>
-                                <span className="text-xs text-muted-foreground">({resource.fileSize})</span>
-                              </div>
-                            ) : (
-                              <span className="text-muted-foreground text-sm">External URL</span>
-                            )}
+                          <TableCell className="text-sm text-muted-foreground">
+                            {resource.fileName || resource.url || "—"}
                           </TableCell>
-                          <TableCell className="max-w-xs truncate">{resource.description}</TableCell>
                           <TableCell className="text-right">
-                            {resource.fileName && (
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                onClick={() => toast({ title: `Simulated download: ${resource.fileName}` })}
-                              >
-                                <Download className="h-4 w-4 text-primary" />
-                              </Button>
-                            )}
-                            <Button variant="ghost" size="sm" onClick={() => { setEditingResource(resource); setResourceFile(null); setResourceIcon(resource.icon || "FileText"); setIsResourceDialogOpen(true); }}>
+                            <Button variant="ghost" size="sm" onClick={() => { setEditingResource(resource); setResourceIcon(resource.icon || "FileText"); setIsResourceDialogOpen(true); }}>
                               <Pencil className="h-4 w-4" />
                             </Button>
                             <Button variant="ghost" size="sm" onClick={() => handleDeleteResource(resource.id)}>
@@ -1331,22 +1254,16 @@ const Admin = () => {
                 </>
               )}
 
-              {/* Blog Posts Section */}
+              {/* Blog Section */}
               {activeSection === "blog" && (
                 <>
                   {showAIGenerator ? (
                     <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <h2 className="text-xl font-semibold flex items-center gap-2">
-                          <Sparkles className="h-5 w-5 text-primary" />
-                          AI Article Generator
-                        </h2>
-                        <Button variant="outline" onClick={() => setShowAIGenerator(false)}>
-                          Back to Posts
-                        </Button>
-                      </div>
+                      <Button variant="outline" onClick={() => setShowAIGenerator(false)}>
+                        ← Back to Posts
+                      </Button>
                       <AIArticleGenerator 
-                        onSaveArticle={handleAISaveArticle} 
+                        onSaveArticle={handleAISaveArticle}
                         editingArticle={editingPost}
                       />
                     </div>
@@ -1355,11 +1272,7 @@ const Admin = () => {
                       <div className="flex justify-between items-center mb-4">
                         <h2 className="text-xl font-semibold">Blog Posts ({posts.length})</h2>
                         <div className="flex gap-2">
-                          <Button 
-                            variant="outline" 
-                            onClick={() => { setEditingPost(null); setShowAIGenerator(true); }}
-                            className="border-primary text-primary hover:bg-primary/10"
-                          >
+                          <Button variant="outline" onClick={() => { setEditingPost(null); setShowAIGenerator(true); }}>
                             <Sparkles className="h-4 w-4 mr-2" /> AI Generate
                           </Button>
                           <Dialog open={isPostDialogOpen} onOpenChange={setIsPostDialogOpen}>
@@ -1368,24 +1281,22 @@ const Admin = () => {
                                 <Plus className="h-4 w-4 mr-2" /> Add Post
                               </Button>
                             </DialogTrigger>
-                            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                            <DialogContent className="max-w-2xl">
                               <DialogHeader>
                                 <DialogTitle>{editingPost ? "Edit Post" : "New Post"}</DialogTitle>
                               </DialogHeader>
                               <form onSubmit={handleSavePost} className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div>
-                                    <Label htmlFor="title">Title</Label>
-                                    <Input id="title" name="title" defaultValue={editingPost?.title} required />
-                                  </div>
-                                  <div>
-                                    <Label htmlFor="slug">Slug (URL ID)</Label>
-                                    <Input id="slug" name="slug" defaultValue={editingPost?.id} required />
-                                  </div>
+                                <div>
+                                  <Label htmlFor="title">Title</Label>
+                                  <Input id="title" name="title" defaultValue={editingPost?.title} required />
+                                </div>
+                                <div>
+                                  <Label htmlFor="slug">Slug</Label>
+                                  <Input id="slug" name="slug" defaultValue={editingPost?.id} required />
                                 </div>
                                 <div>
                                   <Label htmlFor="excerpt">Excerpt</Label>
-                                  <Textarea id="excerpt" name="excerpt" defaultValue={editingPost?.excerpt} required />
+                                  <Textarea id="excerpt" name="excerpt" defaultValue={editingPost?.excerpt} rows={2} required />
                                 </div>
                                 <div>
                                   <Label htmlFor="content">Content</Label>
@@ -1394,7 +1305,7 @@ const Admin = () => {
                                 <div className="grid grid-cols-2 gap-4">
                                   <div>
                                     <Label htmlFor="category">Category</Label>
-                                    <Select name="category" defaultValue={editingPost?.category || "guides"}>
+                                    <Select name="category" defaultValue={editingPost?.category || "prevention"}>
                                       <SelectTrigger>
                                         <SelectValue />
                                       </SelectTrigger>
@@ -1473,6 +1384,7 @@ const Admin = () => {
                   )}
                 </>
               )}
+
               {/* Testimonials Section */}
               {activeSection === "testimonials" && (
                 <>
@@ -1769,6 +1681,15 @@ const Admin = () => {
           </ScrollArea>
         </div>
       </div>
+
+      {/* Schedule Dialog */}
+      <ScheduleDialog 
+        open={isScheduleDialogOpen}
+        onOpenChange={setIsScheduleDialogOpen}
+        initialData={scheduleInitialData}
+        onSchedule={handleInlineSchedule}
+        existingAppointments={allAppointments}
+      />
 
       {/* Email Dialog */}
       <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
