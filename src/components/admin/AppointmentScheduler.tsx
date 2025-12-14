@@ -135,41 +135,75 @@ export const ScheduleDialog = ({
     }
   }, [open, initialData, editingAppointment]);
 
-  // Get booked time slots for the selected date and clinician
+  // Helper to get all time slots blocked by an appointment based on its duration
+  const getBlockedSlots = (startTime: string, duration: number): string[] => {
+    const startIndex = timeSlots.indexOf(startTime);
+    if (startIndex === -1) return [startTime];
+    
+    // Each slot is 30 minutes, so calculate how many slots the duration covers
+    const slotsNeeded = Math.ceil(duration / 30);
+    const blockedSlots: string[] = [];
+    
+    for (let i = 0; i < slotsNeeded && (startIndex + i) < timeSlots.length; i++) {
+      blockedSlots.push(timeSlots[startIndex + i]);
+    }
+    
+    return blockedSlots;
+  };
+
+  // Get booked time slots for the selected date and clinician (includes all slots covered by duration)
   const getBookedTimesForDate = (date: Date | undefined, clinician: string): string[] => {
     if (!date) return [];
     const dateStr = format(date, "yyyy-MM-dd");
-    return existingAppointments
+    const bookedTimes: string[] = [];
+    
+    existingAppointments
       .filter(apt => 
         apt.appointmentDate === dateStr && 
         apt.clinician === clinician &&
         apt.status !== "cancelled" &&
         apt.id !== editingAppointment?.id // Allow editing current appointment's time
       )
-      .map(apt => apt.appointmentTime);
+      .forEach(apt => {
+        const blockedSlots = getBlockedSlots(apt.appointmentTime, apt.duration);
+        bookedTimes.push(...blockedSlots);
+      });
+    
+    return [...new Set(bookedTimes)]; // Remove duplicates
   };
 
-  // Get available time slots (excluding booked ones)
+  // Check if selecting a time slot would conflict with existing appointments
+  const wouldConflict = (time: string, duration: number): boolean => {
+    const bookedTimes = getBookedTimesForDate(selectedDate, formData.clinician);
+    const slotsNeeded = getBlockedSlots(time, duration);
+    return slotsNeeded.some(slot => bookedTimes.includes(slot));
+  };
+
+  // Get available time slots (excluding booked ones and checking if duration fits)
   const getAvailableTimeSlots = () => {
     const bookedTimes = getBookedTimesForDate(selectedDate, formData.clinician);
     return timeSlots.map(time => ({
       time,
-      isBooked: bookedTimes.includes(time)
+      isBooked: bookedTimes.includes(time) || wouldConflict(time, formData.duration)
     }));
   };
 
   // Get dates that are fully booked for the calendar
   const getFullyBookedDates = (clinician: string): Date[] => {
-    const dateBookings: Record<string, number> = {};
+    const dateBookings: Record<string, Set<string>> = {};
     existingAppointments
       .filter(apt => apt.clinician === clinician && apt.status !== "cancelled")
       .forEach(apt => {
-        dateBookings[apt.appointmentDate] = (dateBookings[apt.appointmentDate] || 0) + 1;
+        if (!dateBookings[apt.appointmentDate]) {
+          dateBookings[apt.appointmentDate] = new Set();
+        }
+        const blockedSlots = getBlockedSlots(apt.appointmentTime, apt.duration);
+        blockedSlots.forEach(slot => dateBookings[apt.appointmentDate].add(slot));
       });
     
-    // Consider a date fully booked if it has appointments for all time slots
+    // Consider a date fully booked if all time slots are blocked
     return Object.entries(dateBookings)
-      .filter(([_, count]) => count >= timeSlots.length)
+      .filter(([_, slots]) => slots.size >= timeSlots.length)
       .map(([date]) => new Date(date));
   };
 
@@ -177,19 +211,21 @@ export const ScheduleDialog = ({
   const hasAvailableSlots = availableSlots.some(slot => !slot.isBooked);
   const fullyBookedDates = getFullyBookedDates(formData.clinician);
 
-  // Reset time if selected time becomes unavailable when date/clinician changes
+  // Reset time if selected time becomes unavailable when date/clinician/duration changes
   useEffect(() => {
-    if (selectedDate && formData.appointmentTime) {
-      const bookedTimes = getBookedTimesForDate(selectedDate, formData.clinician);
-      if (bookedTimes.includes(formData.appointmentTime) && !editingAppointment) {
-        // Find the first available slot
-        const firstAvailable = timeSlots.find(t => !bookedTimes.includes(t));
+    if (selectedDate && formData.appointmentTime && !editingAppointment) {
+      if (wouldConflict(formData.appointmentTime, formData.duration)) {
+        // Find the first available slot that fits the duration
+        const bookedTimes = getBookedTimesForDate(selectedDate, formData.clinician);
+        const firstAvailable = timeSlots.find(t => 
+          !bookedTimes.includes(t) && !wouldConflict(t, formData.duration)
+        );
         if (firstAvailable) {
           setFormData(prev => ({ ...prev, appointmentTime: firstAvailable }));
         }
       }
     }
-  }, [selectedDate, formData.clinician]);
+  }, [selectedDate, formData.clinician, formData.duration]);
 
   const handleSave = () => {
     if (!selectedDate || !formData.patientName || !formData.appointmentTime) {
