@@ -87,6 +87,7 @@ interface ScheduleDialogProps {
   initialData?: Partial<AppointmentFormData>;
   onSchedule: (appointment: Appointment) => void;
   editingAppointment?: Appointment | null;
+  existingAppointments?: Appointment[];
 }
 
 export const ScheduleDialog = ({ 
@@ -94,7 +95,8 @@ export const ScheduleDialog = ({
   onOpenChange, 
   initialData, 
   onSchedule,
-  editingAppointment 
+  editingAppointment,
+  existingAppointments = []
 }: ScheduleDialogProps) => {
   const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
@@ -133,9 +135,72 @@ export const ScheduleDialog = ({
     }
   }, [open, initialData, editingAppointment]);
 
+  // Get booked time slots for the selected date and clinician
+  const getBookedTimesForDate = (date: Date | undefined, clinician: string): string[] => {
+    if (!date) return [];
+    const dateStr = format(date, "yyyy-MM-dd");
+    return existingAppointments
+      .filter(apt => 
+        apt.appointmentDate === dateStr && 
+        apt.clinician === clinician &&
+        apt.status !== "cancelled" &&
+        apt.id !== editingAppointment?.id // Allow editing current appointment's time
+      )
+      .map(apt => apt.appointmentTime);
+  };
+
+  // Get available time slots (excluding booked ones)
+  const getAvailableTimeSlots = () => {
+    const bookedTimes = getBookedTimesForDate(selectedDate, formData.clinician);
+    return timeSlots.map(time => ({
+      time,
+      isBooked: bookedTimes.includes(time)
+    }));
+  };
+
+  // Get dates that are fully booked for the calendar
+  const getFullyBookedDates = (clinician: string): Date[] => {
+    const dateBookings: Record<string, number> = {};
+    existingAppointments
+      .filter(apt => apt.clinician === clinician && apt.status !== "cancelled")
+      .forEach(apt => {
+        dateBookings[apt.appointmentDate] = (dateBookings[apt.appointmentDate] || 0) + 1;
+      });
+    
+    // Consider a date fully booked if it has appointments for all time slots
+    return Object.entries(dateBookings)
+      .filter(([_, count]) => count >= timeSlots.length)
+      .map(([date]) => new Date(date));
+  };
+
+  const availableSlots = getAvailableTimeSlots();
+  const hasAvailableSlots = availableSlots.some(slot => !slot.isBooked);
+  const fullyBookedDates = getFullyBookedDates(formData.clinician);
+
+  // Reset time if selected time becomes unavailable when date/clinician changes
+  useEffect(() => {
+    if (selectedDate && formData.appointmentTime) {
+      const bookedTimes = getBookedTimesForDate(selectedDate, formData.clinician);
+      if (bookedTimes.includes(formData.appointmentTime) && !editingAppointment) {
+        // Find the first available slot
+        const firstAvailable = timeSlots.find(t => !bookedTimes.includes(t));
+        if (firstAvailable) {
+          setFormData(prev => ({ ...prev, appointmentTime: firstAvailable }));
+        }
+      }
+    }
+  }, [selectedDate, formData.clinician]);
+
   const handleSave = () => {
     if (!selectedDate || !formData.patientName || !formData.appointmentTime) {
       toast({ title: "Please fill in required fields", variant: "destructive" });
+      return;
+    }
+
+    // Check if the selected time is still available
+    const bookedTimes = getBookedTimesForDate(selectedDate, formData.clinician);
+    if (bookedTimes.includes(formData.appointmentTime)) {
+      toast({ title: "This time slot is no longer available", variant: "destructive" });
       return;
     }
 
@@ -305,25 +370,44 @@ export const ScheduleDialog = ({
                     selected={selectedDate}
                     onSelect={setSelectedDate}
                     initialFocus
+                    className="p-3 pointer-events-auto"
+                    disabled={(date) => 
+                      date < new Date(new Date().setHours(0, 0, 0, 0)) || 
+                      fullyBookedDates.some(d => 
+                        d.toDateString() === date.toDateString()
+                      )
+                    }
                   />
                 </PopoverContent>
               </Popover>
             </div>
             <div>
-              <Label>Time *</Label>
+              <Label>Time * {!hasAvailableSlots && selectedDate && <span className="text-destructive text-xs">(No slots available)</span>}</Label>
               <Select 
                 value={formData.appointmentTime}
                 onValueChange={(value) => setFormData(prev => ({ ...prev, appointmentTime: value }))}
               >
-                <SelectTrigger>
-                  <SelectValue />
+                <SelectTrigger className={!hasAvailableSlots ? "border-destructive" : ""}>
+                  <SelectValue placeholder="Select time" />
                 </SelectTrigger>
                 <SelectContent>
-                  {timeSlots.map(time => (
-                    <SelectItem key={time} value={time}>{time}</SelectItem>
+                  {availableSlots.map(({ time, isBooked }) => (
+                    <SelectItem 
+                      key={time} 
+                      value={time}
+                      disabled={isBooked}
+                      className={isBooked ? "text-muted-foreground line-through" : ""}
+                    >
+                      {time} {isBooked && "(Booked)"}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {selectedDate && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  {availableSlots.filter(s => !s.isBooked).length} of {timeSlots.length} slots available
+                </p>
+              )}
             </div>
             <div>
               <Label>Duration (minutes)</Label>
@@ -435,13 +519,17 @@ interface AppointmentSchedulerProps {
   referrals: ProviderReferralSubmission[];
   onUpdateVisitStatus: (id: string, status: VisitRequest["status"]) => void;
   onUpdateReferralStatus: (id: string, status: ProviderReferralSubmission["status"]) => void;
+  externalAppointments?: Appointment[];
+  onAppointmentsChange?: (appointments: Appointment[]) => void;
 }
 
 const AppointmentScheduler = ({ 
   visitRequests, 
   referrals,
   onUpdateVisitStatus,
-  onUpdateReferralStatus 
+  onUpdateReferralStatus,
+  externalAppointments,
+  onAppointmentsChange
 }: AppointmentSchedulerProps) => {
   const { toast } = useToast();
   const [appointments, setAppointments] = useState<Appointment[]>(sampleAppointments);
@@ -449,6 +537,16 @@ const AppointmentScheduler = ({
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [formData, setFormData] = useState<AppointmentFormData>(getDefaultFormData());
+
+  // Merge external appointments with internal ones
+  const allAppointments = [...appointments, ...(externalAppointments || [])].filter(
+    (apt, index, self) => self.findIndex(a => a.id === apt.id) === index
+  );
+
+  // Notify parent when appointments change
+  useEffect(() => {
+    onAppointmentsChange?.(appointments);
+  }, [appointments, onAppointmentsChange]);
 
   const resetForm = () => {
     setFormData(getDefaultFormData());
@@ -603,6 +701,40 @@ const AppointmentScheduler = ({
     ...referrals.filter(r => r.status !== "completed" && r.status !== "scheduled").map(r => ({ type: "referral" as const, id: r.id, label: `${r.patientFirstName} ${r.patientLastName} (Referral)` }))
   ];
 
+  // Get booked time slots for the selected date and clinician (for inline dialog)
+  const getBookedTimesForDateInternal = (date: Date | undefined, clinician: string): string[] => {
+    if (!date) return [];
+    const dateStr = format(date, "yyyy-MM-dd");
+    return allAppointments
+      .filter(apt => 
+        apt.appointmentDate === dateStr && 
+        apt.clinician === clinician &&
+        apt.status !== "cancelled" &&
+        apt.id !== editingAppointment?.id
+      )
+      .map(apt => apt.appointmentTime);
+  };
+
+  const internalAvailableSlots = timeSlots.map(time => ({
+    time,
+    isBooked: getBookedTimesForDateInternal(selectedDate, formData.clinician).includes(time)
+  }));
+  const internalHasAvailableSlots = internalAvailableSlots.some(slot => !slot.isBooked);
+
+  const getFullyBookedDatesInternal = (clinician: string): Date[] => {
+    const dateBookings: Record<string, number> = {};
+    allAppointments
+      .filter(apt => apt.clinician === clinician && apt.status !== "cancelled")
+      .forEach(apt => {
+        dateBookings[apt.appointmentDate] = (dateBookings[apt.appointmentDate] || 0) + 1;
+      });
+    return Object.entries(dateBookings)
+      .filter(([_, count]) => count >= timeSlots.length)
+      .map(([date]) => new Date(date));
+  };
+
+  const internalFullyBookedDates = getFullyBookedDatesInternal(formData.clinician);
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -692,25 +824,44 @@ const AppointmentScheduler = ({
                         selected={selectedDate}
                         onSelect={setSelectedDate}
                         initialFocus
+                        className="p-3 pointer-events-auto"
+                        disabled={(date) => 
+                          date < new Date(new Date().setHours(0, 0, 0, 0)) || 
+                          internalFullyBookedDates.some(d => 
+                            d.toDateString() === date.toDateString()
+                          )
+                        }
                       />
                     </PopoverContent>
                   </Popover>
                 </div>
                 <div>
-                  <Label>Time *</Label>
+                  <Label>Time * {!internalHasAvailableSlots && selectedDate && <span className="text-destructive text-xs">(No slots)</span>}</Label>
                   <Select 
                     value={formData.appointmentTime}
                     onValueChange={(value) => setFormData(prev => ({ ...prev, appointmentTime: value }))}
                   >
-                    <SelectTrigger>
-                      <SelectValue />
+                    <SelectTrigger className={!internalHasAvailableSlots ? "border-destructive" : ""}>
+                      <SelectValue placeholder="Select time" />
                     </SelectTrigger>
                     <SelectContent>
-                      {timeSlots.map(time => (
-                        <SelectItem key={time} value={time}>{time}</SelectItem>
+                      {internalAvailableSlots.map(({ time, isBooked }) => (
+                        <SelectItem 
+                          key={time} 
+                          value={time}
+                          disabled={isBooked}
+                          className={isBooked ? "text-muted-foreground line-through" : ""}
+                        >
+                          {time} {isBooked && "(Booked)"}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                  {selectedDate && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {internalAvailableSlots.filter(s => !s.isBooked).length}/{timeSlots.length} available
+                    </p>
+                  )}
                 </div>
                 <div>
                   <Label>Duration (minutes)</Label>

@@ -69,7 +69,7 @@ const Admin = () => {
   // Inline scheduling state
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
   const [scheduleInitialData, setScheduleInitialData] = useState<Partial<AppointmentFormData> | undefined>(undefined);
-  const [scheduledAppointments, setScheduledAppointments] = useState<Appointment[]>([]);
+  const [allAppointments, setAllAppointments] = useState<Appointment[]>([]);
 
   const categoryOptions = categories.filter(c => c.id !== "all");
 
@@ -370,7 +370,7 @@ const Admin = () => {
   };
 
   const handleInlineSchedule = (appointment: Appointment) => {
-    setScheduledAppointments(prev => [...prev, appointment]);
+    setAllAppointments(prev => [...prev, appointment]);
     
     // Update linked submission status
     if (appointment.linkedSubmissionId && appointment.linkedSubmissionType) {
@@ -386,6 +386,10 @@ const Admin = () => {
     }
     
     toast({ title: "Appointment scheduled successfully" });
+  };
+
+  const handleAppointmentsChange = (appointments: Appointment[]) => {
+    setAllAppointments(appointments);
   };
 
   return (
@@ -626,6 +630,7 @@ const Admin = () => {
                     onOpenChange={setIsScheduleDialogOpen}
                     initialData={scheduleInitialData}
                     onSchedule={handleInlineSchedule}
+                    existingAppointments={allAppointments}
                   />
                 </TabsContent>
 
@@ -636,6 +641,8 @@ const Admin = () => {
                     referrals={referrals}
                     onUpdateVisitStatus={updateVisitStatus}
                     onUpdateReferralStatus={updateReferralStatus}
+                    externalAppointments={allAppointments}
+                    onAppointmentsChange={handleAppointmentsChange}
                   />
                 </TabsContent>
 
