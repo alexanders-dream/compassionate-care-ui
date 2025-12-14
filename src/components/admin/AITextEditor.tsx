@@ -374,9 +374,11 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
                 </div>
 
                 {/* Rich Text Editor */}
-                <ScrollArea className="flex-1 border rounded-lg bg-card">
-                  <EditorContent editor={editor} />
-                </ScrollArea>
+                <div className="flex-1 min-h-0 border rounded-lg bg-card overflow-hidden">
+                  <ScrollArea className="h-full">
+                    <EditorContent editor={editor} />
+                  </ScrollArea>
+                </div>
 
                 {/* Excerpt */}
                 <div className="space-y-2">
