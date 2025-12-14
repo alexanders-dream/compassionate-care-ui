@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,7 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Plus, Pencil, Trash2, CalendarIcon, Clock, MapPin, User } from "lucide-react";
+import { Plus, Pencil, Trash2, CalendarIcon, Clock, MapPin, User, Phone, Mail, FileText, AlertCircle } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -52,6 +53,16 @@ export interface AppointmentFormData {
   notes: string;
   linkedSubmissionId: string;
   linkedSubmissionType: "visit" | "referral" | "";
+  // Additional submission context
+  woundType?: string;
+  urgency?: string;
+  preferredContact?: string;
+  additionalInfo?: string;
+  providerName?: string;
+  practiceName?: string;
+  patientDOB?: string;
+  clinicalNotes?: string;
+  submittedAt?: string;
 }
 
 export const getDefaultFormData = (): AppointmentFormData => ({
@@ -86,27 +97,41 @@ export const ScheduleDialog = ({
   editingAppointment 
 }: ScheduleDialogProps) => {
   const { toast } = useToast();
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-    editingAppointment ? new Date(editingAppointment.appointmentDate) : new Date()
-  );
-  const [formData, setFormData] = useState<AppointmentFormData>(() => ({
-    ...getDefaultFormData(),
-    ...initialData,
-    ...(editingAppointment && {
-      patientName: editingAppointment.patientName,
-      patientPhone: editingAppointment.patientPhone,
-      patientEmail: editingAppointment.patientEmail,
-      appointmentTime: editingAppointment.appointmentTime,
-      duration: editingAppointment.duration,
-      type: editingAppointment.type,
-      clinician: editingAppointment.clinician,
-      location: editingAppointment.location,
-      address: editingAppointment.address || "",
-      notes: editingAppointment.notes || "",
-      linkedSubmissionId: editingAppointment.linkedSubmissionId || "",
-      linkedSubmissionType: editingAppointment.linkedSubmissionType || ""
-    })
-  }));
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [formData, setFormData] = useState<AppointmentFormData>(getDefaultFormData());
+
+  // Update form data when dialog opens with new initial data
+  useEffect(() => {
+    if (open) {
+      if (editingAppointment) {
+        setSelectedDate(new Date(editingAppointment.appointmentDate));
+        setFormData({
+          ...getDefaultFormData(),
+          patientName: editingAppointment.patientName,
+          patientPhone: editingAppointment.patientPhone,
+          patientEmail: editingAppointment.patientEmail,
+          appointmentTime: editingAppointment.appointmentTime,
+          duration: editingAppointment.duration,
+          type: editingAppointment.type,
+          clinician: editingAppointment.clinician,
+          location: editingAppointment.location,
+          address: editingAppointment.address || "",
+          notes: editingAppointment.notes || "",
+          linkedSubmissionId: editingAppointment.linkedSubmissionId || "",
+          linkedSubmissionType: editingAppointment.linkedSubmissionType || ""
+        });
+      } else if (initialData) {
+        setSelectedDate(new Date());
+        setFormData({
+          ...getDefaultFormData(),
+          ...initialData
+        });
+      } else {
+        setSelectedDate(new Date());
+        setFormData(getDefaultFormData());
+      }
+    }
+  }, [open, initialData, editingAppointment]);
 
   const handleSave = () => {
     if (!selectedDate || !formData.patientName || !formData.appointmentTime) {
@@ -137,6 +162,8 @@ export const ScheduleDialog = ({
     onOpenChange(false);
   };
 
+  const hasSubmissionData = formData.linkedSubmissionType && formData.linkedSubmissionId;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -144,6 +171,88 @@ export const ScheduleDialog = ({
           <DialogTitle>{editingAppointment ? "Edit Appointment" : "Schedule Appointment"}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
+          {/* Submission Summary Card */}
+          {hasSubmissionData && !editingAppointment && (
+            <Card className="bg-muted/50 border-primary/20">
+              <CardContent className="pt-4">
+                <div className="flex items-start gap-3">
+                  <FileText className="h-5 w-5 text-primary mt-0.5" />
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold text-sm">
+                        {formData.linkedSubmissionType === "visit" ? "Visit Request" : "Provider Referral"}
+                      </h4>
+                      {formData.submittedAt && (
+                        <span className="text-xs text-muted-foreground">
+                          Submitted: {new Date(formData.submittedAt).toLocaleDateString()}
+                        </span>
+                      )}
+                    </div>
+                    
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                      <div className="flex items-center gap-2">
+                        <User className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span>{formData.patientName}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span>{formData.patientPhone}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span className="truncate">{formData.patientEmail}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {formData.woundType && (
+                        <Badge variant="outline" className="text-xs">
+                          Wound: {formData.woundType}
+                        </Badge>
+                      )}
+                      {formData.urgency && (
+                        <Badge 
+                          variant={formData.urgency === "urgent" ? "destructive" : "secondary"} 
+                          className="text-xs"
+                        >
+                          {formData.urgency}
+                        </Badge>
+                      )}
+                      {formData.preferredContact && (
+                        <Badge variant="secondary" className="text-xs">
+                          Prefers: {formData.preferredContact}
+                        </Badge>
+                      )}
+                      {formData.patientDOB && (
+                        <Badge variant="secondary" className="text-xs">
+                          DOB: {formData.patientDOB}
+                        </Badge>
+                      )}
+                    </div>
+
+                    {formData.linkedSubmissionType === "referral" && formData.providerName && (
+                      <div className="pt-1 text-sm text-muted-foreground border-t mt-2">
+                        <span className="font-medium">Referred by:</span> {formData.providerName}
+                        {formData.practiceName && ` (${formData.practiceName})`}
+                      </div>
+                    )}
+
+                    {(formData.additionalInfo || formData.clinicalNotes) && (
+                      <div className="pt-1 text-sm border-t mt-2">
+                        <div className="flex items-start gap-2">
+                          <AlertCircle className="h-3.5 w-3.5 text-muted-foreground mt-0.5" />
+                          <span className="text-muted-foreground">
+                            {formData.additionalInfo || formData.clinicalNotes}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Patient Info */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
