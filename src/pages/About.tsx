@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Heart, Shield, Users, Award, Target, Eye } from "lucide-react";
 import heroClinician from "@/assets/hero-clinician.jpg";
+import { defaultTeamMembers } from "@/data/siteContent";
 
 const values = [
   {
@@ -139,6 +140,54 @@ const About = () => {
                 </div>
                 <div className="text-primary-foreground/80">
                   {stat.label}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Team Section */}
+      <section className="py-16 md:py-24">
+        <div className="container-main">
+          <div className="text-center mb-12">
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+              Meet Our Team
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Our dedicated team of wound care specialists brings years of experience and a passion for patient care.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {defaultTeamMembers.map((member) => (
+              <div 
+                key={member.id}
+                className="bg-card rounded-2xl overflow-hidden shadow-soft group"
+              >
+                <div className="aspect-[4/3] bg-muted relative overflow-hidden">
+                  {member.image ? (
+                    <img 
+                      src={member.image} 
+                      alt={member.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-primary/10">
+                      <Users className="w-16 h-16 text-primary/40" />
+                    </div>
+                  )}
+                </div>
+                <div className="p-6">
+                  <h3 className="font-display text-xl font-semibold text-foreground mb-1">
+                    {member.name}
+                  </h3>
+                  <p className="text-primary font-medium text-sm mb-3">
+                    {member.role}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {member.bio}
+                  </p>
                 </div>
               </div>
             ))}
