@@ -24,7 +24,8 @@ import {
   VisitRequest, ProviderReferralSubmission 
 } from "@/data/siteContent";
 import AIArticleGenerator, { ArticleMedia } from "@/components/admin/AIArticleGenerator";
-import AppointmentScheduler from "@/components/admin/AppointmentScheduler";
+import AppointmentScheduler, { ScheduleDialog, AppointmentFormData } from "@/components/admin/AppointmentScheduler";
+import { Appointment } from "@/data/siteContent";
 
 interface ExtendedBlogPost extends BlogPost {
   status?: "draft" | "published" | "scheduled";
@@ -64,6 +65,11 @@ const Admin = () => {
   const [emailRecipient, setEmailRecipient] = useState<{ type: "visit" | "referral"; data: VisitRequest | ProviderReferralSubmission } | null>(null);
   const [emailSubject, setEmailSubject] = useState("");
   const [emailBody, setEmailBody] = useState("");
+  
+  // Inline scheduling state
+  const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
+  const [scheduleInitialData, setScheduleInitialData] = useState<Partial<AppointmentFormData> | undefined>(undefined);
+  const [scheduledAppointments, setScheduledAppointments] = useState<Appointment[]>([]);
 
   const categoryOptions = categories.filter(c => c.id !== "all");
 
@@ -322,6 +328,51 @@ const Admin = () => {
     toast({ title: "Status updated" });
   };
 
+  // Inline scheduling handlers
+  const openScheduleDialog = (type: "visit" | "referral", data: VisitRequest | ProviderReferralSubmission) => {
+    if (type === "visit") {
+      const request = data as VisitRequest;
+      setScheduleInitialData({
+        patientName: `${request.firstName} ${request.lastName}`,
+        patientPhone: request.phone,
+        patientEmail: request.email,
+        linkedSubmissionId: request.id,
+        linkedSubmissionType: "visit",
+        notes: request.additionalInfo || ""
+      });
+    } else {
+      const referral = data as ProviderReferralSubmission;
+      setScheduleInitialData({
+        patientName: `${referral.patientFirstName} ${referral.patientLastName}`,
+        patientPhone: referral.patientPhone,
+        patientEmail: referral.providerEmail,
+        linkedSubmissionId: referral.id,
+        linkedSubmissionType: "referral",
+        notes: referral.clinicalNotes || ""
+      });
+    }
+    setIsScheduleDialogOpen(true);
+  };
+
+  const handleInlineSchedule = (appointment: Appointment) => {
+    setScheduledAppointments(prev => [...prev, appointment]);
+    
+    // Update linked submission status
+    if (appointment.linkedSubmissionId && appointment.linkedSubmissionType) {
+      if (appointment.linkedSubmissionType === "visit") {
+        setVisitRequests(visitRequests.map(vr => 
+          vr.id === appointment.linkedSubmissionId ? { ...vr, status: "scheduled" as const } : vr
+        ));
+      } else {
+        setReferrals(referrals.map(ref => 
+          ref.id === appointment.linkedSubmissionId ? { ...ref, status: "scheduled" as const } : ref
+        ));
+      }
+    }
+    
+    toast({ title: "Appointment scheduled successfully" });
+  };
+
   return (
     <Layout>
       <Helmet>
@@ -426,7 +477,18 @@ const Admin = () => {
                                 </Select>
                               </TableCell>
                               <TableCell>{new Date(request.submittedAt).toLocaleDateString()}</TableCell>
-                              <TableCell className="text-right">
+                              <TableCell className="text-right space-x-1">
+                                {request.status !== "scheduled" && request.status !== "completed" && (
+                                  <Button 
+                                    variant="default" 
+                                    size="sm" 
+                                    onClick={() => openScheduleDialog("visit", request)}
+                                    className="gap-1"
+                                  >
+                                    <CalendarDays className="h-3 w-3" />
+                                    Schedule
+                                  </Button>
+                                )}
                                 <Button 
                                   variant="outline" 
                                   size="sm" 
@@ -434,10 +496,10 @@ const Admin = () => {
                                   className="gap-1"
                                 >
                                   <Send className="h-3 w-3" />
-                                  {request.emailSent ? "Resend" : "Send Email"}
+                                  {request.emailSent ? "Resend" : "Email"}
                                 </Button>
                                 {request.emailSent && (
-                                  <CheckCircle2 className="h-4 w-4 text-green-500 inline ml-2" />
+                                  <CheckCircle2 className="h-4 w-4 text-green-500 inline ml-1" />
                                 )}
                               </TableCell>
                             </TableRow>
@@ -504,7 +566,18 @@ const Admin = () => {
                                   </SelectContent>
                                 </Select>
                               </TableCell>
-                              <TableCell className="text-right">
+                              <TableCell className="text-right space-x-1">
+                                {referral.status !== "scheduled" && referral.status !== "completed" && (
+                                  <Button 
+                                    variant="default" 
+                                    size="sm" 
+                                    onClick={() => openScheduleDialog("referral", referral)}
+                                    className="gap-1"
+                                  >
+                                    <CalendarDays className="h-3 w-3" />
+                                    Schedule
+                                  </Button>
+                                )}
                                 <Button 
                                   variant="outline" 
                                   size="sm" 
@@ -512,10 +585,10 @@ const Admin = () => {
                                   className="gap-1"
                                 >
                                   <Send className="h-3 w-3" />
-                                  {referral.emailSent ? "Resend" : "Send Email"}
+                                  {referral.emailSent ? "Resend" : "Email"}
                                 </Button>
                                 {referral.emailSent && (
-                                  <CheckCircle2 className="h-4 w-4 text-green-500 inline ml-2" />
+                                  <CheckCircle2 className="h-4 w-4 text-green-500 inline ml-1" />
                                 )}
                               </TableCell>
                             </TableRow>
@@ -531,6 +604,14 @@ const Admin = () => {
                       </Table>
                     </div>
                   </div>
+
+                  {/* Inline Scheduling Dialog */}
+                  <ScheduleDialog 
+                    open={isScheduleDialogOpen}
+                    onOpenChange={setIsScheduleDialogOpen}
+                    initialData={scheduleInitialData}
+                    onSchedule={handleInlineSchedule}
+                  />
                 </TabsContent>
 
                 {/* Appointments Tab */}
