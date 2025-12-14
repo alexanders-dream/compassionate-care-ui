@@ -1,4 +1,9 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Link from "@tiptap/extension-link";
+import Image from "@tiptap/extension-image";
+import Placeholder from "@tiptap/extension-placeholder";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -9,10 +14,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
-  Sparkles, Wand2, RotateCcw, Save, X, Bold, Italic, 
-  List, ListOrdered, Heading2, Quote, Link2, Image,
-  RefreshCw, Loader2, CheckCircle2, Eye, EyeOff,
-  FileText, Settings2, MessageSquare, Zap, PenLine
+  Sparkles, Wand2, RotateCcw, RotateCw, Save, X, Bold, Italic, 
+  List, ListOrdered, Heading2, Quote, Link2, Image as ImageIcon,
+  Loader2, CheckCircle2, Eye, EyeOff,
+  FileText, Settings2, MessageSquare, Zap, PenLine, RefreshCw
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { BlogPost, categories } from "@/data/blogPosts";
@@ -39,12 +44,10 @@ const aiActions: { id: AIAction; label: string; icon: React.ReactNode; descripti
 
 const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
   const { toast } = useToast();
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
   
   // Content state
   const [title, setTitle] = useState(post.title);
   const [excerpt, setExcerpt] = useState(post.excerpt);
-  const [content, setContent] = useState(post.content);
   const [category, setCategory] = useState<BlogPost["category"]>(post.category);
   const [author, setAuthor] = useState(post.author);
   const [readTime, setReadTime] = useState(post.readTime);
@@ -57,62 +60,56 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
   const [showApiKey, setShowApiKey] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [customPrompt, setCustomPrompt] = useState("");
-  
-  // Selection state
   const [selectedText, setSelectedText] = useState("");
-  const [selectionStart, setSelectionStart] = useState(0);
-  const [selectionEnd, setSelectionEnd] = useState(0);
-  
-  // History for undo
-  const [history, setHistory] = useState<string[]>([post.content]);
-  const [historyIndex, setHistoryIndex] = useState(0);
 
   const categoryOptions = categories.filter(c => c.id !== "all");
   const provider = getProviderById(selectedProvider);
   const isAIConfigured = selectedProvider && selectedModel && apiKey;
 
-  const handleTextSelect = () => {
-    if (textareaRef.current) {
-      const start = textareaRef.current.selectionStart;
-      const end = textareaRef.current.selectionEnd;
-      const selected = content.substring(start, end);
-      setSelectedText(selected);
-      setSelectionStart(start);
-      setSelectionEnd(end);
-    }
-  };
-
-  const saveToHistory = (newContent: string) => {
-    const newHistory = history.slice(0, historyIndex + 1);
-    newHistory.push(newContent);
-    setHistory(newHistory);
-    setHistoryIndex(newHistory.length - 1);
-  };
-
-  const undo = () => {
-    if (historyIndex > 0) {
-      setHistoryIndex(historyIndex - 1);
-      setContent(history[historyIndex - 1]);
-    }
-  };
-
-  const redo = () => {
-    if (historyIndex < history.length - 1) {
-      setHistoryIndex(historyIndex + 1);
-      setContent(history[historyIndex + 1]);
-    }
-  };
-
-  const canUndo = historyIndex > 0;
-  const canRedo = historyIndex < history.length - 1;
+  // TipTap Editor
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        heading: {
+          levels: [2, 3],
+        },
+      }),
+      Link.configure({
+        openOnClick: false,
+        HTMLAttributes: {
+          class: "text-primary underline",
+        },
+      }),
+      Image.configure({
+        HTMLAttributes: {
+          class: "rounded-lg max-w-full",
+        },
+      }),
+      Placeholder.configure({
+        placeholder: "Start writing your article... Select text to apply AI actions.",
+      }),
+    ],
+    content: post.content,
+    editorProps: {
+      attributes: {
+        class: "prose prose-sm max-w-none focus:outline-none min-h-[300px] p-4",
+      },
+    },
+    onSelectionUpdate: ({ editor }) => {
+      const { from, to } = editor.state.selection;
+      const text = editor.state.doc.textBetween(from, to, " ");
+      setSelectedText(text);
+    },
+  });
 
   const applyAIAction = async (action: AIAction) => {
     if (!isAIConfigured) {
       toast({ title: "Please configure AI provider first", variant: "destructive" });
       return;
     }
+    if (!editor) return;
 
-    const textToProcess = selectedText || content;
+    const textToProcess = selectedText || editor.getText();
     if (!textToProcess.trim()) {
       toast({ title: "No text to process", variant: "destructive" });
       return;
@@ -121,50 +118,46 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
     setIsProcessing(true);
 
     try {
-      // Simulate AI processing - in production, call actual AI API
       await new Promise(resolve => setTimeout(resolve, 1500));
 
       let processedText = textToProcess;
 
-      // Simulated AI responses based on action
       switch (action) {
         case "rewrite":
-          processedText = `[Rewritten] ${textToProcess.split(' ').reverse().join(' ').split(' ').reverse().join(' ')}`;
+          processedText = `${textToProcess.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ")}`;
           break;
         case "expand":
-          processedText = `${textToProcess}\n\nAdditionally, it's important to note that this topic encompasses various aspects that deserve careful consideration. Understanding these nuances can significantly impact outcomes and help achieve better results.`;
+          processedText = `${textToProcess} Additionally, this encompasses various aspects that deserve careful consideration. Understanding these nuances can significantly impact outcomes.`;
           break;
         case "summarize":
-          processedText = textToProcess.split('.').slice(0, 2).join('.') + '.';
+          processedText = textToProcess.split(".").slice(0, 2).join(".") + ".";
           break;
         case "improve":
-          processedText = textToProcess.replace(/very/gi, 'exceptionally').replace(/good/gi, 'excellent').replace(/bad/gi, 'suboptimal');
+          processedText = textToProcess.replace(/very/gi, "exceptionally").replace(/good/gi, "excellent");
           break;
         case "fix_grammar":
           processedText = textToProcess.charAt(0).toUpperCase() + textToProcess.slice(1);
           break;
         case "make_formal":
-          processedText = textToProcess.replace(/can't/gi, 'cannot').replace(/won't/gi, 'will not').replace(/don't/gi, 'do not');
+          processedText = textToProcess.replace(/can't/gi, "cannot").replace(/won't/gi, "will not");
           break;
         case "make_casual":
-          processedText = textToProcess.replace(/cannot/gi, "can't").replace(/will not/gi, "won't").replace(/do not/gi, "don't");
+          processedText = textToProcess.replace(/cannot/gi, "can't").replace(/will not/gi, "won't");
           break;
         case "add_examples":
-          processedText = `${textToProcess}\n\nFor example:\n• Example 1: A practical demonstration of this concept\n• Example 2: Another real-world application\n• Example 3: How this applies to common scenarios`;
+          processedText = `${textToProcess}\n\nFor example:\n• A practical demonstration\n• A real-world application\n• How this applies to common scenarios`;
           break;
       }
 
       if (selectedText) {
-        const newContent = content.substring(0, selectionStart) + processedText + content.substring(selectionEnd);
-        setContent(newContent);
-        saveToHistory(newContent);
+        const { from, to } = editor.state.selection;
+        editor.chain().focus().deleteRange({ from, to }).insertContent(processedText).run();
       } else {
-        setContent(processedText);
-        saveToHistory(processedText);
+        editor.commands.setContent(`<p>${processedText}</p>`);
       }
 
       setSelectedText("");
-      toast({ title: `AI ${action.replace('_', ' ')} completed` });
+      toast({ title: `AI ${action.replace("_", " ")} completed` });
     } catch (error) {
       toast({ title: "AI processing failed", variant: "destructive" });
     } finally {
@@ -177,7 +170,7 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
       toast({ title: "Please configure AI provider first", variant: "destructive" });
       return;
     }
-    if (!customPrompt.trim()) {
+    if (!customPrompt.trim() || !editor) {
       toast({ title: "Please enter a prompt", variant: "destructive" });
       return;
     }
@@ -187,17 +180,14 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
     try {
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      const textToProcess = selectedText || content;
-      // Simulated custom AI response
-      const processedText = `[Custom AI Edit based on: "${customPrompt.slice(0, 30)}..."]\n\n${textToProcess}`;
+      const textToProcess = selectedText || editor.getText();
+      const processedText = `[AI Edit: "${customPrompt.slice(0, 30)}..."]\n\n${textToProcess}`;
 
       if (selectedText) {
-        const newContent = content.substring(0, selectionStart) + processedText + content.substring(selectionEnd);
-        setContent(newContent);
-        saveToHistory(newContent);
+        const { from, to } = editor.state.selection;
+        editor.chain().focus().deleteRange({ from, to }).insertContent(processedText).run();
       } else {
-        setContent(processedText);
-        saveToHistory(processedText);
+        editor.commands.setContent(`<p>${processedText}</p>`);
       }
 
       setSelectedText("");
@@ -210,19 +200,24 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
     }
   };
 
-  const insertFormatting = (before: string, after: string = before) => {
-    if (textareaRef.current) {
-      const start = textareaRef.current.selectionStart;
-      const end = textareaRef.current.selectionEnd;
-      const selected = content.substring(start, end);
-      const newContent = content.substring(0, start) + before + selected + after + content.substring(end);
-      setContent(newContent);
-      saveToHistory(newContent);
+  const addLink = useCallback(() => {
+    if (!editor) return;
+    const url = window.prompt("Enter URL:");
+    if (url) {
+      editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
     }
-  };
+  }, [editor]);
+
+  const addImage = useCallback(() => {
+    if (!editor) return;
+    const url = window.prompt("Enter image URL:");
+    if (url) {
+      editor.chain().focus().setImage({ src: url }).run();
+    }
+  }, [editor]);
 
   const handleSave = (status: "draft" | "published" | "scheduled") => {
-    if (!title.trim() || !content.trim()) {
+    if (!title.trim() || !editor?.getHTML()) {
       toast({ title: "Title and content are required", variant: "destructive" });
       return;
     }
@@ -231,7 +226,7 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
       ...post,
       title,
       excerpt,
-      content,
+      content: editor.getHTML(),
       category,
       author,
       readTime,
@@ -239,6 +234,8 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
       status,
     });
   };
+
+  if (!editor) return null;
 
   return (
     <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-sm overflow-hidden flex flex-col">
@@ -255,12 +252,22 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
           )}
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={undo} disabled={!canUndo}>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => editor.chain().focus().undo().run()}
+            disabled={!editor.can().undo()}
+          >
             <RotateCcw className="h-4 w-4 mr-1" />
             Undo
           </Button>
-          <Button variant="outline" size="sm" onClick={redo} disabled={!canRedo}>
-            <RefreshCw className="h-4 w-4 mr-1" />
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => editor.chain().focus().redo().run()}
+            disabled={!editor.can().redo()}
+          >
+            <RotateCw className="h-4 w-4 mr-1" />
             Redo
           </Button>
           <Button variant="outline" size="sm" onClick={() => handleSave("draft")}>
@@ -300,29 +307,61 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
 
                 {/* Formatting Toolbar */}
                 <div className="flex items-center gap-1 p-2 bg-muted/50 rounded-lg flex-wrap">
-                  <Button variant="ghost" size="sm" onClick={() => insertFormatting("<strong>", "</strong>")}>
+                  <Button 
+                    variant={editor.isActive("bold") ? "secondary" : "ghost"} 
+                    size="sm" 
+                    onClick={() => editor.chain().focus().toggleBold().run()}
+                  >
                     <Bold className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => insertFormatting("<em>", "</em>")}>
+                  <Button 
+                    variant={editor.isActive("italic") ? "secondary" : "ghost"} 
+                    size="sm" 
+                    onClick={() => editor.chain().focus().toggleItalic().run()}
+                  >
                     <Italic className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => insertFormatting("<h2>", "</h2>")}>
+                  <Button 
+                    variant={editor.isActive("heading", { level: 2 }) ? "secondary" : "ghost"} 
+                    size="sm" 
+                    onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+                  >
                     <Heading2 className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => insertFormatting("<ul>\n<li>", "</li>\n</ul>")}>
+                  <Button 
+                    variant={editor.isActive("bulletList") ? "secondary" : "ghost"} 
+                    size="sm" 
+                    onClick={() => editor.chain().focus().toggleBulletList().run()}
+                  >
                     <List className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => insertFormatting("<ol>\n<li>", "</li>\n</ol>")}>
+                  <Button 
+                    variant={editor.isActive("orderedList") ? "secondary" : "ghost"} 
+                    size="sm" 
+                    onClick={() => editor.chain().focus().toggleOrderedList().run()}
+                  >
                     <ListOrdered className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => insertFormatting("<blockquote>", "</blockquote>")}>
+                  <Button 
+                    variant={editor.isActive("blockquote") ? "secondary" : "ghost"} 
+                    size="sm" 
+                    onClick={() => editor.chain().focus().toggleBlockquote().run()}
+                  >
                     <Quote className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => insertFormatting('<a href="">', "</a>")}>
+                  <Button 
+                    variant={editor.isActive("link") ? "secondary" : "ghost"} 
+                    size="sm" 
+                    onClick={addLink}
+                  >
                     <Link2 className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => insertFormatting('<img src="" alt="" />', "")}>
-                    <Image className="h-4 w-4" />
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={addImage}
+                  >
+                    <ImageIcon className="h-4 w-4" />
                   </Button>
                   
                   <div className="h-6 w-px bg-border mx-2" />
@@ -334,17 +373,10 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
                   )}
                 </div>
 
-                {/* Content Editor */}
-                <Textarea
-                  ref={textareaRef}
-                  value={content}
-                  onChange={(e) => {
-                    setContent(e.target.value);
-                  }}
-                  onSelect={handleTextSelect}
-                  placeholder="Write your article content here... Select text to apply AI actions."
-                  className="flex-1 resize-none font-mono text-sm min-h-[300px]"
-                />
+                {/* Rich Text Editor */}
+                <div className="flex-1 overflow-auto border rounded-lg bg-card">
+                  <EditorContent editor={editor} className="h-full" />
+                </div>
 
                 {/* Excerpt */}
                 <div className="space-y-2">
