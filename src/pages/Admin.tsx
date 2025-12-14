@@ -338,7 +338,12 @@ const Admin = () => {
         patientEmail: request.email,
         linkedSubmissionId: request.id,
         linkedSubmissionType: "visit",
-        notes: request.additionalInfo || ""
+        notes: request.additionalInfo || "",
+        // Submission context data
+        woundType: request.woundType,
+        preferredContact: request.preferredContact,
+        additionalInfo: request.additionalInfo,
+        submittedAt: request.submittedAt
       });
     } else {
       const referral = data as ProviderReferralSubmission;
@@ -348,7 +353,15 @@ const Admin = () => {
         patientEmail: referral.providerEmail,
         linkedSubmissionId: referral.id,
         linkedSubmissionType: "referral",
-        notes: referral.clinicalNotes || ""
+        notes: referral.clinicalNotes || "",
+        // Submission context data
+        woundType: referral.woundType,
+        urgency: referral.urgency,
+        providerName: referral.providerName,
+        practiceName: referral.practiceName,
+        patientDOB: referral.patientDOB,
+        clinicalNotes: referral.clinicalNotes,
+        submittedAt: referral.submittedAt
       });
     }
     setIsScheduleDialogOpen(true);
