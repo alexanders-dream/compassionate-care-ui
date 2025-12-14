@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Phone, Mail, Clock, CheckCircle2, Shield, Heart } from "lucide-react";
+import { Phone, Mail, Clock, CheckCircle2, Shield, Heart, MapPin } from "lucide-react";
 import woundCareImage from "@/assets/wound-care-supplies.jpg";
 
 const formSchema = z.object({
@@ -19,6 +19,7 @@ const formSchema = z.object({
   lastName: z.string().min(2, "Last name is required"),
   phone: z.string().min(10, "Valid phone number is required"),
   email: z.string().email("Valid email is required"),
+  address: z.string().min(5, "Address is required for home visits"),
   preferredContact: z.string().min(1, "Please select a preferred contact method"),
   woundType: z.string().min(1, "Please select a wound type"),
   additionalInfo: z.string().optional(),
@@ -181,6 +182,28 @@ const RequestVisit = () => {
                             <p className="text-sm text-destructive">{errors.email.message}</p>
                           )}
                         </div>
+                      </div>
+
+                      {/* Address */}
+                      <div className="space-y-2">
+                        <Label htmlFor="address">
+                          <span className="flex items-center gap-2">
+                            <MapPin size={16} className="text-primary" />
+                            Home Address *
+                          </span>
+                        </Label>
+                        <Input
+                          id="address"
+                          {...register("address")}
+                          placeholder="123 Main St, City, State ZIP"
+                          className={errors.address ? "border-destructive" : ""}
+                        />
+                        {errors.address && (
+                          <p className="text-sm text-destructive">{errors.address.message}</p>
+                        )}
+                        <p className="text-xs text-muted-foreground">
+                          Required for scheduling in-home wound care visits
+                        </p>
                       </div>
 
                       {/* Selects Row */}

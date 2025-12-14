@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { 
   Phone, Mail, CheckCircle2, Building2, UserRound, 
-  FileText, Clock, ArrowRight, Handshake 
+  FileText, Clock, ArrowRight, Handshake, MapPin 
 } from "lucide-react";
 
 const formSchema = z.object({
@@ -27,6 +27,7 @@ const formSchema = z.object({
   patientFirstName: z.string().min(2, "Patient first name is required"),
   patientLastName: z.string().min(2, "Patient last name is required"),
   patientPhone: z.string().min(10, "Patient phone is required"),
+  patientAddress: z.string().min(5, "Patient address is required for home visits"),
   patientDOB: z.string().min(1, "Patient date of birth is required"),
   woundType: z.string().min(1, "Please select a wound type"),
   urgency: z.string().min(1, "Please select urgency level"),
@@ -302,6 +303,26 @@ const ProviderReferral = () => {
                             {errors.patientDOB && (
                               <p className="text-sm text-destructive">{errors.patientDOB.message}</p>
                             )}
+                          </div>
+                          <div className="space-y-2 sm:col-span-2">
+                            <Label htmlFor="patientAddress">
+                              <span className="flex items-center gap-2">
+                                <MapPin size={16} className="text-primary" />
+                                Patient Address *
+                              </span>
+                            </Label>
+                            <Input
+                              id="patientAddress"
+                              {...register("patientAddress")}
+                              placeholder="123 Main St, City, State ZIP"
+                              className={errors.patientAddress ? "border-destructive" : ""}
+                            />
+                            {errors.patientAddress && (
+                              <p className="text-sm text-destructive">{errors.patientAddress.message}</p>
+                            )}
+                            <p className="text-xs text-muted-foreground">
+                              Required for scheduling in-home wound care visits
+                            </p>
                           </div>
                           <div className="space-y-2">
                             <Label>Wound Type *</Label>
