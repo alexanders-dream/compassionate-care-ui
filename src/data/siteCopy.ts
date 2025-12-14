@@ -73,11 +73,11 @@ export const defaultSiteCopy: SiteCopySection[] = [
   {
     id: "about-intro",
     page: "About Us",
-    section: "Introduction",
+    section: "Hero Section",
     fields: [
-      { key: "title", label: "Page Title", value: "About AR Advanced Woundcare", type: "text" },
-      { key: "subtitle", label: "Subtitle", value: "Dedicated to Healing, Committed to Care", type: "text" },
-      { key: "description", label: "Description", value: "AR Advanced Woundcare Solutions was founded with a simple mission: to provide exceptional, compassionate wound care to patients in the comfort of their homes.", type: "textarea" },
+      { key: "title", label: "Page Title", value: "Healing with Compassion & Expertise", type: "text" },
+      { key: "description", label: "Description", value: "AR Advanced Woundcare Solutions was founded on a simple belief: everyone deserves access to exceptional wound care delivered with compassion, in the comfort of their own home.", type: "textarea" },
+      { key: "heroImage", label: "About Hero Image", value: "/src/assets/hero-clinician.jpg", type: "image" },
     ]
   },
   {
@@ -113,11 +113,30 @@ export const defaultSiteCopy: SiteCopySection[] = [
   {
     id: "services-intro",
     page: "Services",
-    section: "Introduction",
+    section: "Hero Section",
     fields: [
-      { key: "title", label: "Page Title", value: "Our Services", type: "text" },
-      { key: "subtitle", label: "Subtitle", value: "Comprehensive Wound Care Solutions", type: "text" },
-      { key: "description", label: "Description", value: "We offer a complete range of wound care services, from initial assessment to ongoing treatment and healing.", type: "textarea" },
+      { key: "title", label: "Page Title", value: "Expert Wound Care, Delivered to You", type: "text" },
+      { key: "description", label: "Description", value: "Our certified wound care specialists provide comprehensive treatment for all types of wounds, bringing clinical expertise directly to your home for convenient, compassionate care.", type: "textarea" },
+      { key: "heroImage", label: "Services Hero Image", value: "/src/assets/home-care-visit.jpg", type: "image" },
+    ]
+  },
+  {
+    id: "request-visit",
+    page: "Request Visit",
+    section: "Page Content",
+    fields: [
+      { key: "title", label: "Page Title", value: "Request a Visit", type: "text" },
+      { key: "description", label: "Description", value: "Take the first step toward healing. Fill out the form below and our care team will contact you within 24 hours.", type: "textarea" },
+      { key: "sidebarImage", label: "Sidebar Image", value: "/src/assets/wound-care-supplies.jpg", type: "image" },
+    ]
+  },
+  {
+    id: "refer-patient",
+    page: "Provider Referral",
+    section: "Page Content",
+    fields: [
+      { key: "title", label: "Page Title", value: "Refer a Patient", type: "text" },
+      { key: "description", label: "Description", value: "Partner with us to provide your patients with specialized wound care. We keep you informed every step of the way.", type: "textarea" },
     ]
   },
   {
@@ -136,6 +155,7 @@ export const defaultSiteCopy: SiteCopySection[] = [
     page: "Global",
     section: "Site Images",
     fields: [
+      { key: "heroClinician", label: "Hero Clinician Image", value: "/src/assets/hero-clinician.jpg", type: "image" },
       { key: "homeCareVisit", label: "Home Care Visit Image", value: "/src/assets/home-care-visit.jpg", type: "image" },
       { key: "woundCareSupplies", label: "Wound Care Supplies Image", value: "/src/assets/wound-care-supplies.jpg", type: "image" },
     ]
