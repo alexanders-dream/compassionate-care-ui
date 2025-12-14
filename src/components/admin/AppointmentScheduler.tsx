@@ -528,25 +528,33 @@ const AppointmentScheduler = ({
   referrals,
   onUpdateVisitStatus,
   onUpdateReferralStatus,
-  externalAppointments,
+  externalAppointments = [],
   onAppointmentsChange
 }: AppointmentSchedulerProps) => {
   const { toast } = useToast();
-  const [appointments, setAppointments] = useState<Appointment[]>(sampleAppointments);
+  const [internalAppointments, setInternalAppointments] = useState<Appointment[]>(sampleAppointments);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [formData, setFormData] = useState<AppointmentFormData>(getDefaultFormData());
 
-  // Merge external appointments with internal ones
-  const allAppointments = [...appointments, ...(externalAppointments || [])].filter(
+  // Combine internal and external appointments, deduplicating by id
+  const appointments = [...internalAppointments, ...externalAppointments].filter(
     (apt, index, self) => self.findIndex(a => a.id === apt.id) === index
   );
 
-  // Notify parent when appointments change
-  useEffect(() => {
-    onAppointmentsChange?.(appointments);
-  }, [appointments, onAppointmentsChange]);
+  // Wrapper to update appointments and notify parent
+  const setAppointments = (updater: Appointment[] | ((prev: Appointment[]) => Appointment[])) => {
+    setInternalAppointments(prev => {
+      const newInternal = typeof updater === 'function' ? updater(prev) : updater;
+      // Notify parent of all appointments (internal + external)
+      const allApts = [...newInternal, ...externalAppointments].filter(
+        (apt, index, self) => self.findIndex(a => a.id === apt.id) === index
+      );
+      onAppointmentsChange?.(allApts);
+      return newInternal;
+    });
+  };
 
   const resetForm = () => {
     setFormData(getDefaultFormData());
@@ -705,7 +713,7 @@ const AppointmentScheduler = ({
   const getBookedTimesForDateInternal = (date: Date | undefined, clinician: string): string[] => {
     if (!date) return [];
     const dateStr = format(date, "yyyy-MM-dd");
-    return allAppointments
+    return appointments
       .filter(apt => 
         apt.appointmentDate === dateStr && 
         apt.clinician === clinician &&
@@ -723,7 +731,7 @@ const AppointmentScheduler = ({
 
   const getFullyBookedDatesInternal = (clinician: string): Date[] => {
     const dateBookings: Record<string, number> = {};
-    allAppointments
+    appointments
       .filter(apt => apt.clinician === clinician && apt.status !== "cancelled")
       .forEach(apt => {
         dateBookings[apt.appointmentDate] = (dateBookings[apt.appointmentDate] || 0) + 1;
