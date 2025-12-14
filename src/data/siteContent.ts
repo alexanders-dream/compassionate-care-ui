@@ -34,6 +34,7 @@ export interface VisitRequest {
   lastName: string;
   phone: string;
   email: string;
+  address: string;
   preferredContact: string;
   woundType: string;
   additionalInfo?: string;
@@ -52,6 +53,7 @@ export interface ProviderReferralSubmission {
   patientFirstName: string;
   patientLastName: string;
   patientPhone: string;
+  patientAddress: string;
   patientDOB: string;
   woundType: string;
   urgency: string;
@@ -274,6 +276,7 @@ export const sampleVisitRequests: VisitRequest[] = [
     lastName: "Smith",
     phone: "(555) 123-4567",
     email: "john.smith@email.com",
+    address: "123 Main St, Houston, TX 77001",
     preferredContact: "phone",
     woundType: "diabetic",
     additionalInfo: "Need morning appointments if possible",
@@ -287,6 +290,7 @@ export const sampleVisitRequests: VisitRequest[] = [
     lastName: "Johnson",
     phone: "(555) 987-6543",
     email: "mary.j@email.com",
+    address: "456 Oak Ave, Houston, TX 77002",
     preferredContact: "email",
     woundType: "surgical",
     submittedAt: "2024-01-14T14:15:00",
@@ -306,6 +310,7 @@ export const sampleReferrals: ProviderReferralSubmission[] = [
     patientFirstName: "Robert",
     patientLastName: "Davis",
     patientPhone: "(555) 444-5555",
+    patientAddress: "789 Elm St, Houston, TX 77003",
     patientDOB: "1955-03-20",
     woundType: "pressure",
     urgency: "soon",
