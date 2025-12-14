@@ -28,6 +28,48 @@ export interface FAQ {
   category: string;
 }
 
+export interface VisitRequest {
+  id: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email: string;
+  preferredContact: string;
+  woundType: string;
+  additionalInfo?: string;
+  submittedAt: string;
+  status: "pending" | "contacted" | "scheduled" | "completed";
+  emailSent?: boolean;
+}
+
+export interface ProviderReferralSubmission {
+  id: string;
+  providerName: string;
+  practiceName: string;
+  providerPhone: string;
+  providerEmail: string;
+  providerNPI?: string;
+  patientFirstName: string;
+  patientLastName: string;
+  patientPhone: string;
+  patientDOB: string;
+  woundType: string;
+  urgency: string;
+  clinicalNotes?: string;
+  submittedAt: string;
+  status: "pending" | "contacted" | "scheduled" | "completed";
+  emailSent?: boolean;
+}
+
+export interface PatientResource {
+  id: string;
+  title: string;
+  description: string;
+  type: "PDF Guide" | "Educational Article" | "Video Tutorial";
+  icon: string;
+  url?: string;
+}
+
 export const defaultTestimonials: Testimonial[] = [
   {
     id: "1",
@@ -118,5 +160,100 @@ export const defaultFAQs: FAQ[] = [
     question: "How do I schedule a visit?",
     answer: "You can schedule a visit by calling us, filling out our online form, or having your physician send a referral.",
     category: "Appointments"
+  }
+];
+
+export const defaultPatientResources: PatientResource[] = [
+  {
+    id: "1",
+    title: "Wound Care Guide",
+    description: "Comprehensive guide to understanding wound types, healing stages, and proper care techniques.",
+    type: "PDF Guide",
+    icon: "FileText"
+  },
+  {
+    id: "2",
+    title: "Diabetic Foot Care",
+    description: "Essential information for diabetic patients on preventing foot ulcers and maintaining foot health.",
+    type: "Educational Article",
+    icon: "BookOpen"
+  },
+  {
+    id: "3",
+    title: "Dressing Change Instructions",
+    description: "Step-by-step video guide for proper wound dressing changes between visits.",
+    type: "Video Tutorial",
+    icon: "Video"
+  },
+  {
+    id: "4",
+    title: "Nutrition for Healing",
+    description: "Learn how proper nutrition supports wound healing and what foods promote recovery.",
+    type: "PDF Guide",
+    icon: "FileText"
+  },
+  {
+    id: "5",
+    title: "Pressure Ulcer Prevention",
+    description: "Tips and techniques for preventing pressure ulcers in bedridden or mobility-limited patients.",
+    type: "Educational Article",
+    icon: "BookOpen"
+  },
+  {
+    id: "6",
+    title: "Understanding Your Treatment",
+    description: "Overview of advanced wound care treatments and what to expect during your care journey.",
+    type: "Video Tutorial",
+    icon: "Video"
+  }
+];
+
+// Sample form submissions for demo purposes
+export const sampleVisitRequests: VisitRequest[] = [
+  {
+    id: "vr1",
+    firstName: "John",
+    lastName: "Smith",
+    phone: "(555) 123-4567",
+    email: "john.smith@email.com",
+    preferredContact: "phone",
+    woundType: "diabetic",
+    additionalInfo: "Need morning appointments if possible",
+    submittedAt: "2024-01-15T10:30:00",
+    status: "pending",
+    emailSent: false
+  },
+  {
+    id: "vr2",
+    firstName: "Mary",
+    lastName: "Johnson",
+    phone: "(555) 987-6543",
+    email: "mary.j@email.com",
+    preferredContact: "email",
+    woundType: "surgical",
+    submittedAt: "2024-01-14T14:15:00",
+    status: "contacted",
+    emailSent: true
+  }
+];
+
+export const sampleReferrals: ProviderReferralSubmission[] = [
+  {
+    id: "ref1",
+    providerName: "Dr. Sarah Wilson",
+    practiceName: "Wilson Family Practice",
+    providerPhone: "(555) 222-3333",
+    providerEmail: "swilson@wilsonfp.com",
+    providerNPI: "1234567890",
+    patientFirstName: "Robert",
+    patientLastName: "Davis",
+    patientPhone: "(555) 444-5555",
+    patientDOB: "1955-03-20",
+    woundType: "pressure",
+    urgency: "soon",
+    clinicalNotes: "Patient is bedridden, stage 2 pressure ulcer on sacrum",
+    submittedAt: "2024-01-15T09:00:00",
+    status: "pending",
+    emailSent: false
   }
 ];
