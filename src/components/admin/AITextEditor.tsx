@@ -321,107 +321,108 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
               </div>
             </div>
 
-            <TabsContent value="content" ref={contentRef} className="flex-1 overflow-auto m-0">
-              <div className="flex flex-col min-h-full">
-                {/* Sticky Header: Title + Toolbar */}
-                <div className="sticky top-0 z-10 bg-background p-4 pb-2 space-y-3 border-b">
-                  {/* Title */}
-                  <Input
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Article Title"
-                    className="text-xl font-semibold"
-                  />
+            <TabsContent value="content" className="flex-1 overflow-hidden m-0">
+              <ScrollArea className="h-full" ref={contentRef}>
+                <div className="flex flex-col min-h-full">
+                  {/* Sticky Header: Title + Toolbar */}
+                  <div className="sticky top-0 z-10 bg-background p-4 pb-2 space-y-3 border-b">
+                    {/* Title */}
+                    <Input
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder="Article Title"
+                      className="text-xl font-semibold"
+                    />
 
-                  {/* Formatting Toolbar */}
-                  <div className="flex items-center gap-1 p-2 bg-muted/50 rounded-lg flex-wrap">
-                    <Button 
-                      variant={editor.isActive("bold") ? "secondary" : "ghost"} 
-                      size="sm" 
-                      onClick={() => editor.chain().focus().toggleBold().run()}
-                    >
-                      <Bold className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant={editor.isActive("italic") ? "secondary" : "ghost"} 
-                      size="sm" 
-                      onClick={() => editor.chain().focus().toggleItalic().run()}
-                    >
-                      <Italic className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant={editor.isActive("heading", { level: 2 }) ? "secondary" : "ghost"} 
-                      size="sm" 
-                      onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-                    >
-                      <Heading2 className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant={editor.isActive("bulletList") ? "secondary" : "ghost"} 
-                      size="sm" 
-                      onClick={() => editor.chain().focus().toggleBulletList().run()}
-                    >
-                      <List className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant={editor.isActive("orderedList") ? "secondary" : "ghost"} 
-                      size="sm" 
-                      onClick={() => editor.chain().focus().toggleOrderedList().run()}
-                    >
-                      <ListOrdered className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant={editor.isActive("blockquote") ? "secondary" : "ghost"} 
-                      size="sm" 
-                      onClick={() => editor.chain().focus().toggleBlockquote().run()}
-                    >
-                      <Quote className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant={editor.isActive("link") ? "secondary" : "ghost"} 
-                      size="sm" 
-                      onClick={addLink}
-                    >
-                      <Link2 className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={addImage}
-                    >
-                      <ImageIcon className="h-4 w-4" />
-                    </Button>
-                    
-                    <div className="h-6 w-px bg-border mx-2" />
-                    
-                    {selectedText && (
-                      <Badge variant="outline" className="text-xs">
-                        {selectedText.length} chars selected
-                      </Badge>
-                    )}
+                    {/* Formatting Toolbar */}
+                    <div className="flex items-center gap-1 p-2 bg-muted/50 rounded-lg flex-wrap">
+                      <Button 
+                        variant={editor.isActive("bold") ? "secondary" : "ghost"} 
+                        size="sm" 
+                        onClick={() => editor.chain().focus().toggleBold().run()}
+                      >
+                        <Bold className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant={editor.isActive("italic") ? "secondary" : "ghost"} 
+                        size="sm" 
+                        onClick={() => editor.chain().focus().toggleItalic().run()}
+                      >
+                        <Italic className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant={editor.isActive("heading", { level: 2 }) ? "secondary" : "ghost"} 
+                        size="sm" 
+                        onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+                      >
+                        <Heading2 className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant={editor.isActive("bulletList") ? "secondary" : "ghost"} 
+                        size="sm" 
+                        onClick={() => editor.chain().focus().toggleBulletList().run()}
+                      >
+                        <List className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant={editor.isActive("orderedList") ? "secondary" : "ghost"} 
+                        size="sm" 
+                        onClick={() => editor.chain().focus().toggleOrderedList().run()}
+                      >
+                        <ListOrdered className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant={editor.isActive("blockquote") ? "secondary" : "ghost"} 
+                        size="sm" 
+                        onClick={() => editor.chain().focus().toggleBlockquote().run()}
+                      >
+                        <Quote className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant={editor.isActive("link") ? "secondary" : "ghost"} 
+                        size="sm" 
+                        onClick={addLink}
+                      >
+                        <Link2 className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={addImage}
+                      >
+                        <ImageIcon className="h-4 w-4" />
+                      </Button>
+                      
+                      <div className="h-6 w-px bg-border mx-2" />
+                      
+                      {selectedText && (
+                        <Badge variant="outline" className="text-xs">
+                          {selectedText.length} chars selected
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Scrollable Content Area */}
+                  <div className="flex flex-col gap-4 p-4">
+                    {/* Rich Text Editor */}
+                    <div className="min-h-[300px] border rounded-lg bg-card">
+                      <EditorContent editor={editor} className="min-h-full p-4" />
+                    </div>
+
+                    {/* Excerpt */}
+                    <div className="space-y-2">
+                      <Label className="text-sm text-muted-foreground">Excerpt (optional)</Label>
+                      <Textarea
+                        value={excerpt}
+                        onChange={(e) => setExcerpt(e.target.value)}
+                        placeholder="Brief summary of the article..."
+                        className="h-20 resize-none"
+                      />
+                    </div>
                   </div>
                 </div>
-
-                {/* Scrollable Content Area */}
-                <div className="flex flex-col gap-4 p-4">
-
-                {/* Rich Text Editor */}
-                <div className="min-h-[300px] border rounded-lg bg-card">
-                  <EditorContent editor={editor} className="min-h-full p-4" />
-                </div>
-
-                {/* Excerpt */}
-                <div className="space-y-2">
-                  <Label className="text-sm text-muted-foreground">Excerpt (optional)</Label>
-                  <Textarea
-                    value={excerpt}
-                    onChange={(e) => setExcerpt(e.target.value)}
-                    placeholder="Brief summary of the article..."
-                    className="h-20 resize-none"
-                  />
-                </div>
-                </div>
-              </div>
+              </ScrollArea>
             </TabsContent>
 
             <TabsContent value="settings" className="flex-1 overflow-auto m-0 p-4">
