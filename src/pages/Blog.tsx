@@ -206,12 +206,12 @@ const Blog = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="relative overflow-hidden bg-primary py-20">
-        <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,hsl(var(--accent)/0.2),transparent_50%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,hsl(var(--secondary)/0.3),transparent_50%)]" />
-        </div>
-        <div className="container-main relative text-center">
+      <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-primary to-blue-800 py-20">
+        {/* Premium decorative elements */}
+        <div className="absolute top-0 left-1/3 w-96 h-64 bg-white/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-blue-400/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/2 -left-20 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="container-main relative z-10 text-center">
           <h2 className="font-display text-3xl md:text-4xl font-bold text-primary-foreground mb-4">
             Have Questions About Your Wound Care?
           </h2>

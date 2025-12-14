@@ -6,10 +6,10 @@ import heroImage from "@/assets/hero-clinician.jpg";
 const HeroSection = () => {
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-background via-background to-primary/5">
-      <div className="container-main pt-16 pb-8 md:pt-24 md:pb-12">
-        <div className="grid lg:grid-cols-2 gap-12 items-start">
+      <div className="container-main pt-12 pb-8 md:pt-20 md:pb-12">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           {/* Content */}
-          <div className="space-y-8 animate-fade-in lg:pt-12">
+          <div className="space-y-6 animate-fade-in">
             {/* Badge Removed */}
 
             <h1 className="text-foreground">
@@ -38,7 +38,7 @@ const HeroSection = () => {
             </div>
 
             {/* Trust Indicators */}
-            <div className="flex flex-wrap gap-6 pt-4">
+            <div className="flex flex-wrap gap-6 pt-2">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Shield size={20} className="text-primary" />
                 <span>Licensed & Certified</span>
@@ -52,16 +52,14 @@ const HeroSection = () => {
 
           {/* Hero Image */}
           <div className="relative animate-fade-in" style={{ animationDelay: "0.2s" }}>
-            <div className="aspect-square lg:aspect-square rounded-[48%_52%_68%_32%_/_42%_66%_34%_58%] overflow-hidden soft-shadow">
+            <div className="aspect-square lg:aspect-[4/3] rounded-[30%_70%_70%_30%_/_30%_30%_70%_70%] overflow-hidden soft-shadow">
               <img
                 src={heroImage}
                 alt="Compassionate wound care clinician ready to help"
                 className="w-full h-full object-cover"
               />
             </div>
-            {/* Decorative Elements */}
-            <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-primary/10 rounded-full blur-2xl" />
-            <div className="absolute -top-4 -right-4 w-32 h-32 bg-primary/20 rounded-full blur-2xl" />
+
           </div>
         </div>
       </div>

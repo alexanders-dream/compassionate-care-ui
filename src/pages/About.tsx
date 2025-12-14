@@ -70,7 +70,7 @@ const About = () => {
       </section>
 
       {/* Mission & Vision */}
-      <section className="py-16 md:py-24">
+      <section className="py-16 md:py-24 bg-warm">
         <div className="container-main">
           <div className="grid md:grid-cols-2 gap-8">
             <div className="bg-card rounded-2xl p-8 shadow-soft">
@@ -131,8 +131,12 @@ const About = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 md:py-24 bg-primary">
-        <div className="container-main">
+      <section className="py-16 md:py-24 bg-gradient-to-r from-primary via-blue-600 to-blue-700 relative overflow-hidden">
+        {/* Premium decorative elements */}
+        <div className="absolute -left-20 top-1/2 -translate-y-1/2 w-80 h-80 bg-white/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute right-0 -top-10 w-72 h-72 bg-blue-400/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute left-1/2 -bottom-20 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="container-main relative z-10">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
               <div key={index} className="text-center">

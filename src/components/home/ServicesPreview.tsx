@@ -39,7 +39,7 @@ const ServicesPreview = () => {
         <div className="text-center max-w-2xl mx-auto mb-12">
           <h2 className="text-foreground mb-4">Our Services</h2>
           <p className="text-muted-foreground text-lg">
-            Comprehensive wound care solutions tailored to your unique needs, 
+            Comprehensive wound care solutions tailored to your unique needs,
             delivered with compassion and clinical excellence.
           </p>
         </div>
@@ -48,8 +48,8 @@ const ServicesPreview = () => {
           {/* Services Grid */}
           <div className="lg:col-span-2 grid sm:grid-cols-2 gap-6">
             {services.map((service, index) => (
-              <Card 
-                key={service.title} 
+              <Card
+                key={service.title}
                 className="group bg-card border-border hover:border-primary/30 transition-all duration-300 hover:-translate-y-1 card-shadow"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
@@ -63,7 +63,7 @@ const ServicesPreview = () => {
                   <p className="text-muted-foreground text-sm mb-4 leading-relaxed">
                     {service.description}
                   </p>
-                  <Link 
+                  <Link
                     to={service.href}
                     className="inline-flex items-center gap-1 text-primary text-sm font-medium hover:gap-2 transition-all"
                   >
@@ -77,9 +77,9 @@ const ServicesPreview = () => {
 
           {/* Featured Image */}
           <div className="hidden lg:block">
-            <div className="rounded-2xl overflow-hidden soft-shadow border border-primary/20">
-              <img 
-                src={homeCareImage} 
+            <div className="rounded-[60%_40%_30%_70%_/_60%_30%_70%_40%] overflow-hidden soft-shadow border border-primary/20">
+              <img
+                src={homeCareImage}
                 alt="Healthcare professional providing in-home wound care"
                 className="w-full h-full object-cover aspect-[4/5]"
               />

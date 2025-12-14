@@ -57,7 +57,7 @@ const Services = () => {
               <img
                 src={homeCareVisit}
                 alt="Wound care clinician providing in-home treatment"
-                className="rounded-2xl shadow-elegant w-full"
+                className="rounded-[40%_60%_55%_45%_/_55%_45%_55%_45%] shadow-elegant w-full"
               />
             </div>
           </div>
@@ -101,8 +101,12 @@ const Services = () => {
       </section>
 
       {/* Benefits Section */}
-      <section className="py-16 md:py-24 bg-secondary">
-        <div className="container-main">
+      <section className="py-16 md:py-24 bg-gradient-to-r from-secondary via-blue-800 to-blue-900 relative overflow-hidden">
+        {/* Premium decorative elements */}
+        <div className="absolute -right-20 top-1/2 -translate-y-1/2 w-80 h-80 bg-white/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -left-10 top-0 w-64 h-64 bg-blue-400/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute right-1/3 -bottom-10 w-48 h-48 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="container-main relative z-10">
           <div className="text-center mb-12">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-secondary-foreground mb-4">
               Why Choose AR Advanced Woundcare?

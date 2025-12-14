@@ -3,7 +3,7 @@ import { Quote, ArrowRight, Star } from "lucide-react";
 
 const TestimonialHighlight = () => {
   return (
-    <section className="section-padding bg-warm">
+    <section className="section-padding bg-white">
       <div className="container-main">
         <div className="max-w-4xl mx-auto text-center">
           {/* Quote Icon */}
@@ -20,8 +20,8 @@ const TestimonialHighlight = () => {
 
           {/* Quote */}
           <blockquote className="text-xl md:text-2xl text-foreground font-medium leading-relaxed mb-6">
-            "The team at AR Advanced Woundcare changed my life. After struggling 
-            with a chronic wound for months, their expert care and compassion 
+            "The team at AR Advanced Woundcare changed my life. After struggling
+            with a chronic wound for months, their expert care and compassion
             helped me heal completely. I'm forever grateful."
           </blockquote>
 
@@ -32,7 +32,7 @@ const TestimonialHighlight = () => {
           </div>
 
           {/* Link to more */}
-          <Link 
+          <Link
             to="/testimonials"
             className="inline-flex items-center gap-2 text-primary font-medium hover:gap-3 transition-all"
           >
