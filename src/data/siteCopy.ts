@@ -1,13 +1,15 @@
+export interface SiteCopyField {
+  key: string;
+  label: string;
+  value: string;
+  type: "text" | "textarea" | "image";
+}
+
 export interface SiteCopySection {
   id: string;
   page: string;
   section: string;
-  fields: {
-    key: string;
-    label: string;
-    value: string;
-    type: "text" | "textarea";
-  }[];
+  fields: SiteCopyField[];
 }
 
 export const defaultSiteCopy: SiteCopySection[] = [
@@ -20,6 +22,7 @@ export const defaultSiteCopy: SiteCopySection[] = [
       { key: "headlineMain", label: "Main Headline", value: "Advanced Wound Care", type: "text" },
       { key: "headlineAccent", label: "Headline Accent", value: "You Can Trust", type: "text" },
       { key: "subheadline", label: "Subheadline", value: "We bring specialized wound care directly to you. Our team of experienced clinicians delivers compassionate, evidence-based treatment for faster healing and better outcomes.", type: "textarea" },
+      { key: "heroImage", label: "Hero Image", value: "/src/assets/hero-clinician.jpg", type: "image" },
       { key: "trustIndicator1", label: "Trust Indicator 1", value: "Licensed & Certified", type: "text" },
       { key: "trustIndicator2", label: "Trust Indicator 2", value: "10,000+ Patients Served", type: "text" },
     ]
@@ -126,6 +129,15 @@ export const defaultSiteCopy: SiteCopySection[] = [
       { key: "phone", label: "Phone Number", value: "(555) 123-4567", type: "text" },
       { key: "email", label: "Email", value: "info@arwoundcare.com", type: "text" },
       { key: "address", label: "Address", value: "123 Healthcare Drive, Houston, TX 77001", type: "text" },
+    ]
+  },
+  {
+    id: "site-images",
+    page: "Global",
+    section: "Site Images",
+    fields: [
+      { key: "homeCareVisit", label: "Home Care Visit Image", value: "/src/assets/home-care-visit.jpg", type: "image" },
+      { key: "woundCareSupplies", label: "Wound Care Supplies Image", value: "/src/assets/wound-care-supplies.jpg", type: "image" },
     ]
   },
 ];
