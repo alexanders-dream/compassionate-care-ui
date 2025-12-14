@@ -295,7 +295,7 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
               </TabsList>
             </div>
 
-            <TabsContent value="content" className="flex-1 overflow-hidden m-0 p-4">
+            <TabsContent value="content" className="flex-1 overflow-auto m-0 p-4">
               <div className="h-full flex flex-col gap-4">
                 {/* Title */}
                 <Input
