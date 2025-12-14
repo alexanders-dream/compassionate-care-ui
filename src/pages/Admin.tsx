@@ -14,7 +14,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Plus, Pencil, Trash2,
   Sparkles, Mail, Send, CalendarDays,
-  CheckCircle2, User, Image, Share2
+  CheckCircle2, User, Image, Share2,
+  ArrowUpDown, Filter, Search
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -76,6 +77,33 @@ const Admin = () => {
     return (tab as AdminSection) || "submissions";
   });
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  // Admin user info (in a real app, this would come from auth context)
+  const adminFirstName = "Jane";
+
+  // Get time-based greeting
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) {
+      return "Good morning";
+    } else if (hour >= 12 && hour < 17) {
+      return "Good afternoon";
+    } else {
+      return "Good evening";
+    }
+  };
+
+  // Submissions sorting and filtering state
+  const [visitFilterStatus, setVisitFilterStatus] = useState<string>("all");
+  const [visitSortField, setVisitSortField] = useState<"name" | "date" | "status">("date");
+  const [visitSortDirection, setVisitSortDirection] = useState<"asc" | "desc">("desc");
+  const [visitSearchQuery, setVisitSearchQuery] = useState("");
+
+  const [referralFilterStatus, setReferralFilterStatus] = useState<string>("all");
+  const [referralFilterUrgency, setReferralFilterUrgency] = useState<string>("all");
+  const [referralSortField, setReferralSortField] = useState<"name" | "date" | "status">("date");
+  const [referralSortDirection, setReferralSortDirection] = useState<"asc" | "desc">("desc");
+  const [referralSearchQuery, setReferralSearchQuery] = useState("");
 
   // Sync activeSection with URL tab param
   useEffect(() => {
@@ -195,6 +223,89 @@ const Admin = () => {
         return <Badge variant="secondary">{status}</Badge>;
     }
   };
+
+  // Helper function for status row background colors
+  const getStatusRowClass = (status: string) => {
+    const statusClasses: Record<string, string> = {
+      pending: "status-pending",
+      contacted: "status-contacted",
+      scheduled: "status-scheduled",
+      completed: "status-completed",
+      confirmed: "status-confirmed",
+      cancelled: "status-cancelled",
+      "no-show": "status-no-show"
+    };
+    return statusClasses[status] || "";
+  };
+
+  // Helper for toggling sort direction
+  const toggleSort = (
+    field: "name" | "date" | "status",
+    currentField: "name" | "date" | "status",
+    currentDirection: "asc" | "desc",
+    setField: (f: "name" | "date" | "status") => void,
+    setDirection: (d: "asc" | "desc") => void
+  ) => {
+    if (field === currentField) {
+      setDirection(currentDirection === "asc" ? "desc" : "asc");
+    } else {
+      setField(field);
+      setDirection("asc");
+    }
+  };
+
+  // Filtered and sorted visit requests
+  const filteredVisitRequests = visitRequests
+    .filter(vr => {
+      const matchesStatus = visitFilterStatus === "all" || vr.status === visitFilterStatus;
+      const matchesSearch = visitSearchQuery === "" ||
+        `${vr.firstName} ${vr.lastName}`.toLowerCase().includes(visitSearchQuery.toLowerCase()) ||
+        vr.email.toLowerCase().includes(visitSearchQuery.toLowerCase()) ||
+        vr.woundType.toLowerCase().includes(visitSearchQuery.toLowerCase());
+      return matchesStatus && matchesSearch;
+    })
+    .sort((a, b) => {
+      let comparison = 0;
+      switch (visitSortField) {
+        case "name":
+          comparison = `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`);
+          break;
+        case "date":
+          comparison = new Date(a.submittedAt).getTime() - new Date(b.submittedAt).getTime();
+          break;
+        case "status":
+          comparison = a.status.localeCompare(b.status);
+          break;
+      }
+      return visitSortDirection === "asc" ? comparison : -comparison;
+    });
+
+  // Filtered and sorted referrals
+  const filteredReferrals = referrals
+    .filter(ref => {
+      const matchesStatus = referralFilterStatus === "all" || ref.status === referralFilterStatus;
+      const matchesUrgency = referralFilterUrgency === "all" || ref.urgency === referralFilterUrgency;
+      const matchesSearch = referralSearchQuery === "" ||
+        `${ref.patientFirstName} ${ref.patientLastName}`.toLowerCase().includes(referralSearchQuery.toLowerCase()) ||
+        ref.providerName.toLowerCase().includes(referralSearchQuery.toLowerCase()) ||
+        ref.practiceName.toLowerCase().includes(referralSearchQuery.toLowerCase());
+      return matchesStatus && matchesUrgency && matchesSearch;
+    })
+    .sort((a, b) => {
+      let comparison = 0;
+      switch (referralSortField) {
+        case "name":
+          comparison = `${a.patientFirstName} ${a.patientLastName}`.localeCompare(`${b.patientFirstName} ${b.patientLastName}`);
+          break;
+        case "date":
+          comparison = new Date(a.submittedAt).getTime() - new Date(b.submittedAt).getTime();
+          break;
+        case "status":
+          comparison = a.status.localeCompare(b.status);
+          break;
+      }
+      return referralSortDirection === "asc" ? comparison : -comparison;
+    });
 
   // Testimonial handlers
   const handleSaveTestimonial = (e: React.FormEvent<HTMLFormElement>) => {
@@ -641,8 +752,8 @@ const Admin = () => {
 
         <div className="flex-1 flex flex-col min-w-0 w-full">
           <header className="bg-muted/30 border-b border-border px-4 md:px-6 py-4 md:py-6 pl-16 md:pl-6">
-            <h1 className="text-xl md:text-3xl font-bold text-primary">Admin Dashboard</h1>
-            <p className="text-muted-foreground text-xs md:text-sm mt-1">Manage all website content</p>
+            <h1 className="text-xl md:text-3xl font-bold text-primary">{getGreeting()}, {adminFirstName}</h1>
+            <p className="text-muted-foreground text-xs md:text-sm mt-1">Welcome to your Admin Dashboard</p>
           </header>
 
           <ScrollArea className="flex-1">
@@ -651,15 +762,43 @@ const Admin = () => {
               {activeSection === "submissions" && (
                 <div className="space-y-6 md:space-y-8">
                   <div>
-                    <h2 className="text-lg md:text-xl font-semibold mb-4 flex items-center gap-2">
-                      <Mail className="h-5 w-5 text-primary" />
-                      Visit Requests ({visitRequests.length})
-                    </h2>
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-3">
+                      <h2 className="text-lg md:text-xl font-semibold flex items-center gap-2">
+                        <Mail className="h-5 w-5 text-primary" />
+                        Visit Requests ({filteredVisitRequests.length}{visitFilterStatus !== "all" || visitSearchQuery ? ` of ${visitRequests.length}` : ""})
+                      </h2>
+
+                      {/* Filter Controls */}
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="relative flex-1 md:flex-none md:w-48">
+                          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            placeholder="Search..."
+                            value={visitSearchQuery}
+                            onChange={(e) => setVisitSearchQuery(e.target.value)}
+                            className="pl-8 h-9"
+                          />
+                        </div>
+                        <Select value={visitFilterStatus} onValueChange={setVisitFilterStatus}>
+                          <SelectTrigger className="w-32 h-9">
+                            <Filter className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+                            <SelectValue placeholder="Status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Status</SelectItem>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="contacted">Contacted</SelectItem>
+                            <SelectItem value="scheduled">Scheduled</SelectItem>
+                            <SelectItem value="completed">Completed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
 
                     {/* Mobile Cards */}
                     <div className="md:hidden space-y-3">
-                      {visitRequests.map(request => (
-                        <Card key={request.id} className="p-4">
+                      {filteredVisitRequests.map(request => (
+                        <Card key={request.id} className={`p-4 ${getStatusRowClass(request.status)}`}>
                           <div className="flex justify-between items-start mb-2">
                             <div>
                               <p className="font-medium">{request.firstName} {request.lastName}</p>
@@ -696,8 +835,10 @@ const Admin = () => {
                           </div>
                         </Card>
                       ))}
-                      {visitRequests.length === 0 && (
-                        <p className="text-center text-muted-foreground py-8">No visit requests yet</p>
+                      {filteredVisitRequests.length === 0 && (
+                        <p className="text-center text-muted-foreground py-8">
+                          {visitRequests.length === 0 ? "No visit requests yet" : "No results match your filters"}
+                        </p>
                       )}
                     </div>
 
@@ -706,17 +847,41 @@ const Admin = () => {
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>Name</TableHead>
+                            <TableHead
+                              className="cursor-pointer hover:bg-muted/50 select-none"
+                              onClick={() => toggleSort("name", visitSortField, visitSortDirection, setVisitSortField, setVisitSortDirection)}
+                            >
+                              <div className="flex items-center gap-1">
+                                Name
+                                <ArrowUpDown className={`h-3.5 w-3.5 ${visitSortField === "name" ? "text-primary" : "text-muted-foreground"}`} />
+                              </div>
+                            </TableHead>
                             <TableHead>Contact</TableHead>
                             <TableHead>Wound Type</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Submitted</TableHead>
+                            <TableHead
+                              className="cursor-pointer hover:bg-muted/50 select-none"
+                              onClick={() => toggleSort("status", visitSortField, visitSortDirection, setVisitSortField, setVisitSortDirection)}
+                            >
+                              <div className="flex items-center gap-1">
+                                Status
+                                <ArrowUpDown className={`h-3.5 w-3.5 ${visitSortField === "status" ? "text-primary" : "text-muted-foreground"}`} />
+                              </div>
+                            </TableHead>
+                            <TableHead
+                              className="cursor-pointer hover:bg-muted/50 select-none"
+                              onClick={() => toggleSort("date", visitSortField, visitSortDirection, setVisitSortField, setVisitSortDirection)}
+                            >
+                              <div className="flex items-center gap-1">
+                                Submitted
+                                <ArrowUpDown className={`h-3.5 w-3.5 ${visitSortField === "date" ? "text-primary" : "text-muted-foreground"}`} />
+                              </div>
+                            </TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {visitRequests.map(request => (
-                            <TableRow key={request.id}>
+                          {filteredVisitRequests.map(request => (
+                            <TableRow key={request.id} className={getStatusRowClass(request.status)}>
                               <TableCell className="font-medium">
                                 {request.firstName} {request.lastName}
                               </TableCell>
@@ -757,9 +922,11 @@ const Admin = () => {
                               </TableCell>
                             </TableRow>
                           ))}
-                          {visitRequests.length === 0 && (
+                          {filteredVisitRequests.length === 0 && (
                             <TableRow>
-                              <TableCell colSpan={6} className="text-center text-muted-foreground py-8">No visit requests yet</TableCell>
+                              <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                                {visitRequests.length === 0 ? "No visit requests yet" : "No results match your filters"}
+                              </TableCell>
                             </TableRow>
                           )}
                         </TableBody>
@@ -767,16 +934,55 @@ const Admin = () => {
                     </div>
                   </div>
 
+
                   <div>
-                    <h2 className="text-lg md:text-xl font-semibold mb-4 flex items-center gap-2">
-                      <User className="h-5 w-5 text-primary" />
-                      Provider Referrals ({referrals.length})
-                    </h2>
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-3">
+                      <h2 className="text-lg md:text-xl font-semibold flex items-center gap-2">
+                        <User className="h-5 w-5 text-primary" />
+                        Provider Referrals ({filteredReferrals.length}{referralFilterStatus !== "all" || referralFilterUrgency !== "all" || referralSearchQuery ? ` of ${referrals.length}` : ""})
+                      </h2>
+
+                      {/* Filter Controls */}
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="relative flex-1 md:flex-none md:w-48">
+                          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            placeholder="Search..."
+                            value={referralSearchQuery}
+                            onChange={(e) => setReferralSearchQuery(e.target.value)}
+                            className="pl-8 h-9"
+                          />
+                        </div>
+                        <Select value={referralFilterStatus} onValueChange={setReferralFilterStatus}>
+                          <SelectTrigger className="w-32 h-9">
+                            <Filter className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+                            <SelectValue placeholder="Status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Status</SelectItem>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="contacted">Contacted</SelectItem>
+                            <SelectItem value="scheduled">Scheduled</SelectItem>
+                            <SelectItem value="completed">Completed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Select value={referralFilterUrgency} onValueChange={setReferralFilterUrgency}>
+                          <SelectTrigger className="w-28 h-9">
+                            <SelectValue placeholder="Urgency" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Urgency</SelectItem>
+                            <SelectItem value="urgent">Urgent</SelectItem>
+                            <SelectItem value="routine">Routine</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
 
                     {/* Mobile Cards */}
                     <div className="md:hidden space-y-3">
-                      {referrals.map(referral => (
-                        <Card key={referral.id} className="p-4">
+                      {filteredReferrals.map(referral => (
+                        <Card key={referral.id} className={`p-4 ${getStatusRowClass(referral.status)} ${referral.urgency === "urgent" ? "urgency-urgent" : ""}`}>
                           <div className="flex justify-between items-start mb-2">
                             <div>
                               <p className="font-medium">{referral.patientFirstName} {referral.patientLastName}</p>
@@ -815,8 +1021,10 @@ const Admin = () => {
                           </div>
                         </Card>
                       ))}
-                      {referrals.length === 0 && (
-                        <p className="text-center text-muted-foreground py-8">No provider referrals yet</p>
+                      {filteredReferrals.length === 0 && (
+                        <p className="text-center text-muted-foreground py-8">
+                          {referrals.length === 0 ? "No provider referrals yet" : "No results match your filters"}
+                        </p>
                       )}
                     </div>
 
@@ -825,17 +1033,33 @@ const Admin = () => {
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>Patient</TableHead>
+                            <TableHead
+                              className="cursor-pointer hover:bg-muted/50 select-none"
+                              onClick={() => toggleSort("name", referralSortField, referralSortDirection, setReferralSortField, setReferralSortDirection)}
+                            >
+                              <div className="flex items-center gap-1">
+                                Patient
+                                <ArrowUpDown className={`h-3.5 w-3.5 ${referralSortField === "name" ? "text-primary" : "text-muted-foreground"}`} />
+                              </div>
+                            </TableHead>
                             <TableHead>Provider</TableHead>
                             <TableHead>Wound Type</TableHead>
+                            <TableHead
+                              className="cursor-pointer hover:bg-muted/50 select-none"
+                              onClick={() => toggleSort("status", referralSortField, referralSortDirection, setReferralSortField, setReferralSortDirection)}
+                            >
+                              <div className="flex items-center gap-1">
+                                Status
+                                <ArrowUpDown className={`h-3.5 w-3.5 ${referralSortField === "status" ? "text-primary" : "text-muted-foreground"}`} />
+                              </div>
+                            </TableHead>
                             <TableHead>Urgency</TableHead>
-                            <TableHead>Status</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {referrals.map(referral => (
-                            <TableRow key={referral.id}>
+                          {filteredReferrals.map(referral => (
+                            <TableRow key={referral.id} className={getStatusRowClass(referral.status)}>
                               <TableCell className="font-medium">{referral.patientFirstName} {referral.patientLastName}</TableCell>
                               <TableCell>
                                 <div className="text-sm">
@@ -844,9 +1068,6 @@ const Admin = () => {
                                 </div>
                               </TableCell>
                               <TableCell className="capitalize">{referral.woundType}</TableCell>
-                              <TableCell>
-                                <Badge variant={referral.urgency === "urgent" ? "destructive" : "secondary"}>{referral.urgency}</Badge>
-                              </TableCell>
                               <TableCell>
                                 <Select
                                   value={referral.status}
@@ -863,6 +1084,9 @@ const Admin = () => {
                                   </SelectContent>
                                 </Select>
                               </TableCell>
+                              <TableCell>
+                                <Badge variant={referral.urgency === "urgent" ? "destructive" : "secondary"}>{referral.urgency}</Badge>
+                              </TableCell>
                               <TableCell className="text-right space-x-1">
                                 {referral.status !== "scheduled" && referral.status !== "completed" && (
                                   <Button variant="default" size="sm" onClick={() => openScheduleDialog("referral", referral)} className="gap-1">
@@ -876,15 +1100,18 @@ const Admin = () => {
                               </TableCell>
                             </TableRow>
                           ))}
-                          {referrals.length === 0 && (
+                          {filteredReferrals.length === 0 && (
                             <TableRow>
-                              <TableCell colSpan={6} className="text-center text-muted-foreground py-8">No provider referrals yet</TableCell>
+                              <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                                {referrals.length === 0 ? "No provider referrals yet" : "No results match your filters"}
+                              </TableCell>
                             </TableRow>
                           )}
                         </TableBody>
                       </Table>
                     </div>
                   </div>
+
                 </div>
               )}
 

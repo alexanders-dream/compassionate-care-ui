@@ -1,5 +1,5 @@
-import { 
-  ClipboardList, CalendarDays, Settings2, Type, BookOpen, 
+import {
+  ClipboardList, CalendarDays, Settings2, Type, BookOpen,
   FileText, Star, Briefcase, Users, HelpCircle, ChevronLeft, ChevronRight, Menu, X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -8,16 +8,16 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { useState, useEffect } from "react";
 
-export type AdminSection = 
-  | "submissions" 
-  | "appointments" 
-  | "forms" 
-  | "site-copy" 
-  | "resources" 
-  | "blog" 
-  | "testimonials" 
-  | "services" 
-  | "team" 
+export type AdminSection =
+  | "submissions"
+  | "appointments"
+  | "forms"
+  | "site-copy"
+  | "resources"
+  | "blog"
+  | "testimonials"
+  | "services"
+  | "team"
   | "faqs";
 
 interface AdminSidebarProps {
@@ -40,13 +40,13 @@ const menuItems: { id: AdminSection; label: string; icon: React.ElementType }[] 
   { id: "faqs", label: "FAQs", icon: HelpCircle },
 ];
 
-const SidebarContent = ({ 
-  activeSection, 
-  onSectionChange, 
+const SidebarContent = ({
+  activeSection,
+  onSectionChange,
   collapsed = false,
   onItemClick
-}: { 
-  activeSection: AdminSection; 
+}: {
+  activeSection: AdminSection;
   onSectionChange: (section: AdminSection) => void;
   collapsed?: boolean;
   onItemClick?: () => void;
@@ -55,7 +55,7 @@ const SidebarContent = ({
     {menuItems.map((item) => {
       const Icon = item.icon;
       const isActive = activeSection === item.id;
-      
+
       return (
         <button
           key={item.id}
@@ -66,8 +66,8 @@ const SidebarContent = ({
           className={cn(
             "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
             "hover:bg-muted",
-            isActive 
-              ? "bg-primary/10 text-primary border border-primary/20" 
+            isActive
+              ? "bg-primary/10 text-primary border border-primary/20"
               : "text-muted-foreground",
             collapsed && "justify-center px-2"
           )}
@@ -97,9 +97,9 @@ const AdminSidebar = ({ activeSection, onSectionChange, collapsed, onToggleColla
     return (
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetTrigger asChild>
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             className="fixed top-4 left-4 z-50 md:hidden bg-background border shadow-sm"
           >
             <Menu className="h-5 w-5" />
@@ -111,8 +111,8 @@ const AdminSidebar = ({ activeSection, onSectionChange, collapsed, onToggleColla
             <span className="font-semibold text-sm text-foreground">Navigation</span>
           </div>
           <ScrollArea className="h-[calc(100vh-60px)]">
-            <SidebarContent 
-              activeSection={activeSection} 
+            <SidebarContent
+              activeSection={activeSection}
               onSectionChange={onSectionChange}
               onItemClick={() => setMobileOpen(false)}
             />
@@ -124,9 +124,9 @@ const AdminSidebar = ({ activeSection, onSectionChange, collapsed, onToggleColla
 
   // Desktop: Fixed sidebar
   return (
-    <aside 
+    <aside
       className={cn(
-        "bg-card border-r border-border flex flex-col shrink-0 transition-all duration-300 hidden md:flex",
+        "bg-slate-100 dark:bg-slate-900 border-r border-border flex flex-col shrink-0 transition-all duration-300 hidden md:flex",
         collapsed ? "w-16" : "w-56"
       )}
     >
@@ -134,24 +134,24 @@ const AdminSidebar = ({ activeSection, onSectionChange, collapsed, onToggleColla
         {!collapsed && (
           <span className="font-semibold text-sm text-foreground">Navigation</span>
         )}
-        <Button 
-          variant="ghost" 
-          size="icon" 
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={onToggleCollapse}
           className={cn("h-8 w-8", collapsed && "mx-auto")}
         >
           {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </Button>
       </div>
-      
+
       <ScrollArea className="flex-1">
-        <SidebarContent 
-          activeSection={activeSection} 
+        <SidebarContent
+          activeSection={activeSection}
           onSectionChange={onSectionChange}
           collapsed={collapsed}
         />
       </ScrollArea>
-      
+
       {!collapsed && (
         <div className="p-3 border-t border-border">
           <p className="text-xs text-muted-foreground text-center">
