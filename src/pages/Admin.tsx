@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Plus, Pencil, Trash2, FileText, Users, Star, HelpCircle, Briefcase, 
   Sparkles, Mail, Send, ClipboardList, BookOpen, CheckCircle2, CalendarDays,
-  Upload, Download, File
+  Upload, Download, File, User
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { blogPosts, BlogPost, categories } from "@/data/blogPosts";
@@ -205,6 +205,22 @@ const Admin = () => {
   };
 
   // Team Member handlers
+  const [teamMemberImage, setTeamMemberImage] = useState<File | null>(null);
+  const [teamMemberImagePreview, setTeamMemberImagePreview] = useState<string | null>(null);
+
+  const handleTeamMemberImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setTeamMemberImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setTeamMemberImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+      toast({ title: `Image selected: ${file.name}` });
+    }
+  };
+
   const handleSaveTeamMember = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -213,7 +229,7 @@ const Admin = () => {
       name: String(formData.get("name")),
       role: String(formData.get("role")),
       bio: String(formData.get("bio")),
-      image: String(formData.get("image")) || undefined
+      image: teamMemberImagePreview || editingTeamMember?.image || undefined
     };
 
     if (editingTeamMember) {
@@ -225,6 +241,8 @@ const Admin = () => {
     }
     setIsTeamDialogOpen(false);
     setEditingTeamMember(null);
+    setTeamMemberImage(null);
+    setTeamMemberImagePreview(null);
   };
 
   const handleDeleteTeamMember = (id: string) => {
@@ -1106,8 +1124,39 @@ const Admin = () => {
                             <Textarea id="bio" name="bio" defaultValue={editingTeamMember?.bio} rows={3} required />
                           </div>
                           <div>
-                            <Label htmlFor="image">Image URL (optional)</Label>
-                            <Input id="image" name="image" defaultValue={editingTeamMember?.image} />
+                            <Label>Profile Image</Label>
+                            <div className="mt-2 space-y-3">
+                              {(teamMemberImagePreview || editingTeamMember?.image) && (
+                                <div className="flex items-center gap-3">
+                                  <img 
+                                    src={teamMemberImagePreview || editingTeamMember?.image} 
+                                    alt="Profile preview" 
+                                    className="w-16 h-16 rounded-full object-cover border-2 border-border"
+                                  />
+                                  <span className="text-sm text-muted-foreground">Current image</span>
+                                </div>
+                              )}
+                              <div className="border-2 border-dashed border-border rounded-lg p-4 text-center hover:border-primary/50 transition-colors">
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={handleTeamMemberImageUpload}
+                                  className="hidden"
+                                  id="team-member-image"
+                                />
+                                <label htmlFor="team-member-image" className="cursor-pointer">
+                                  <div className="flex flex-col items-center gap-2">
+                                    <div className="p-2 bg-muted rounded-full">
+                                      <User className="h-5 w-5 text-muted-foreground" />
+                                    </div>
+                                    <span className="text-sm text-muted-foreground">
+                                      {teamMemberImage ? teamMemberImage.name : "Click to upload profile image"}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">PNG, JPG up to 5MB</span>
+                                  </div>
+                                </label>
+                              </div>
+                            </div>
                           </div>
                           <Button type="submit" className="w-full">Save Team Member</Button>
                         </form>
