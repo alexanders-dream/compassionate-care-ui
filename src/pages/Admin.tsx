@@ -1695,15 +1695,15 @@ const Admin = () => {
               {/* Services Section */}
               {activeSection === "services" && (
                 <>
-                  <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-semibold">Services ({services.length})</h2>
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
+                    <h2 className="text-lg md:text-xl font-semibold">Services ({services.length})</h2>
                     <Dialog open={isServiceDialogOpen} onOpenChange={setIsServiceDialogOpen}>
                       <DialogTrigger asChild>
-                        <Button onClick={() => { setEditingService(null); setServiceIcon("Heart"); }}>
+                        <Button onClick={() => { setEditingService(null); setServiceIcon("Heart"); }} className="w-full sm:w-auto">
                           <Plus className="h-4 w-4 mr-2" /> Add Service
                         </Button>
                       </DialogTrigger>
-                      <DialogContent>
+                      <DialogContent className="max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
                           <DialogTitle>{editingService ? "Edit Service" : "New Service"}</DialogTitle>
                         </DialogHeader>
@@ -1725,48 +1725,76 @@ const Admin = () => {
                       </DialogContent>
                     </Dialog>
                   </div>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Title</TableHead>
-                        <TableHead>Description</TableHead>
-                        <TableHead>Icon</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {services.map(service => (
-                        <TableRow key={service.id}>
-                          <TableCell className="font-medium">{service.title}</TableCell>
-                          <TableCell className="max-w-xs truncate">{service.description}</TableCell>
-                          <TableCell>{service.icon}</TableCell>
-                          <TableCell className="text-right">
-                            <Button variant="ghost" size="sm" onClick={() => { setEditingService(service); setServiceIcon(service.icon || "Heart"); setIsServiceDialogOpen(true); }}>
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleDeleteService(service.id)}>
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </TableCell>
+
+                  {/* Mobile Cards */}
+                  <div className="md:hidden space-y-3">
+                    {services.map(service => (
+                      <Card key={service.id} className="p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <p className="font-medium">{service.title}</p>
+                          <Badge variant="outline">{service.icon}</Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{service.description}</p>
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm" className="flex-1" onClick={() => { setEditingService(service); setServiceIcon(service.icon || "Heart"); setIsServiceDialogOpen(true); }}>
+                            <Pencil className="h-3 w-3 mr-1" /> Edit
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => handleDeleteService(service.id)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </Card>
+                    ))}
+                    {services.length === 0 && (
+                      <p className="text-center text-muted-foreground py-8">No services yet</p>
+                    )}
+                  </div>
+
+                  {/* Desktop Table */}
+                  <div className="hidden md:block overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Title</TableHead>
+                          <TableHead>Description</TableHead>
+                          <TableHead>Icon</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {services.map(service => (
+                          <TableRow key={service.id}>
+                            <TableCell className="font-medium">{service.title}</TableCell>
+                            <TableCell className="max-w-xs truncate">{service.description}</TableCell>
+                            <TableCell>{service.icon}</TableCell>
+                            <TableCell className="text-right">
+                              <Button variant="ghost" size="sm" onClick={() => { setEditingService(service); setServiceIcon(service.icon || "Heart"); setIsServiceDialogOpen(true); }}>
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button variant="ghost" size="sm" onClick={() => handleDeleteService(service.id)}>
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </>
               )}
 
               {/* Team Section */}
               {activeSection === "team" && (
                 <>
-                  <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-semibold">Team Members ({team.length})</h2>
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
+                    <h2 className="text-lg md:text-xl font-semibold">Team Members ({team.length})</h2>
                     <Dialog open={isTeamDialogOpen} onOpenChange={setIsTeamDialogOpen}>
                       <DialogTrigger asChild>
-                        <Button onClick={() => setEditingTeamMember(null)}>
-                          <Plus className="h-4 w-4 mr-2" /> Add Team Member
+                        <Button onClick={() => setEditingTeamMember(null)} className="w-full sm:w-auto">
+                          <Plus className="h-4 w-4 mr-2" /> Add Member
                         </Button>
                       </DialogTrigger>
-                      <DialogContent>
+                      <DialogContent className="max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
                           <DialogTitle>{editingTeamMember ? "Edit Team Member" : "New Team Member"}</DialogTitle>
                         </DialogHeader>
@@ -1788,31 +1816,16 @@ const Admin = () => {
                             <div className="mt-2 space-y-3">
                               {(teamMemberImagePreview || editingTeamMember?.image) && (
                                 <div className="flex items-center gap-3">
-                                  <img 
-                                    src={teamMemberImagePreview || editingTeamMember?.image} 
-                                    alt="Profile preview" 
-                                    className="w-16 h-16 rounded-full object-cover border-2 border-border"
-                                  />
+                                  <img src={teamMemberImagePreview || editingTeamMember?.image} alt="Profile preview" className="w-16 h-16 rounded-full object-cover border-2 border-border" />
                                   <span className="text-sm text-muted-foreground">Current image</span>
                                 </div>
                               )}
                               <div className="border-2 border-dashed border-border rounded-lg p-4 text-center hover:border-primary/50 transition-colors">
-                                <input
-                                  type="file"
-                                  accept="image/*"
-                                  onChange={handleTeamMemberImageUpload}
-                                  className="hidden"
-                                  id="team-member-image"
-                                />
+                                <input type="file" accept="image/*" onChange={handleTeamMemberImageUpload} className="hidden" id="team-member-image" />
                                 <label htmlFor="team-member-image" className="cursor-pointer">
                                   <div className="flex flex-col items-center gap-2">
-                                    <div className="p-2 bg-muted rounded-full">
-                                      <User className="h-5 w-5 text-muted-foreground" />
-                                    </div>
-                                    <span className="text-sm text-muted-foreground">
-                                      {teamMemberImage ? teamMemberImage.name : "Click to upload profile image"}
-                                    </span>
-                                    <span className="text-xs text-muted-foreground">PNG, JPG up to 5MB</span>
+                                    <div className="p-2 bg-muted rounded-full"><User className="h-5 w-5 text-muted-foreground" /></div>
+                                    <span className="text-sm text-muted-foreground">{teamMemberImage ? teamMemberImage.name : "Click to upload"}</span>
                                   </div>
                                 </label>
                               </div>
@@ -1823,48 +1836,79 @@ const Admin = () => {
                       </DialogContent>
                     </Dialog>
                   </div>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Role</TableHead>
-                        <TableHead>Bio</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {team.map(member => (
-                        <TableRow key={member.id}>
-                          <TableCell className="font-medium">{member.name}</TableCell>
-                          <TableCell>{member.role}</TableCell>
-                          <TableCell className="max-w-xs truncate">{member.bio}</TableCell>
-                          <TableCell className="text-right">
-                            <Button variant="ghost" size="sm" onClick={() => { setEditingTeamMember(member); setIsTeamDialogOpen(true); }}>
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleDeleteTeamMember(member.id)}>
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </TableCell>
+
+                  {/* Mobile Cards */}
+                  <div className="md:hidden space-y-3">
+                    {team.map(member => (
+                      <Card key={member.id} className="p-4">
+                        <div className="flex items-start gap-3 mb-3">
+                          {member.image && <img src={member.image} alt={member.name} className="w-12 h-12 rounded-full object-cover shrink-0" />}
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium">{member.name}</p>
+                            <p className="text-xs text-muted-foreground">{member.role}</p>
+                          </div>
+                        </div>
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{member.bio}</p>
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm" className="flex-1" onClick={() => { setEditingTeamMember(member); setIsTeamDialogOpen(true); }}>
+                            <Pencil className="h-3 w-3 mr-1" /> Edit
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => handleDeleteTeamMember(member.id)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </Card>
+                    ))}
+                    {team.length === 0 && (
+                      <p className="text-center text-muted-foreground py-8">No team members yet</p>
+                    )}
+                  </div>
+
+                  {/* Desktop Table */}
+                  <div className="hidden md:block overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Role</TableHead>
+                          <TableHead>Bio</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {team.map(member => (
+                          <TableRow key={member.id}>
+                            <TableCell className="font-medium">{member.name}</TableCell>
+                            <TableCell>{member.role}</TableCell>
+                            <TableCell className="max-w-xs truncate">{member.bio}</TableCell>
+                            <TableCell className="text-right">
+                              <Button variant="ghost" size="sm" onClick={() => { setEditingTeamMember(member); setIsTeamDialogOpen(true); }}>
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button variant="ghost" size="sm" onClick={() => handleDeleteTeamMember(member.id)}>
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </>
               )}
 
               {/* FAQs Section */}
               {activeSection === "faqs" && (
                 <>
-                  <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-semibold">FAQs ({faqs.length})</h2>
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
+                    <h2 className="text-lg md:text-xl font-semibold">FAQs ({faqs.length})</h2>
                     <Dialog open={isFaqDialogOpen} onOpenChange={setIsFaqDialogOpen}>
                       <DialogTrigger asChild>
-                        <Button onClick={() => setEditingFaq(null)}>
+                        <Button onClick={() => setEditingFaq(null)} className="w-full sm:w-auto">
                           <Plus className="h-4 w-4 mr-2" /> Add FAQ
                         </Button>
                       </DialogTrigger>
-                      <DialogContent>
+                      <DialogContent className="max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
                           <DialogTitle>{editingFaq ? "Edit FAQ" : "New FAQ"}</DialogTitle>
                         </DialogHeader>
@@ -1886,31 +1930,58 @@ const Admin = () => {
                       </DialogContent>
                     </Dialog>
                   </div>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Question</TableHead>
-                        <TableHead>Category</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {faqs.map(faq => (
-                        <TableRow key={faq.id}>
-                          <TableCell className="font-medium max-w-md truncate">{faq.question}</TableCell>
-                          <TableCell>{faq.category}</TableCell>
-                          <TableCell className="text-right">
-                            <Button variant="ghost" size="sm" onClick={() => { setEditingFaq(faq); setIsFaqDialogOpen(true); }}>
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleDeleteFaq(faq.id)}>
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </TableCell>
+
+                  {/* Mobile Cards */}
+                  <div className="md:hidden space-y-3">
+                    {faqs.map(faq => (
+                      <Card key={faq.id} className="p-4">
+                        <div className="flex justify-between items-start gap-2 mb-2">
+                          <p className="font-medium text-sm line-clamp-2 flex-1">{faq.question}</p>
+                          <Badge variant="outline" className="shrink-0">{faq.category}</Badge>
+                        </div>
+                        <div className="flex gap-2 mt-3">
+                          <Button variant="outline" size="sm" className="flex-1" onClick={() => { setEditingFaq(faq); setIsFaqDialogOpen(true); }}>
+                            <Pencil className="h-3 w-3 mr-1" /> Edit
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => handleDeleteFaq(faq.id)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </Card>
+                    ))}
+                    {faqs.length === 0 && (
+                      <p className="text-center text-muted-foreground py-8">No FAQs yet</p>
+                    )}
+                  </div>
+
+                  {/* Desktop Table */}
+                  <div className="hidden md:block overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Question</TableHead>
+                          <TableHead>Category</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {faqs.map(faq => (
+                          <TableRow key={faq.id}>
+                            <TableCell className="font-medium max-w-md truncate">{faq.question}</TableCell>
+                            <TableCell>{faq.category}</TableCell>
+                            <TableCell className="text-right">
+                              <Button variant="ghost" size="sm" onClick={() => { setEditingFaq(faq); setIsFaqDialogOpen(true); }}>
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button variant="ghost" size="sm" onClick={() => handleDeleteFaq(faq.id)}>
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </>
               )}
 
