@@ -608,187 +608,251 @@ const Admin = () => {
           onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
         />
 
-        <div className="flex-1 flex flex-col min-w-0">
-          <header className="bg-muted/30 border-b border-border px-6 py-6">
-            <h1 className="text-2xl md:text-3xl font-bold text-primary">Admin Dashboard</h1>
-            <p className="text-muted-foreground text-sm mt-1">Manage all website content</p>
+        <div className="flex-1 flex flex-col min-w-0 w-full">
+          <header className="bg-muted/30 border-b border-border px-4 md:px-6 py-4 md:py-6 pl-16 md:pl-6">
+            <h1 className="text-xl md:text-3xl font-bold text-primary">Admin Dashboard</h1>
+            <p className="text-muted-foreground text-xs md:text-sm mt-1">Manage all website content</p>
           </header>
 
           <ScrollArea className="flex-1">
-            <main className="p-6">
+            <main className="p-3 md:p-6">
               {/* Submissions Section */}
               {activeSection === "submissions" && (
-                <div className="space-y-8">
+                <div className="space-y-6 md:space-y-8">
                   <div>
-                    <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                    <h2 className="text-lg md:text-xl font-semibold mb-4 flex items-center gap-2">
                       <Mail className="h-5 w-5 text-primary" />
                       Visit Requests ({visitRequests.length})
                     </h2>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Name</TableHead>
-                          <TableHead>Contact</TableHead>
-                          <TableHead>Wound Type</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Submitted</TableHead>
-                          <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {visitRequests.map(request => (
-                          <TableRow key={request.id}>
-                            <TableCell className="font-medium">
-                              {request.firstName} {request.lastName}
-                            </TableCell>
-                            <TableCell>
-                              <div className="text-sm">
-                                <div>{request.email}</div>
-                                <div className="text-muted-foreground">{request.phone}</div>
-                              </div>
-                            </TableCell>
-                            <TableCell className="capitalize">{request.woundType}</TableCell>
-                            <TableCell>
-                              <Select 
-                                value={request.status} 
-                                onValueChange={(value) => updateVisitStatus(request.id, value as VisitRequest["status"])}
-                              >
-                                <SelectTrigger className="w-32">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="pending">Pending</SelectItem>
-                                  <SelectItem value="contacted">Contacted</SelectItem>
-                                  <SelectItem value="scheduled">Scheduled</SelectItem>
-                                  <SelectItem value="completed">Completed</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </TableCell>
-                            <TableCell>{new Date(request.submittedAt).toLocaleDateString()}</TableCell>
-                            <TableCell className="text-right space-x-1">
-                              {request.status !== "scheduled" && request.status !== "completed" && (
-                                <Button 
-                                  variant="default" 
-                                  size="sm" 
-                                  onClick={() => openScheduleDialog("visit", request)}
-                                  className="gap-1"
-                                >
-                                  <CalendarDays className="h-3 w-3" />
-                                  Schedule
-                                </Button>
-                              )}
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => openEmailDialog("visit", request)}
-                                className="gap-1"
-                              >
-                                <Send className="h-3 w-3" />
-                                {request.emailSent ? "Resend" : "Email"}
+                    
+                    {/* Mobile Cards */}
+                    <div className="md:hidden space-y-3">
+                      {visitRequests.map(request => (
+                        <Card key={request.id} className="p-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <p className="font-medium">{request.firstName} {request.lastName}</p>
+                              <p className="text-xs text-muted-foreground">{request.email}</p>
+                            </div>
+                            <Select 
+                              value={request.status} 
+                              onValueChange={(value) => updateVisitStatus(request.id, value as VisitRequest["status"])}
+                            >
+                              <SelectTrigger className="w-28 h-8 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="pending">Pending</SelectItem>
+                                <SelectItem value="contacted">Contacted</SelectItem>
+                                <SelectItem value="scheduled">Scheduled</SelectItem>
+                                <SelectItem value="completed">Completed</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
+                            <Badge variant="outline" className="capitalize">{request.woundType}</Badge>
+                            <span>{new Date(request.submittedAt).toLocaleDateString()}</span>
+                          </div>
+                          <div className="flex gap-2">
+                            {request.status !== "scheduled" && request.status !== "completed" && (
+                              <Button variant="default" size="sm" onClick={() => openScheduleDialog("visit", request)} className="flex-1 text-xs">
+                                <CalendarDays className="h-3 w-3 mr-1" /> Schedule
                               </Button>
-                              {request.emailSent && (
-                                <CheckCircle2 className="h-4 w-4 text-green-500 inline ml-1" />
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                        {visitRequests.length === 0 && (
+                            )}
+                            <Button variant="outline" size="sm" onClick={() => openEmailDialog("visit", request)} className="flex-1 text-xs">
+                              <Send className="h-3 w-3 mr-1" /> {request.emailSent ? "Resend" : "Email"}
+                            </Button>
+                          </div>
+                        </Card>
+                      ))}
+                      {visitRequests.length === 0 && (
+                        <p className="text-center text-muted-foreground py-8">No visit requests yet</p>
+                      )}
+                    </div>
+
+                    {/* Desktop Table */}
+                    <div className="hidden md:block overflow-x-auto">
+                      <Table>
+                        <TableHeader>
                           <TableRow>
-                            <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                              No visit requests yet
-                            </TableCell>
+                            <TableHead>Name</TableHead>
+                            <TableHead>Contact</TableHead>
+                            <TableHead>Wound Type</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Submitted</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
                           </TableRow>
-                        )}
-                      </TableBody>
-                    </Table>
+                        </TableHeader>
+                        <TableBody>
+                          {visitRequests.map(request => (
+                            <TableRow key={request.id}>
+                              <TableCell className="font-medium">
+                                {request.firstName} {request.lastName}
+                              </TableCell>
+                              <TableCell>
+                                <div className="text-sm">
+                                  <div>{request.email}</div>
+                                  <div className="text-muted-foreground">{request.phone}</div>
+                                </div>
+                              </TableCell>
+                              <TableCell className="capitalize">{request.woundType}</TableCell>
+                              <TableCell>
+                                <Select 
+                                  value={request.status} 
+                                  onValueChange={(value) => updateVisitStatus(request.id, value as VisitRequest["status"])}
+                                >
+                                  <SelectTrigger className="w-32">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="pending">Pending</SelectItem>
+                                    <SelectItem value="contacted">Contacted</SelectItem>
+                                    <SelectItem value="scheduled">Scheduled</SelectItem>
+                                    <SelectItem value="completed">Completed</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </TableCell>
+                              <TableCell>{new Date(request.submittedAt).toLocaleDateString()}</TableCell>
+                              <TableCell className="text-right space-x-1">
+                                {request.status !== "scheduled" && request.status !== "completed" && (
+                                  <Button variant="default" size="sm" onClick={() => openScheduleDialog("visit", request)} className="gap-1">
+                                    <CalendarDays className="h-3 w-3" /> Schedule
+                                  </Button>
+                                )}
+                                <Button variant="outline" size="sm" onClick={() => openEmailDialog("visit", request)} className="gap-1">
+                                  <Send className="h-3 w-3" /> {request.emailSent ? "Resend" : "Email"}
+                                </Button>
+                                {request.emailSent && <CheckCircle2 className="h-4 w-4 text-green-500 inline ml-1" />}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                          {visitRequests.length === 0 && (
+                            <TableRow>
+                              <TableCell colSpan={6} className="text-center text-muted-foreground py-8">No visit requests yet</TableCell>
+                            </TableRow>
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
                   </div>
 
                   <div>
-                    <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                    <h2 className="text-lg md:text-xl font-semibold mb-4 flex items-center gap-2">
                       <User className="h-5 w-5 text-primary" />
                       Provider Referrals ({referrals.length})
                     </h2>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Patient</TableHead>
-                          <TableHead>Provider</TableHead>
-                          <TableHead>Wound Type</TableHead>
-                          <TableHead>Urgency</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {referrals.map(referral => (
-                          <TableRow key={referral.id}>
-                            <TableCell className="font-medium">
-                              {referral.patientFirstName} {referral.patientLastName}
-                            </TableCell>
-                            <TableCell>
-                              <div className="text-sm">
-                                <div>{referral.providerName}</div>
-                                <div className="text-muted-foreground">{referral.practiceName}</div>
-                              </div>
-                            </TableCell>
-                            <TableCell className="capitalize">{referral.woundType}</TableCell>
-                            <TableCell>
-                              <Badge variant={referral.urgency === "urgent" ? "destructive" : "secondary"}>
-                                {referral.urgency}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <Select 
-                                value={referral.status} 
-                                onValueChange={(value) => updateReferralStatus(referral.id, value as ProviderReferralSubmission["status"])}
-                              >
-                                <SelectTrigger className="w-32">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="pending">Pending</SelectItem>
-                                  <SelectItem value="contacted">Contacted</SelectItem>
-                                  <SelectItem value="scheduled">Scheduled</SelectItem>
-                                  <SelectItem value="completed">Completed</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </TableCell>
-                            <TableCell className="text-right space-x-1">
-                              {referral.status !== "scheduled" && referral.status !== "completed" && (
-                                <Button 
-                                  variant="default" 
-                                  size="sm" 
-                                  onClick={() => openScheduleDialog("referral", referral)}
-                                  className="gap-1"
-                                >
-                                  <CalendarDays className="h-3 w-3" />
-                                  Schedule
-                                </Button>
-                              )}
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => openEmailDialog("referral", referral)}
-                                className="gap-1"
-                              >
-                                <Send className="h-3 w-3" />
-                                {referral.emailSent ? "Resend" : "Email"}
+                    
+                    {/* Mobile Cards */}
+                    <div className="md:hidden space-y-3">
+                      {referrals.map(referral => (
+                        <Card key={referral.id} className="p-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <p className="font-medium">{referral.patientFirstName} {referral.patientLastName}</p>
+                              <p className="text-xs text-muted-foreground">{referral.providerName} • {referral.practiceName}</p>
+                            </div>
+                            <Badge variant={referral.urgency === "urgent" ? "destructive" : "secondary"} className="text-xs">
+                              {referral.urgency}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center justify-between mb-3">
+                            <Badge variant="outline" className="capitalize text-xs">{referral.woundType}</Badge>
+                            <Select 
+                              value={referral.status} 
+                              onValueChange={(value) => updateReferralStatus(referral.id, value as ProviderReferralSubmission["status"])}
+                            >
+                              <SelectTrigger className="w-28 h-8 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="pending">Pending</SelectItem>
+                                <SelectItem value="contacted">Contacted</SelectItem>
+                                <SelectItem value="scheduled">Scheduled</SelectItem>
+                                <SelectItem value="completed">Completed</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="flex gap-2">
+                            {referral.status !== "scheduled" && referral.status !== "completed" && (
+                              <Button variant="default" size="sm" onClick={() => openScheduleDialog("referral", referral)} className="flex-1 text-xs">
+                                <CalendarDays className="h-3 w-3 mr-1" /> Schedule
                               </Button>
-                              {referral.emailSent && (
-                                <CheckCircle2 className="h-4 w-4 text-green-500 inline ml-1" />
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                        {referrals.length === 0 && (
+                            )}
+                            <Button variant="outline" size="sm" onClick={() => openEmailDialog("referral", referral)} className="flex-1 text-xs">
+                              <Send className="h-3 w-3 mr-1" /> {referral.emailSent ? "Resend" : "Email"}
+                            </Button>
+                          </div>
+                        </Card>
+                      ))}
+                      {referrals.length === 0 && (
+                        <p className="text-center text-muted-foreground py-8">No provider referrals yet</p>
+                      )}
+                    </div>
+
+                    {/* Desktop Table */}
+                    <div className="hidden md:block overflow-x-auto">
+                      <Table>
+                        <TableHeader>
                           <TableRow>
-                            <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                              No provider referrals yet
-                            </TableCell>
+                            <TableHead>Patient</TableHead>
+                            <TableHead>Provider</TableHead>
+                            <TableHead>Wound Type</TableHead>
+                            <TableHead>Urgency</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
                           </TableRow>
-                        )}
-                      </TableBody>
-                    </Table>
+                        </TableHeader>
+                        <TableBody>
+                          {referrals.map(referral => (
+                            <TableRow key={referral.id}>
+                              <TableCell className="font-medium">{referral.patientFirstName} {referral.patientLastName}</TableCell>
+                              <TableCell>
+                                <div className="text-sm">
+                                  <div>{referral.providerName}</div>
+                                  <div className="text-muted-foreground">{referral.practiceName}</div>
+                                </div>
+                              </TableCell>
+                              <TableCell className="capitalize">{referral.woundType}</TableCell>
+                              <TableCell>
+                                <Badge variant={referral.urgency === "urgent" ? "destructive" : "secondary"}>{referral.urgency}</Badge>
+                              </TableCell>
+                              <TableCell>
+                                <Select 
+                                  value={referral.status} 
+                                  onValueChange={(value) => updateReferralStatus(referral.id, value as ProviderReferralSubmission["status"])}
+                                >
+                                  <SelectTrigger className="w-32">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="pending">Pending</SelectItem>
+                                    <SelectItem value="contacted">Contacted</SelectItem>
+                                    <SelectItem value="scheduled">Scheduled</SelectItem>
+                                    <SelectItem value="completed">Completed</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </TableCell>
+                              <TableCell className="text-right space-x-1">
+                                {referral.status !== "scheduled" && referral.status !== "completed" && (
+                                  <Button variant="default" size="sm" onClick={() => openScheduleDialog("referral", referral)} className="gap-1">
+                                    <CalendarDays className="h-3 w-3" /> Schedule
+                                  </Button>
+                                )}
+                                <Button variant="outline" size="sm" onClick={() => openEmailDialog("referral", referral)} className="gap-1">
+                                  <Send className="h-3 w-3" /> {referral.emailSent ? "Resend" : "Email"}
+                                </Button>
+                                {referral.emailSent && <CheckCircle2 className="h-4 w-4 text-green-500 inline ml-1" />}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                          {referrals.length === 0 && (
+                            <TableRow>
+                              <TableCell colSpan={6} className="text-center text-muted-foreground py-8">No provider referrals yet</TableCell>
+                            </TableRow>
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
                   </div>
                 </div>
               )}
@@ -807,12 +871,12 @@ const Admin = () => {
 
               {/* Forms Section */}
               {activeSection === "forms" && (
-                <div className="space-y-6">
-                  <div className="flex justify-between items-center">
-                    <h2 className="text-xl font-semibold">Form Configuration</h2>
-                    <div className="flex gap-3">
+                <div className="space-y-4 md:space-y-6">
+                  <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3">
+                    <h2 className="text-lg md:text-xl font-semibold">Form Configuration</h2>
+                    <div className="flex flex-col sm:flex-row gap-2 md:gap-3">
                       <Select value={selectedFormId} onValueChange={setSelectedFormId}>
-                        <SelectTrigger className="w-56">
+                        <SelectTrigger className="w-full sm:w-56">
                           <SelectValue placeholder="Select a form" />
                         </SelectTrigger>
                         <SelectContent>
@@ -821,12 +885,14 @@ const Admin = () => {
                           ))}
                         </SelectContent>
                       </Select>
-                      <Button onClick={handleAddNewField}>
-                        <Plus className="h-4 w-4 mr-2" /> Add Field
-                      </Button>
-                      <Button variant="secondary" onClick={handleSaveFormConfig}>
-                        Save Changes
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button onClick={handleAddNewField} size="sm" className="flex-1 sm:flex-none">
+                          <Plus className="h-4 w-4 mr-1" /> Add
+                        </Button>
+                        <Button variant="secondary" size="sm" onClick={handleSaveFormConfig} className="flex-1 sm:flex-none">
+                          Save
+                        </Button>
+                      </div>
                     </div>
                   </div>
 
