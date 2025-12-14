@@ -27,6 +27,7 @@ import {
 import AIArticleGenerator, { ArticleMedia } from "@/components/admin/AIArticleGenerator";
 import AppointmentScheduler, { ScheduleDialog, AppointmentFormData } from "@/components/admin/AppointmentScheduler";
 import { Appointment } from "@/data/siteContent";
+import IconPicker from "@/components/admin/IconPicker";
 
 interface ExtendedBlogPost extends BlogPost {
   status?: "draft" | "published" | "scheduled";
@@ -66,6 +67,10 @@ const Admin = () => {
   const [emailRecipient, setEmailRecipient] = useState<{ type: "visit" | "referral"; data: VisitRequest | ProviderReferralSubmission } | null>(null);
   const [emailSubject, setEmailSubject] = useState("");
   const [emailBody, setEmailBody] = useState("");
+  
+  // Icon picker states
+  const [resourceIcon, setResourceIcon] = useState("FileText");
+  const [serviceIcon, setServiceIcon] = useState("Heart");
   
   // Inline scheduling state
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
@@ -179,7 +184,7 @@ const Admin = () => {
       id: editingService?.id || String(Date.now()),
       title: String(formData.get("title")),
       description: String(formData.get("description")),
-      icon: String(formData.get("icon"))
+      icon: serviceIcon
     };
 
     if (editingService) {
@@ -191,6 +196,7 @@ const Admin = () => {
     }
     setIsServiceDialogOpen(false);
     setEditingService(null);
+    setServiceIcon("Heart");
   };
 
   const handleDeleteService = (id: string) => {
@@ -278,7 +284,7 @@ const Admin = () => {
       title: String(formData.get("title")),
       description: String(formData.get("description")),
       type: String(formData.get("type")) as PatientResource["type"],
-      icon: String(formData.get("icon")),
+      icon: resourceIcon,
       url: resourceFile ? `/downloads/${resourceFile.name}` : (String(formData.get("url")) || undefined),
       fileName: resourceFile?.name || editingResource?.fileName,
       fileSize: resourceFile ? formatFileSize(resourceFile.size) : editingResource?.fileSize,
@@ -295,6 +301,7 @@ const Admin = () => {
     setIsResourceDialogOpen(false);
     setEditingResource(null);
     setResourceFile(null);
+    setResourceIcon("FileText");
   };
 
   const handleDeleteResource = (id: string) => {
@@ -673,7 +680,7 @@ const Admin = () => {
                     <h2 className="text-xl font-semibold">Patient Resources ({patientResources.length})</h2>
                     <Dialog open={isResourceDialogOpen} onOpenChange={setIsResourceDialogOpen}>
                       <DialogTrigger asChild>
-                        <Button onClick={() => setEditingResource(null)}>
+                        <Button onClick={() => { setEditingResource(null); setResourceIcon("FileText"); }}>
                           <Plus className="h-4 w-4 mr-2" /> Add Resource
                         </Button>
                       </DialogTrigger>
@@ -704,8 +711,8 @@ const Admin = () => {
                             </Select>
                           </div>
                           <div>
-                            <Label htmlFor="icon">Icon (Lucide icon name)</Label>
-                            <Input id="icon" name="icon" defaultValue={editingResource?.icon || "FileText"} placeholder="FileText, BookOpen, Video..." required />
+                            <Label>Icon</Label>
+                            <IconPicker value={resourceIcon} onChange={setResourceIcon} name="icon" />
                           </div>
                           <div className="space-y-2">
                             <Label>Upload File</Label>
@@ -791,7 +798,7 @@ const Admin = () => {
                                 <Download className="h-4 w-4 text-primary" />
                               </Button>
                             )}
-                            <Button variant="ghost" size="sm" onClick={() => { setEditingResource(resource); setResourceFile(null); setIsResourceDialogOpen(true); }}>
+                            <Button variant="ghost" size="sm" onClick={() => { setEditingResource(resource); setResourceFile(null); setResourceIcon(resource.icon || "FileText"); setIsResourceDialogOpen(true); }}>
                               <Pencil className="h-4 w-4" />
                             </Button>
                             <Button variant="ghost" size="sm" onClick={() => handleDeleteResource(resource.id)}>
@@ -1016,7 +1023,7 @@ const Admin = () => {
                     <h2 className="text-xl font-semibold">Services ({services.length})</h2>
                     <Dialog open={isServiceDialogOpen} onOpenChange={setIsServiceDialogOpen}>
                       <DialogTrigger asChild>
-                        <Button onClick={() => setEditingService(null)}>
+                        <Button onClick={() => { setEditingService(null); setServiceIcon("Heart"); }}>
                           <Plus className="h-4 w-4 mr-2" /> Add Service
                         </Button>
                       </DialogTrigger>
@@ -1034,8 +1041,8 @@ const Admin = () => {
                             <Textarea id="description" name="description" defaultValue={editingService?.description} rows={3} required />
                           </div>
                           <div>
-                            <Label htmlFor="icon">Icon (Lucide icon name)</Label>
-                            <Input id="icon" name="icon" defaultValue={editingService?.icon} placeholder="Heart, Home, Stethoscope..." required />
+                            <Label>Icon</Label>
+                            <IconPicker value={serviceIcon} onChange={setServiceIcon} name="icon" />
                           </div>
                           <Button type="submit" className="w-full">Save Service</Button>
                         </form>
@@ -1058,7 +1065,7 @@ const Admin = () => {
                           <TableCell className="max-w-xs truncate">{service.description}</TableCell>
                           <TableCell>{service.icon}</TableCell>
                           <TableCell className="text-right">
-                            <Button variant="ghost" size="sm" onClick={() => { setEditingService(service); setIsServiceDialogOpen(true); }}>
+                            <Button variant="ghost" size="sm" onClick={() => { setEditingService(service); setServiceIcon(service.icon || "Heart"); setIsServiceDialogOpen(true); }}>
                               <Pencil className="h-4 w-4" />
                             </Button>
                             <Button variant="ghost" size="sm" onClick={() => handleDeleteService(service.id)}>
