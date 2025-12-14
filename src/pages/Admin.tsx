@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { 
   Plus, Pencil, Trash2, FileText, Users, Star, HelpCircle, Briefcase, 
-  Sparkles, Mail, Send, ClipboardList, BookOpen, CheckCircle2
+  Sparkles, Mail, Send, ClipboardList, BookOpen, CheckCircle2, CalendarDays
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { blogPosts, BlogPost, categories } from "@/data/blogPosts";
@@ -24,6 +24,7 @@ import {
   VisitRequest, ProviderReferralSubmission 
 } from "@/data/siteContent";
 import AIArticleGenerator, { ArticleMedia } from "@/components/admin/AIArticleGenerator";
+import AppointmentScheduler from "@/components/admin/AppointmentScheduler";
 
 interface ExtendedBlogPost extends BlogPost {
   status?: "draft" | "published" | "scheduled";
@@ -345,6 +346,10 @@ const Admin = () => {
                     <ClipboardList className="h-4 w-4" />
                     <span className="hidden sm:inline">Submissions</span>
                   </TabsTrigger>
+                  <TabsTrigger value="appointments" className="flex items-center gap-2">
+                    <CalendarDays className="h-4 w-4" />
+                    <span className="hidden sm:inline">Appointments</span>
+                  </TabsTrigger>
                   <TabsTrigger value="resources" className="flex items-center gap-2">
                     <BookOpen className="h-4 w-4" />
                     <span className="hidden sm:inline">Resources</span>
@@ -526,6 +531,16 @@ const Admin = () => {
                       </Table>
                     </div>
                   </div>
+                </TabsContent>
+
+                {/* Appointments Tab */}
+                <TabsContent value="appointments">
+                  <AppointmentScheduler 
+                    visitRequests={visitRequests}
+                    referrals={referrals}
+                    onUpdateVisitStatus={updateVisitStatus}
+                    onUpdateReferralStatus={updateReferralStatus}
+                  />
                 </TabsContent>
 
                 {/* Patient Resources Tab */}
