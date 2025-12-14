@@ -11,12 +11,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, FileText, Users, Star, HelpCircle, Briefcase, Sparkles } from "lucide-react";
+import { 
+  Plus, Pencil, Trash2, FileText, Users, Star, HelpCircle, Briefcase, 
+  Sparkles, Mail, Send, ClipboardList, BookOpen, CheckCircle2
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { blogPosts, BlogPost, categories } from "@/data/blogPosts";
 import { 
   defaultTestimonials, defaultServices, defaultTeamMembers, defaultFAQs,
-  Testimonial, Service, TeamMember, FAQ 
+  defaultPatientResources, sampleVisitRequests, sampleReferrals,
+  Testimonial, Service, TeamMember, FAQ, PatientResource, 
+  VisitRequest, ProviderReferralSubmission 
 } from "@/data/siteContent";
 import AIArticleGenerator, { ArticleMedia } from "@/components/admin/AIArticleGenerator";
 
@@ -36,6 +41,9 @@ const Admin = () => {
   const [services, setServices] = useState<Service[]>(defaultServices);
   const [team, setTeam] = useState<TeamMember[]>(defaultTeamMembers);
   const [faqs, setFaqs] = useState<FAQ[]>(defaultFAQs);
+  const [patientResources, setPatientResources] = useState<PatientResource[]>(defaultPatientResources);
+  const [visitRequests, setVisitRequests] = useState<VisitRequest[]>(sampleVisitRequests);
+  const [referrals, setReferrals] = useState<ProviderReferralSubmission[]>(sampleReferrals);
 
   // Dialog states
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
@@ -43,12 +51,18 @@ const Admin = () => {
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [editingTeamMember, setEditingTeamMember] = useState<TeamMember | null>(null);
   const [editingFaq, setEditingFaq] = useState<FAQ | null>(null);
+  const [editingResource, setEditingResource] = useState<PatientResource | null>(null);
 
   const [isPostDialogOpen, setIsPostDialogOpen] = useState(false);
   const [isTestimonialDialogOpen, setIsTestimonialDialogOpen] = useState(false);
   const [isServiceDialogOpen, setIsServiceDialogOpen] = useState(false);
   const [isTeamDialogOpen, setIsTeamDialogOpen] = useState(false);
   const [isFaqDialogOpen, setIsFaqDialogOpen] = useState(false);
+  const [isResourceDialogOpen, setIsResourceDialogOpen] = useState(false);
+  const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
+  const [emailRecipient, setEmailRecipient] = useState<{ type: "visit" | "referral"; data: VisitRequest | ProviderReferralSubmission } | null>(null);
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailBody, setEmailBody] = useState("");
 
   const categoryOptions = categories.filter(c => c.id !== "all");
 
@@ -103,6 +117,21 @@ const Admin = () => {
         return <Badge variant="outline" className="border-amber-500 text-amber-600">Scheduled</Badge>;
       default:
         return <Badge className="bg-green-500">Published</Badge>;
+    }
+  };
+
+  const getSubmissionStatusBadge = (status: string) => {
+    switch (status) {
+      case "pending":
+        return <Badge variant="secondary">Pending</Badge>;
+      case "contacted":
+        return <Badge variant="outline" className="border-blue-500 text-blue-600">Contacted</Badge>;
+      case "scheduled":
+        return <Badge className="bg-amber-500">Scheduled</Badge>;
+      case "completed":
+        return <Badge className="bg-green-500">Completed</Badge>;
+      default:
+        return <Badge variant="secondary">{status}</Badge>;
     }
   };
 
@@ -216,6 +245,82 @@ const Admin = () => {
     toast({ title: "FAQ deleted" });
   };
 
+  // Patient Resource handlers
+  const handleSaveResource = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const resourceData: PatientResource = {
+      id: editingResource?.id || String(Date.now()),
+      title: String(formData.get("title")),
+      description: String(formData.get("description")),
+      type: String(formData.get("type")) as PatientResource["type"],
+      icon: String(formData.get("icon")),
+      url: String(formData.get("url")) || undefined
+    };
+
+    if (editingResource) {
+      setPatientResources(patientResources.map(r => r.id === editingResource.id ? resourceData : r));
+      toast({ title: "Resource updated successfully" });
+    } else {
+      setPatientResources([...patientResources, resourceData]);
+      toast({ title: "Resource created successfully" });
+    }
+    setIsResourceDialogOpen(false);
+    setEditingResource(null);
+  };
+
+  const handleDeleteResource = (id: string) => {
+    setPatientResources(patientResources.filter(r => r.id !== id));
+    toast({ title: "Resource deleted" });
+  };
+
+  // Email handlers
+  const openEmailDialog = (type: "visit" | "referral", data: VisitRequest | ProviderReferralSubmission) => {
+    setEmailRecipient({ type, data });
+    const name = type === "visit" 
+      ? `${(data as VisitRequest).firstName} ${(data as VisitRequest).lastName}`
+      : `${(data as ProviderReferralSubmission).patientFirstName} ${(data as ProviderReferralSubmission).patientLastName}`;
+    setEmailSubject("Booking Confirmation - AR Advanced Woundcare Solutions");
+    setEmailBody(`Dear ${name},\n\nThank you for your ${type === "visit" ? "visit request" : "referral"}.\n\nWe are pleased to confirm your appointment. Our care coordinator will reach out to you shortly to finalize the details.\n\nIf you have any questions, please don't hesitate to contact us.\n\nBest regards,\nAR Advanced Woundcare Solutions Team`);
+    setIsEmailDialogOpen(true);
+  };
+
+  const handleSendEmail = () => {
+    if (!emailRecipient) return;
+    
+    const email = emailRecipient.type === "visit" 
+      ? (emailRecipient.data as VisitRequest).email 
+      : (emailRecipient.data as ProviderReferralSubmission).providerEmail;
+    
+    // Update the email sent status
+    if (emailRecipient.type === "visit") {
+      setVisitRequests(visitRequests.map(vr => 
+        vr.id === emailRecipient.data.id ? { ...vr, emailSent: true, status: "contacted" as const } : vr
+      ));
+    } else {
+      setReferrals(referrals.map(ref => 
+        ref.id === emailRecipient.data.id ? { ...ref, emailSent: true, status: "contacted" as const } : ref
+      ));
+    }
+    
+    toast({ 
+      title: "Email Sent",
+      description: `Confirmation email sent to ${email}`
+    });
+    setIsEmailDialogOpen(false);
+    setEmailRecipient(null);
+  };
+
+  const updateVisitStatus = (id: string, status: VisitRequest["status"]) => {
+    setVisitRequests(visitRequests.map(vr => vr.id === id ? { ...vr, status } : vr));
+    toast({ title: "Status updated" });
+  };
+
+  const updateReferralStatus = (id: string, status: ProviderReferralSubmission["status"]) => {
+    setReferrals(referrals.map(ref => ref.id === id ? { ...ref, status } : ref));
+    toast({ title: "Status updated" });
+  };
+
   return (
     <Layout>
       <Helmet>
@@ -234,8 +339,16 @@ const Admin = () => {
         <div className="container mx-auto px-4">
           <Card>
             <CardContent className="pt-6">
-              <Tabs defaultValue="blog" className="w-full">
-                <TabsList className="grid w-full grid-cols-5 mb-6">
+              <Tabs defaultValue="submissions" className="w-full">
+                <TabsList className="grid w-full grid-cols-4 md:grid-cols-8 mb-6">
+                  <TabsTrigger value="submissions" className="flex items-center gap-2">
+                    <ClipboardList className="h-4 w-4" />
+                    <span className="hidden sm:inline">Submissions</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="resources" className="flex items-center gap-2">
+                    <BookOpen className="h-4 w-4" />
+                    <span className="hidden sm:inline">Resources</span>
+                  </TabsTrigger>
                   <TabsTrigger value="blog" className="flex items-center gap-2">
                     <FileText className="h-4 w-4" />
                     <span className="hidden sm:inline">Blog</span>
@@ -257,6 +370,243 @@ const Admin = () => {
                     <span className="hidden sm:inline">FAQs</span>
                   </TabsTrigger>
                 </TabsList>
+
+                {/* Form Submissions Tab */}
+                <TabsContent value="submissions">
+                  <div className="space-y-8">
+                    {/* Visit Requests */}
+                    <div>
+                      <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                        <Mail className="h-5 w-5 text-primary" />
+                        Visit Requests ({visitRequests.length})
+                      </h2>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Name</TableHead>
+                            <TableHead>Contact</TableHead>
+                            <TableHead>Wound Type</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Submitted</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {visitRequests.map(request => (
+                            <TableRow key={request.id}>
+                              <TableCell className="font-medium">
+                                {request.firstName} {request.lastName}
+                              </TableCell>
+                              <TableCell>
+                                <div className="text-sm">
+                                  <div>{request.email}</div>
+                                  <div className="text-muted-foreground">{request.phone}</div>
+                                </div>
+                              </TableCell>
+                              <TableCell className="capitalize">{request.woundType}</TableCell>
+                              <TableCell>
+                                <Select 
+                                  value={request.status} 
+                                  onValueChange={(value) => updateVisitStatus(request.id, value as VisitRequest["status"])}
+                                >
+                                  <SelectTrigger className="w-32">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="pending">Pending</SelectItem>
+                                    <SelectItem value="contacted">Contacted</SelectItem>
+                                    <SelectItem value="scheduled">Scheduled</SelectItem>
+                                    <SelectItem value="completed">Completed</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </TableCell>
+                              <TableCell>{new Date(request.submittedAt).toLocaleDateString()}</TableCell>
+                              <TableCell className="text-right">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  onClick={() => openEmailDialog("visit", request)}
+                                  className="gap-1"
+                                >
+                                  <Send className="h-3 w-3" />
+                                  {request.emailSent ? "Resend" : "Send Email"}
+                                </Button>
+                                {request.emailSent && (
+                                  <CheckCircle2 className="h-4 w-4 text-green-500 inline ml-2" />
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                          {visitRequests.length === 0 && (
+                            <TableRow>
+                              <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                                No visit requests yet
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+
+                    {/* Provider Referrals */}
+                    <div>
+                      <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                        <Briefcase className="h-5 w-5 text-primary" />
+                        Provider Referrals ({referrals.length})
+                      </h2>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Patient</TableHead>
+                            <TableHead>Provider</TableHead>
+                            <TableHead>Wound Type</TableHead>
+                            <TableHead>Urgency</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {referrals.map(referral => (
+                            <TableRow key={referral.id}>
+                              <TableCell className="font-medium">
+                                {referral.patientFirstName} {referral.patientLastName}
+                              </TableCell>
+                              <TableCell>
+                                <div className="text-sm">
+                                  <div>{referral.providerName}</div>
+                                  <div className="text-muted-foreground">{referral.practiceName}</div>
+                                </div>
+                              </TableCell>
+                              <TableCell className="capitalize">{referral.woundType}</TableCell>
+                              <TableCell>
+                                <Badge variant={referral.urgency === "urgent" ? "destructive" : "secondary"}>
+                                  {referral.urgency}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <Select 
+                                  value={referral.status} 
+                                  onValueChange={(value) => updateReferralStatus(referral.id, value as ProviderReferralSubmission["status"])}
+                                >
+                                  <SelectTrigger className="w-32">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="pending">Pending</SelectItem>
+                                    <SelectItem value="contacted">Contacted</SelectItem>
+                                    <SelectItem value="scheduled">Scheduled</SelectItem>
+                                    <SelectItem value="completed">Completed</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  onClick={() => openEmailDialog("referral", referral)}
+                                  className="gap-1"
+                                >
+                                  <Send className="h-3 w-3" />
+                                  {referral.emailSent ? "Resend" : "Send Email"}
+                                </Button>
+                                {referral.emailSent && (
+                                  <CheckCircle2 className="h-4 w-4 text-green-500 inline ml-2" />
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                          {referrals.length === 0 && (
+                            <TableRow>
+                              <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                                No provider referrals yet
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                {/* Patient Resources Tab */}
+                <TabsContent value="resources">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-semibold">Patient Resources ({patientResources.length})</h2>
+                    <Dialog open={isResourceDialogOpen} onOpenChange={setIsResourceDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button onClick={() => setEditingResource(null)}>
+                          <Plus className="h-4 w-4 mr-2" /> Add Resource
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>{editingResource ? "Edit Resource" : "New Resource"}</DialogTitle>
+                        </DialogHeader>
+                        <form onSubmit={handleSaveResource} className="space-y-4">
+                          <div>
+                            <Label htmlFor="title">Title</Label>
+                            <Input id="title" name="title" defaultValue={editingResource?.title} required />
+                          </div>
+                          <div>
+                            <Label htmlFor="description">Description</Label>
+                            <Textarea id="description" name="description" defaultValue={editingResource?.description} rows={3} required />
+                          </div>
+                          <div>
+                            <Label htmlFor="type">Type</Label>
+                            <Select name="type" defaultValue={editingResource?.type || "PDF Guide"}>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="PDF Guide">PDF Guide</SelectItem>
+                                <SelectItem value="Educational Article">Educational Article</SelectItem>
+                                <SelectItem value="Video Tutorial">Video Tutorial</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label htmlFor="icon">Icon (Lucide icon name)</Label>
+                            <Input id="icon" name="icon" defaultValue={editingResource?.icon || "FileText"} placeholder="FileText, BookOpen, Video..." required />
+                          </div>
+                          <div>
+                            <Label htmlFor="url">URL (optional)</Label>
+                            <Input id="url" name="url" defaultValue={editingResource?.url} placeholder="https://..." />
+                          </div>
+                          <Button type="submit" className="w-full">Save Resource</Button>
+                        </form>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Title</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {patientResources.map(resource => (
+                        <TableRow key={resource.id}>
+                          <TableCell className="font-medium">{resource.title}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{resource.type}</Badge>
+                          </TableCell>
+                          <TableCell className="max-w-xs truncate">{resource.description}</TableCell>
+                          <TableCell className="text-right">
+                            <Button variant="ghost" size="sm" onClick={() => { setEditingResource(resource); setIsResourceDialogOpen(true); }}>
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={() => handleDeleteResource(resource.id)}>
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TabsContent>
 
                 {/* Blog Posts Tab */}
                 <TabsContent value="blog">
@@ -657,6 +1007,55 @@ const Admin = () => {
           </p>
         </div>
       </section>
+
+      {/* Email Dialog */}
+      <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5" />
+              Send Confirmation Email
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Recipient</Label>
+              <Input 
+                value={emailRecipient?.type === "visit" 
+                  ? (emailRecipient.data as VisitRequest).email 
+                  : (emailRecipient?.data as ProviderReferralSubmission)?.providerEmail || ""} 
+                disabled 
+              />
+            </div>
+            <div>
+              <Label htmlFor="emailSubject">Subject</Label>
+              <Input 
+                id="emailSubject" 
+                value={emailSubject} 
+                onChange={(e) => setEmailSubject(e.target.value)} 
+              />
+            </div>
+            <div>
+              <Label htmlFor="emailBody">Message</Label>
+              <Textarea 
+                id="emailBody" 
+                value={emailBody} 
+                onChange={(e) => setEmailBody(e.target.value)} 
+                rows={10}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsEmailDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSendEmail} className="gap-2">
+                <Send className="h-4 w-4" />
+                Send Email
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 };
