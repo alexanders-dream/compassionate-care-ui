@@ -70,6 +70,9 @@ export interface PatientResource {
   type: "PDF Guide" | "Educational Article" | "Video Tutorial";
   icon: string;
   url?: string;
+  fileName?: string;
+  fileSize?: string;
+  uploadedAt?: string;
 }
 
 export interface Appointment {

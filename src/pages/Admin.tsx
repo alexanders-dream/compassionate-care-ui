@@ -13,7 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { 
   Plus, Pencil, Trash2, FileText, Users, Star, HelpCircle, Briefcase, 
-  Sparkles, Mail, Send, ClipboardList, BookOpen, CheckCircle2, CalendarDays
+  Sparkles, Mail, Send, ClipboardList, BookOpen, CheckCircle2, CalendarDays,
+  Upload, Download, File
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { blogPosts, BlogPost, categories } from "@/data/blogPosts";
@@ -253,6 +254,22 @@ const Admin = () => {
   };
 
   // Patient Resource handlers
+  const [resourceFile, setResourceFile] = useState<File | null>(null);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setResourceFile(file);
+      toast({ title: `File selected: ${file.name}` });
+    }
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
   const handleSaveResource = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -262,7 +279,10 @@ const Admin = () => {
       description: String(formData.get("description")),
       type: String(formData.get("type")) as PatientResource["type"],
       icon: String(formData.get("icon")),
-      url: String(formData.get("url")) || undefined
+      url: resourceFile ? `/downloads/${resourceFile.name}` : (String(formData.get("url")) || undefined),
+      fileName: resourceFile?.name || editingResource?.fileName,
+      fileSize: resourceFile ? formatFileSize(resourceFile.size) : editingResource?.fileSize,
+      uploadedAt: resourceFile ? new Date().toISOString() : editingResource?.uploadedAt
     };
 
     if (editingResource) {
@@ -274,6 +294,7 @@ const Admin = () => {
     }
     setIsResourceDialogOpen(false);
     setEditingResource(null);
+    setResourceFile(null);
   };
 
   const handleDeleteResource = (id: string) => {
@@ -686,8 +707,44 @@ const Admin = () => {
                             <Label htmlFor="icon">Icon (Lucide icon name)</Label>
                             <Input id="icon" name="icon" defaultValue={editingResource?.icon || "FileText"} placeholder="FileText, BookOpen, Video..." required />
                           </div>
+                          <div className="space-y-2">
+                            <Label>Upload File</Label>
+                            <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
+                              <input
+                                type="file"
+                                id="resourceFile"
+                                className="hidden"
+                                onChange={handleFileUpload}
+                                accept=".pdf,.doc,.docx,.mp4,.webm"
+                              />
+                              <label htmlFor="resourceFile" className="cursor-pointer">
+                                <div className="flex flex-col items-center gap-2">
+                                  <Upload className="h-8 w-8 text-muted-foreground" />
+                                  <span className="text-sm text-muted-foreground">
+                                    Click to upload or drag and drop
+                                  </span>
+                                  <span className="text-xs text-muted-foreground">
+                                    PDF, DOC, DOCX, MP4, WEBM
+                                  </span>
+                                </div>
+                              </label>
+                              {(resourceFile || editingResource?.fileName) && (
+                                <div className="mt-3 p-2 bg-muted rounded flex items-center gap-2">
+                                  <File className="h-4 w-4 text-primary" />
+                                  <span className="text-sm font-medium">
+                                    {resourceFile?.name || editingResource?.fileName}
+                                  </span>
+                                  {(resourceFile || editingResource?.fileSize) && (
+                                    <span className="text-xs text-muted-foreground">
+                                      ({resourceFile ? formatFileSize(resourceFile.size) : editingResource?.fileSize})
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
                           <div>
-                            <Label htmlFor="url">URL (optional)</Label>
+                            <Label htmlFor="url">External URL (optional - if no file uploaded)</Label>
                             <Input id="url" name="url" defaultValue={editingResource?.url} placeholder="https://..." />
                           </div>
                           <Button type="submit" className="w-full">Save Resource</Button>
@@ -700,6 +757,7 @@ const Admin = () => {
                       <TableRow>
                         <TableHead>Title</TableHead>
                         <TableHead>Type</TableHead>
+                        <TableHead>File</TableHead>
                         <TableHead>Description</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
@@ -711,9 +769,29 @@ const Admin = () => {
                           <TableCell>
                             <Badge variant="outline">{resource.type}</Badge>
                           </TableCell>
+                          <TableCell>
+                            {resource.fileName ? (
+                              <div className="flex items-center gap-1">
+                                <File className="h-4 w-4 text-primary" />
+                                <span className="text-sm">{resource.fileName}</span>
+                                <span className="text-xs text-muted-foreground">({resource.fileSize})</span>
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground text-sm">External URL</span>
+                            )}
+                          </TableCell>
                           <TableCell className="max-w-xs truncate">{resource.description}</TableCell>
                           <TableCell className="text-right">
-                            <Button variant="ghost" size="sm" onClick={() => { setEditingResource(resource); setIsResourceDialogOpen(true); }}>
+                            {resource.fileName && (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => toast({ title: `Simulated download: ${resource.fileName}` })}
+                              >
+                                <Download className="h-4 w-4 text-primary" />
+                              </Button>
+                            )}
+                            <Button variant="ghost" size="sm" onClick={() => { setEditingResource(resource); setResourceFile(null); setIsResourceDialogOpen(true); }}>
                               <Pencil className="h-4 w-4" />
                             </Button>
                             <Button variant="ghost" size="sm" onClick={() => handleDeleteResource(resource.id)}>
