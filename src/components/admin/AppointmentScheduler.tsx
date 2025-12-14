@@ -809,12 +809,12 @@ const AppointmentScheduler = ({
   const internalFullyBookedDates = getFullyBookedDatesInternal(formData.clinician);
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Appointments ({appointments.length})</h2>
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+        <h2 className="text-lg md:text-xl font-semibold">Appointments ({appointments.length})</h2>
         <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
           <DialogTrigger asChild>
-            <Button onClick={() => resetForm()}>
+            <Button onClick={() => resetForm()} className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" /> Schedule Appointment
             </Button>
           </DialogTrigger>
@@ -1039,99 +1039,178 @@ const AppointmentScheduler = ({
         </Dialog>
       </div>
 
-      {/* Appointments Table */}
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Patient</TableHead>
-            <TableHead>Date & Time</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead>Clinician</TableHead>
-            <TableHead>Location</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {appointments.map(apt => (
-            <TableRow key={apt.id}>
-              <TableCell>
-                <div className="flex items-center gap-2">
-                  <User className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <div className="font-medium">{apt.patientName}</div>
-                    <div className="text-sm text-muted-foreground">{apt.patientPhone}</div>
-                  </div>
+      {/* Mobile Cards */}
+      <div className="md:hidden space-y-3">
+        {appointments.map(apt => (
+          <Card key={apt.id} className="p-4">
+            <div className="flex justify-between items-start mb-3">
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <p className="font-medium">{apt.patientName}</p>
+                  <p className="text-xs text-muted-foreground">{apt.patientPhone}</p>
                 </div>
-              </TableCell>
-              <TableCell>
-                <div className="flex items-center gap-2">
-                  <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <div>{format(new Date(apt.appointmentDate), "MMM d, yyyy")}</div>
-                    <div className="text-sm text-muted-foreground flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {apt.appointmentTime} ({apt.duration}min)
-                    </div>
-                  </div>
-                </div>
-              </TableCell>
-              <TableCell>{getTypeBadge(apt.type)}</TableCell>
-              <TableCell>{apt.clinician}</TableCell>
-              <TableCell>
-                <div className="flex items-center gap-1">
-                  <MapPin className="h-3 w-3 text-muted-foreground" />
-                  <span className="capitalize">{apt.location.replace("-", " ")}</span>
-                </div>
-              </TableCell>
-              <TableCell>
-                <Select 
-                  value={apt.status}
-                  onValueChange={(value) => handleUpdateStatus(apt.id, value as Appointment["status"])}
-                >
-                  <SelectTrigger className="w-28">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="scheduled">Scheduled</SelectItem>
-                    <SelectItem value="confirmed">Confirmed</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                    <SelectItem value="cancelled">Cancelled</SelectItem>
-                    <SelectItem value="no-show">No Show</SelectItem>
-                  </SelectContent>
-                </Select>
-              </TableCell>
-              <TableCell className="text-right space-x-1">
+              </div>
+              {getStatusBadge(apt.status)}
+            </div>
+            
+            <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+              <div className="flex items-center gap-1.5">
+                <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                <span>{format(new Date(apt.appointmentDate), "MMM d")}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                <span>{apt.appointmentTime} ({apt.duration}m)</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="capitalize">{apt.location.replace("-", " ")}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                {getTypeBadge(apt.type)}
+              </div>
+            </div>
+            
+            <p className="text-xs text-muted-foreground mb-3">{apt.clinician}</p>
+            
+            <div className="flex items-center justify-between">
+              <Select 
+                value={apt.status}
+                onValueChange={(value) => handleUpdateStatus(apt.id, value as Appointment["status"])}
+              >
+                <SelectTrigger className="w-28 h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="scheduled">Scheduled</SelectItem>
+                  <SelectItem value="confirmed">Confirmed</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                  <SelectItem value="no-show">No Show</SelectItem>
+                </SelectContent>
+              </Select>
+              <div className="flex gap-1">
                 <Button 
                   variant="outline" 
                   size="sm" 
                   onClick={() => openEmailDialog(apt)}
-                  className="gap-1"
                   disabled={!apt.patientEmail}
-                  title={apt.patientEmail ? "Send email" : "No email address"}
+                  className="h-8 px-2"
                 >
                   <Send className="h-3 w-3" />
-                  {emailsSent[apt.id] ? "Resend" : "Email"}
-                  {emailsSent[apt.id] && <CheckCircle2 className="h-3 w-3 text-green-500" />}
+                  {emailsSent[apt.id] && <CheckCircle2 className="h-3 w-3 text-green-500 ml-1" />}
                 </Button>
-                <Button variant="ghost" size="sm" onClick={() => handleEditAppointment(apt)}>
+                <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => handleEditAppointment(apt)}>
                   <Pencil className="h-4 w-4" />
                 </Button>
-                <Button variant="ghost" size="sm" onClick={() => handleDeleteAppointment(apt.id)}>
+                <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => handleDeleteAppointment(apt.id)}>
                   <Trash2 className="h-4 w-4 text-destructive" />
                 </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-          {appointments.length === 0 && (
+              </div>
+            </div>
+          </Card>
+        ))}
+        {appointments.length === 0 && (
+          <p className="text-center text-muted-foreground py-8">No appointments scheduled</p>
+        )}
+      </div>
+
+      {/* Desktop Table */}
+      <div className="hidden md:block overflow-x-auto">
+        <Table>
+          <TableHeader>
             <TableRow>
-              <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                No appointments scheduled
-              </TableCell>
+              <TableHead>Patient</TableHead>
+              <TableHead>Date & Time</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Clinician</TableHead>
+              <TableHead>Location</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
-          )}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {appointments.map(apt => (
+              <TableRow key={apt.id}>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <div className="font-medium">{apt.patientName}</div>
+                      <div className="text-sm text-muted-foreground">{apt.patientPhone}</div>
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <div>{format(new Date(apt.appointmentDate), "MMM d, yyyy")}</div>
+                      <div className="text-sm text-muted-foreground flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {apt.appointmentTime} ({apt.duration}min)
+                      </div>
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell>{getTypeBadge(apt.type)}</TableCell>
+                <TableCell>{apt.clinician}</TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-1">
+                    <MapPin className="h-3 w-3 text-muted-foreground" />
+                    <span className="capitalize">{apt.location.replace("-", " ")}</span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <Select 
+                    value={apt.status}
+                    onValueChange={(value) => handleUpdateStatus(apt.id, value as Appointment["status"])}
+                  >
+                    <SelectTrigger className="w-28">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="scheduled">Scheduled</SelectItem>
+                      <SelectItem value="confirmed">Confirmed</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                      <SelectItem value="no-show">No Show</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </TableCell>
+                <TableCell className="text-right space-x-1">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => openEmailDialog(apt)}
+                    className="gap-1"
+                    disabled={!apt.patientEmail}
+                    title={apt.patientEmail ? "Send email" : "No email address"}
+                  >
+                    <Send className="h-3 w-3" />
+                    {emailsSent[apt.id] ? "Resend" : "Email"}
+                    {emailsSent[apt.id] && <CheckCircle2 className="h-3 w-3 text-green-500" />}
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleEditAppointment(apt)}>
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleDeleteAppointment(apt.id)}>
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+            {appointments.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                  No appointments scheduled
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
       {/* Email Dialog */}
       <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
