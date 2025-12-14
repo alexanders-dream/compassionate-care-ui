@@ -96,6 +96,16 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
     }
   };
 
+  const redo = () => {
+    if (historyIndex < history.length - 1) {
+      setHistoryIndex(historyIndex + 1);
+      setContent(history[historyIndex + 1]);
+    }
+  };
+
+  const canUndo = historyIndex > 0;
+  const canRedo = historyIndex < history.length - 1;
+
   const applyAIAction = async (action: AIAction) => {
     if (!isAIConfigured) {
       toast({ title: "Please configure AI provider first", variant: "destructive" });
@@ -245,9 +255,13 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
           )}
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={undo} disabled={historyIndex === 0}>
+          <Button variant="outline" size="sm" onClick={undo} disabled={!canUndo}>
             <RotateCcw className="h-4 w-4 mr-1" />
             Undo
+          </Button>
+          <Button variant="outline" size="sm" onClick={redo} disabled={!canRedo}>
+            <RefreshCw className="h-4 w-4 mr-1" />
+            Redo
           </Button>
           <Button variant="outline" size="sm" onClick={() => handleSave("draft")}>
             <Save className="h-4 w-4 mr-1" />
