@@ -321,8 +321,8 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
               </div>
             </div>
 
-            <TabsContent value="content" className="flex-1 overflow-hidden m-0">
-              <ScrollArea className="h-full" ref={contentRef}>
+            <TabsContent value="content" className="flex-1 flex flex-col overflow-hidden m-0 h-0">
+              <ScrollArea className="flex-1" ref={contentRef}>
                 <div className="flex flex-col min-h-full">
                   {/* Sticky Header: Title + Toolbar */}
                   <div className="sticky top-0 z-10 bg-background p-4 pb-2 space-y-3 border-b">
