@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Plus, Pencil, Trash2, FileText, Users, Star, HelpCircle, Briefcase, 
   Sparkles, Mail, Send, ClipboardList, BookOpen, CheckCircle2, CalendarDays,
-  Upload, Download, File, User, Type
+  Upload, Download, File, User, Type, Image
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { blogPosts, BlogPost, categories } from "@/data/blogPosts";
@@ -460,6 +460,18 @@ const Admin = () => {
     toast({ title: "Site copy updated", description: "Changes saved successfully" });
   };
 
+  const handleCopyImageUpload = (sectionId: string, fieldKey: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        handleUpdateCopyField(sectionId, fieldKey, reader.result as string);
+        toast({ title: "Image uploaded", description: file.name });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const uniquePages = ["all", ...new Set(siteCopy.map(s => s.page))];
   const filteredCopySections = selectedCopyPage === "all" 
     ? siteCopy 
@@ -768,7 +780,47 @@ const Admin = () => {
                             {section.fields.map(field => (
                               <div key={field.key}>
                                 <Label htmlFor={`${section.id}-${field.key}`}>{field.label}</Label>
-                                {field.type === "textarea" ? (
+                                {field.type === "image" ? (
+                                  <div className="mt-1 space-y-3">
+                                    {field.value && (
+                                      <div className="relative w-full max-w-xs aspect-video rounded-lg overflow-hidden border bg-muted">
+                                        <img 
+                                          src={field.value} 
+                                          alt={field.label}
+                                          className="w-full h-full object-cover"
+                                        />
+                                      </div>
+                                    )}
+                                    <div className="flex items-center gap-3">
+                                      <label 
+                                        htmlFor={`${section.id}-${field.key}`}
+                                        className="flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md cursor-pointer hover:bg-secondary/80 transition-colors text-sm font-medium"
+                                      >
+                                        <Image className="h-4 w-4" />
+                                        {field.value ? "Change Image" : "Upload Image"}
+                                      </label>
+                                      <input
+                                        type="file"
+                                        id={`${section.id}-${field.key}`}
+                                        accept="image/*"
+                                        onChange={(e) => handleCopyImageUpload(section.id, field.key, e)}
+                                        className="hidden"
+                                      />
+                                      {field.value && (
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => handleUpdateCopyField(section.id, field.key, "")}
+                                          className="text-destructive hover:text-destructive"
+                                        >
+                                          <Trash2 className="h-4 w-4 mr-1" />
+                                          Remove
+                                        </Button>
+                                      )}
+                                    </div>
+                                  </div>
+                                ) : field.type === "textarea" ? (
                                   <Textarea
                                     id={`${section.id}-${field.key}`}
                                     value={field.value}
