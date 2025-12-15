@@ -314,9 +314,10 @@ const Admin = () => {
     const testimonialData: Testimonial = {
       id: editingTestimonial?.id || String(Date.now()),
       name: String(formData.get("name")),
-      role: String(formData.get("role")),
-      content: String(formData.get("content")),
-      rating: Number(formData.get("rating"))
+      role: String(formData.get("role")) || null,
+      quote: String(formData.get("content")),
+      rating: Number(formData.get("rating")),
+      is_featured: false
     };
 
     if (editingTestimonial) {
@@ -343,7 +344,8 @@ const Admin = () => {
       id: editingService?.id || String(Date.now()),
       title: String(formData.get("title")),
       description: String(formData.get("description")),
-      icon: serviceIcon
+      icon: serviceIcon,
+      display_order: editingService?.display_order || services.length
     };
 
     if (editingService) {
@@ -384,8 +386,9 @@ const Admin = () => {
       id: editingTeamMember?.id || String(Date.now()),
       name: String(formData.get("name")),
       role: String(formData.get("role")),
-      bio: String(formData.get("bio")),
-      image: teamMemberImagePreview || editingTeamMember?.image || undefined
+      bio: String(formData.get("bio")) || null,
+      image_url: teamMemberImagePreview || editingTeamMember?.image_url || null,
+      display_order: editingTeamMember?.display_order || team.length
     };
 
     if (editingTeamMember) {
@@ -414,7 +417,8 @@ const Admin = () => {
       id: editingFaq?.id || String(Date.now()),
       question: String(formData.get("question")),
       answer: String(formData.get("answer")),
-      category: String(formData.get("category"))
+      category: String(formData.get("category")),
+      display_order: editingFaq?.display_order || faqs.length
     };
 
     if (editingFaq) {
@@ -455,12 +459,11 @@ const Admin = () => {
       id: editingResource?.id || String(Date.now()),
       title: String(formData.get("title")),
       description: String(formData.get("description")),
-      type: String(formData.get("type")) as PatientResource["type"],
       icon: resourceIcon,
-      url: resourceFile ? `/downloads/${resourceFile.name}` : (String(formData.get("url")) || undefined),
-      fileName: resourceFile?.name || editingResource?.fileName,
-      fileSize: resourceFile ? formatFileSize(resourceFile.size) : editingResource?.fileSize,
-      uploadedAt: resourceFile ? new Date().toISOString() : editingResource?.uploadedAt
+      file_url: resourceFile ? `/downloads/${resourceFile.name}` : (String(formData.get("url")) || null),
+      file_name: resourceFile?.name || editingResource?.file_name || null,
+      file_size: resourceFile ? formatFileSize(resourceFile.size) : editingResource?.file_size || null,
+      download_count: editingResource?.download_count || 0
     };
 
     if (editingResource) {
@@ -1491,20 +1494,6 @@ const Admin = () => {
                             <Textarea id="description" name="description" defaultValue={editingResource?.description} rows={3} required />
                           </div>
                           <div>
-                            <Label htmlFor="type">Type</Label>
-                            <Select name="type" defaultValue={editingResource?.type || "guide"}>
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="guide">Guide</SelectItem>
-                                <SelectItem value="video">Video</SelectItem>
-                                <SelectItem value="checklist">Checklist</SelectItem>
-                                <SelectItem value="faq">FAQ</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div>
                             <Label>Icon</Label>
                             <IconPicker value={resourceIcon} onChange={setResourceIcon} name="icon" />
                           </div>
@@ -1528,7 +1517,7 @@ const Admin = () => {
                           </div>
                           <div>
                             <Label htmlFor="url">Or External URL</Label>
-                            <Input id="url" name="url" defaultValue={editingResource?.url} placeholder="https://..." />
+                            <Input id="url" name="url" defaultValue={editingResource?.file_url || ""} placeholder="https://..." />
                           </div>
                           <Button type="submit" className="w-full">Save Resource</Button>
                         </form>
@@ -1543,9 +1532,9 @@ const Admin = () => {
                         <div className="flex justify-between items-start mb-2">
                           <div className="flex-1 min-w-0">
                             <p className="font-medium truncate">{resource.title}</p>
-                            <p className="text-xs text-muted-foreground truncate">{resource.fileName || resource.url || "No file"}</p>
+                            <p className="text-xs text-muted-foreground truncate">{resource.file_name || resource.file_url || "No file"}</p>
                           </div>
-                          <Badge variant="outline" className="ml-2 shrink-0">{resource.type}</Badge>
+                          <Badge variant="outline" className="ml-2 shrink-0">Resource</Badge>
                         </div>
                         <div className="flex gap-2 mt-3">
                           <Button variant="outline" size="sm" className="flex-1" onClick={() => { setEditingResource(resource); setResourceIcon(resource.icon || "FileText"); setIsResourceDialogOpen(true); }}>
@@ -1578,10 +1567,10 @@ const Admin = () => {
                           <TableRow key={resource.id}>
                             <TableCell className="font-medium">{resource.title}</TableCell>
                             <TableCell>
-                              <Badge variant="outline">{resource.type}</Badge>
+                              <Badge variant="outline">Resource</Badge>
                             </TableCell>
                             <TableCell className="text-sm text-muted-foreground">
-                              {resource.fileName || resource.url || "—"}
+                              {resource.file_name || resource.file_url || "—"}
                             </TableCell>
                             <TableCell className="text-right">
                               <Button variant="ghost" size="sm" onClick={() => { setEditingResource(resource); setResourceIcon(resource.icon || "FileText"); setIsResourceDialogOpen(true); }}>
@@ -1781,7 +1770,7 @@ const Admin = () => {
                           </div>
                           <div>
                             <Label htmlFor="content">Testimonial</Label>
-                            <Textarea id="content" name="content" defaultValue={editingTestimonial?.content} rows={4} required />
+                            <Textarea id="content" name="content" defaultValue={editingTestimonial?.quote} rows={4} required />
                           </div>
                           <div>
                             <Label htmlFor="rating">Rating (1-5)</Label>
@@ -1804,7 +1793,7 @@ const Admin = () => {
                           </div>
                           <span className="text-sm">{"⭐".repeat(testimonial.rating)}</span>
                         </div>
-                        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{testimonial.content}</p>
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{testimonial.quote}</p>
                         <div className="flex gap-2">
                           <Button variant="outline" size="sm" className="flex-1" onClick={() => { setEditingTestimonial(testimonial); setIsTestimonialDialogOpen(true); }}>
                             <Pencil className="h-3 w-3 mr-1" /> Edit
@@ -1975,9 +1964,9 @@ const Admin = () => {
                           <div>
                             <Label>Profile Image</Label>
                             <div className="mt-2 space-y-3">
-                              {(teamMemberImagePreview || editingTeamMember?.image) && (
+                              {(teamMemberImagePreview || editingTeamMember?.image_url) && (
                                 <div className="flex items-center gap-3">
-                                  <img src={teamMemberImagePreview || editingTeamMember?.image} alt="Profile preview" className="w-16 h-16 rounded-full object-cover border-2 border-border" />
+                                  <img src={teamMemberImagePreview || editingTeamMember?.image_url || ""} alt="Profile preview" className="w-16 h-16 rounded-full object-cover border-2 border-border" />
                                   <span className="text-sm text-muted-foreground">Current image</span>
                                 </div>
                               )}
@@ -2003,7 +1992,7 @@ const Admin = () => {
                     {team.map(member => (
                       <Card key={member.id} className="p-4">
                         <div className="flex items-start gap-3 mb-3">
-                          {member.image && <img src={member.image} alt={member.name} className="w-12 h-12 rounded-full object-cover shrink-0" />}
+                          {member.image_url && <img src={member.image_url} alt={member.name} className="w-12 h-12 rounded-full object-cover shrink-0" />}
                           <div className="flex-1 min-w-0">
                             <p className="font-medium">{member.name}</p>
                             <p className="text-xs text-muted-foreground">{member.role}</p>

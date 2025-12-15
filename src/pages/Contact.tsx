@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useToast } from "@/hooks/use-toast";
+import { useContactSubmissions } from "@/hooks/useSupabaseData";
 import { Phone, Mail, MapPin, Clock } from "lucide-react";
 
 const formSchema = z.object({
@@ -49,7 +49,7 @@ const contactInfo = [
 ];
 
 const Contact = () => {
-  const { toast } = useToast();
+  const { submitContact } = useContactSubmissions();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -62,13 +62,18 @@ const Contact = () => {
     },
   });
 
-  const onSubmit = (data: FormData) => {
-    console.log("Contact form submitted:", data);
-    toast({
-      title: "Message Sent!",
-      description: "We'll get back to you within 1 business day.",
+  const onSubmit = async (data: FormData) => {
+    const result = await submitContact({
+      name: data.name,
+      email: data.email,
+      phone: data.phone || undefined,
+      subject: data.subject,
+      message: data.message,
     });
-    form.reset();
+    
+    if (result.success) {
+      form.reset();
+    }
   };
 
   return (

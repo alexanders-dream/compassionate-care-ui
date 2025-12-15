@@ -49,7 +49,7 @@ const Resources = () => {
                       <IconComponent className="w-6 h-6 text-primary" />
                     </div>
                     <div className="flex-1">
-                      <span className="text-xs text-primary font-medium">{resource.type}</span>
+                      <span className="text-xs text-primary font-medium">Resource</span>
                       <h3 className="font-display text-lg font-semibold text-foreground mt-1 mb-2">
                         {resource.title}
                       </h3>

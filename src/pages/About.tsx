@@ -167,9 +167,9 @@ const About = () => {
                 className="bg-card rounded-2xl overflow-hidden shadow-soft group"
               >
                 <div className="aspect-[4/3] bg-muted relative overflow-hidden">
-                  {member.image ? (
+                  {member.image_url ? (
                     <img
-                      src={member.image}
+                      src={member.image_url}
                       alt={member.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />

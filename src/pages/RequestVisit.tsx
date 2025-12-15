@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
+import { useVisitRequests } from "@/hooks/useSupabaseData";
 import { Phone, Mail, Clock, CheckCircle2, Shield, Heart, MapPin } from "lucide-react";
 import woundCareImage from "@/assets/wound-care-supplies.jpg";
 
@@ -29,7 +29,7 @@ type FormData = z.infer<typeof formSchema>;
 
 const RequestVisit = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const { toast } = useToast();
+  const { submitVisitRequest } = useVisitRequests();
 
   // Scroll to top when form is submitted
   useEffect(() => {
@@ -48,14 +48,18 @@ const RequestVisit = () => {
   });
 
   const onSubmit = async (data: FormData) => {
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    console.log("Form submitted:", data);
-    setIsSubmitted(true);
-    toast({
-      title: "Request Submitted",
-      description: "We'll contact you within 24 hours to schedule your visit.",
+    const result = await submitVisitRequest({
+      patient_name: `${data.firstName} ${data.lastName}`,
+      email: data.email,
+      phone: data.phone,
+      address: data.address,
+      wound_type: data.woundType,
+      additional_notes: data.additionalInfo,
     });
+    
+    if (result.success) {
+      setIsSubmitted(true);
+    }
   };
 
   if (isSubmitted) {
