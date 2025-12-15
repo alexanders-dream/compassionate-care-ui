@@ -37,14 +37,8 @@ const Blog = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-background via-background to-accent/20 py-20 md:py-28">
-        {/* Decorative elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-          <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-accent/20 rounded-full blur-3xl" />
-        </div>
-
-        <div className="container-main relative">
+      <section className="bg-[#EBF4FA] py-20 md:py-28">
+        <div className="container-main">
           <div className="max-w-3xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
               <BookOpen className="w-4 h-4" />
@@ -89,10 +83,10 @@ const Blog = () => {
         <div className="container-main">
           {/* Featured Post */}
           {featuredPost && (
-            <Card className="mb-12 overflow-hidden border-0 shadow-xl bg-gradient-to-br from-card to-muted/30 group">
+            <Card className="mb-12 overflow-hidden border-0 shadow-xl bg-card group">
               <div className="md:flex">
-                <div className="md:w-2/5 relative bg-gradient-to-br from-primary/10 via-accent/20 to-background p-8 md:p-12 flex items-center justify-center min-h-[280px]">
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,hsl(var(--primary)/0.1),transparent_50%)]" />
+                <div className="md:w-2/5 relative bg-[#EBF4FA] p-8 md:p-12 flex items-center justify-center min-h-[280px]">
+                  <div className="absolute inset-0" />
                   <div className="relative text-center">
                     <div className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-full text-sm font-medium mb-4 shadow-lg">
                       <Sparkles className="w-4 h-4" />
@@ -149,8 +143,8 @@ const Blog = () => {
                 className="group overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-card"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
-                <div className="relative h-48 bg-gradient-to-br from-primary/5 via-accent/10 to-background flex items-center justify-center overflow-hidden">
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_70%,hsl(var(--primary)/0.08),transparent_50%)] group-hover:scale-110 transition-transform duration-500" />
+                <div className="relative h-48 bg-[#EBF4FA] flex items-center justify-center overflow-hidden">
+                  <div className="absolute inset-0 group-hover:scale-110 transition-transform duration-500" />
                   <Badge
                     variant="secondary"
                     className="relative capitalize font-medium px-4 py-1.5 shadow-sm"
@@ -206,12 +200,8 @@ const Blog = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-primary to-blue-800 py-20">
-        {/* Premium decorative elements */}
-        <div className="absolute top-0 left-1/3 w-96 h-64 bg-white/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-blue-400/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-1/2 -left-20 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="container-main relative z-10 text-center">
+      <section className="bg-[#0B2545] py-20">
+        <div className="container-main text-center">
           <h2 className="font-display text-3xl md:text-4xl font-bold text-primary-foreground mb-4">
             Have Questions About Your Wound Care?
           </h2>

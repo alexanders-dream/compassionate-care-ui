@@ -64,11 +64,10 @@ const SidebarContent = ({
             onItemClick?.();
           }}
           className={cn(
-            "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-            "hover:bg-muted",
+            "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
             isActive
-              ? "bg-primary/10 text-primary border border-primary/20"
-              : "text-muted-foreground",
+              ? "bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 hover:border-primary/30"
+              : "text-muted-foreground hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-foreground",
             collapsed && "justify-center px-2"
           )}
           title={collapsed ? item.label : undefined}
@@ -138,7 +137,7 @@ const AdminSidebar = ({ activeSection, onSectionChange, collapsed, onToggleColla
           variant="ghost"
           size="icon"
           onClick={onToggleCollapse}
-          className={cn("h-8 w-8", collapsed && "mx-auto")}
+          className={cn("h-8 w-8 hover:bg-slate-200 dark:hover:bg-slate-700", collapsed && "mx-auto")}
         >
           {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </Button>

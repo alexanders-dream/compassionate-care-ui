@@ -79,7 +79,7 @@ const Contact = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-background via-background to-primary/5 py-16 md:py-24">
+      <section className="bg-white py-16 md:py-24">
         <div className="container-main text-center">
           <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-6">
             Get in <span className="text-primary">Touch</span>

@@ -11,9 +11,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  Phone, Mail, CheckCircle2, Building2, UserRound, 
-  FileText, Clock, ArrowRight, Handshake, MapPin 
+import {
+  Phone, Mail, CheckCircle2, Building2, UserRound,
+  FileText, Clock, ArrowRight, Handshake, MapPin
 } from "lucide-react";
 
 const formSchema = z.object({
@@ -84,7 +84,7 @@ const ProviderReferral = () => {
           <title>Referral Submitted | AR Advanced Woundcare Solutions</title>
         </Helmet>
         <Layout>
-          <section className="section-padding bg-gradient-to-b from-accent/30 to-background">
+          <section className="section-padding bg-[#EBF4FA]">
             <div className="container-main">
               <div className="max-w-xl mx-auto text-center">
                 <div className="w-20 h-20 mx-auto rounded-full bg-primary/20 flex items-center justify-center mb-6">
@@ -94,7 +94,7 @@ const ProviderReferral = () => {
                   Referral Received
                 </h1>
                 <p className="text-lg text-muted-foreground mb-8">
-                  Thank you for your referral. We'll contact your patient within 
+                  Thank you for your referral. We'll contact your patient within
                   24 hours and keep you updated on their care progress.
                 </p>
                 <div className="bg-card rounded-xl p-6 card-shadow text-left">
@@ -129,14 +129,14 @@ const ProviderReferral = () => {
     <>
       <Helmet>
         <title>Provider Referral | AR Advanced Woundcare Solutions</title>
-        <meta 
-          name="description" 
-          content="Refer your patients to AR Advanced Woundcare Solutions for expert wound care. Simple referral process with regular progress updates for referring providers." 
+        <meta
+          name="description"
+          content="Refer your patients to AR Advanced Woundcare Solutions for expert wound care. Simple referral process with regular progress updates for referring providers."
         />
       </Helmet>
       <Layout>
         {/* Hero */}
-        <section className="bg-gradient-to-b from-accent/30 to-background py-12 md:py-16">
+        <section className="bg-[#EBF4FA] py-12 md:py-16">
           <div className="container-main">
             <div className="max-w-3xl mx-auto text-center">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-secondary/10 rounded-full text-sm font-medium text-secondary mb-4">
@@ -145,7 +145,7 @@ const ProviderReferral = () => {
               </div>
               <h1 className="text-foreground mb-4">Refer a Patient</h1>
               <p className="text-lg text-muted-foreground">
-                Partner with us to provide your patients with specialized wound care. 
+                Partner with us to provide your patients with specialized wound care.
                 We keep you informed every step of the way.
               </p>
             </div>
@@ -379,7 +379,7 @@ const ProviderReferral = () => {
                       </Button>
 
                       <p className="text-xs text-muted-foreground text-center">
-                        This referral form is HIPAA compliant. Patient information is 
+                        This referral form is HIPAA compliant. Patient information is
                         encrypted and handled in accordance with healthcare privacy regulations.
                       </p>
                     </form>
@@ -396,8 +396,8 @@ const ProviderReferral = () => {
                     <p className="text-sm opacity-90 mb-4">
                       For urgent referrals or clinical questions, call our dedicated provider line.
                     </p>
-                    <a 
-                      href="tel:+18001234568" 
+                    <a
+                      href="tel:+18001234568"
                       className="flex items-center gap-3 p-3 bg-primary/20 rounded-lg hover:bg-primary/30 transition-colors"
                     >
                       <Phone size={20} className="text-primary" />
@@ -428,8 +428,8 @@ const ProviderReferral = () => {
                 <Card>
                   <CardContent className="p-6">
                     <h3 className="font-semibold text-foreground mb-3">Questions?</h3>
-                    <a 
-                      href="mailto:referrals@arwoundcare.com" 
+                    <a
+                      href="mailto:referrals@arwoundcare.com"
                       className="flex items-center gap-2 text-primary hover:underline text-sm"
                     >
                       <Mail size={16} />

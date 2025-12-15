@@ -48,7 +48,7 @@ const Insurance = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-warm via-background to-primary/10 py-16 md:py-24">
+      <section className="bg-[#EBF4FA] py-16 md:py-24">
         <div className="container-main text-center">
           <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-6">
             Insurance & <span className="text-primary">Payment</span>
@@ -186,12 +186,8 @@ const Insurance = () => {
       </section>
 
       {/* CTA */}
-      <section className="py-16 md:py-24 bg-gradient-to-r from-primary via-blue-600 to-blue-700 relative overflow-hidden">
-        {/* Premium decorative elements */}
-        <div className="absolute -left-20 top-1/2 -translate-y-1/2 w-80 h-80 bg-white/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -right-10 -top-10 w-64 h-64 bg-blue-400/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute left-1/2 -bottom-10 w-56 h-56 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="container-main relative z-10 text-center">
+      <section className="py-16 md:py-24 bg-[#0B2545]">
+        <div className="container-main text-center">
           <h2 className="font-display text-2xl md:text-3xl font-bold text-primary-foreground mb-4">
             Ready to Get Started?
           </h2>

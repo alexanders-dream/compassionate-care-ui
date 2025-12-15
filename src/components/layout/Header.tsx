@@ -19,7 +19,7 @@ const Header = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full bg-primary">
+      <header className="sticky top-0 z-50 w-full bg-gradient-to-r from-[#0B2545] to-[#0F3460]">
         <div className="container-main">
           <div className="flex h-16 md:h-20 items-center justify-between">
             {/* Logo */}
@@ -70,7 +70,7 @@ const Header = () => {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="lg:hidden border-t border-white/20 bg-primary">
+          <div className="lg:hidden border-t border-white/20 bg-gradient-to-r from-[#0B2545] to-[#0F3460]">
             <nav className="container-main py-4 flex flex-col gap-2">
               {navLinks.map((link) => (
                 <Link

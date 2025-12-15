@@ -15,7 +15,7 @@ const Testimonials = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-warm via-background to-primary/10 py-16 md:py-24">
+      <section className="bg-[#EBF4FA] py-16 md:py-24">
         <div className="container-main text-center">
           <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-6">
             Patient <span className="text-primary">Testimonials</span>
@@ -55,12 +55,8 @@ const Testimonials = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 md:py-24 bg-gradient-to-br from-blue-600 via-primary to-blue-800 relative overflow-hidden">
-        {/* Premium decorative elements */}
-        <div className="absolute top-0 right-1/4 w-80 h-64 bg-white/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -left-20 top-1/2 -translate-y-1/2 w-72 h-72 bg-blue-400/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute right-0 -bottom-10 w-56 h-56 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="container-main relative z-10">
+      <section className="py-16 md:py-24 bg-[#0B2545]">
+        <div className="container-main">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
             <div>
               <div className="font-display text-4xl md:text-5xl font-bold text-primary-foreground mb-2">98%</div>

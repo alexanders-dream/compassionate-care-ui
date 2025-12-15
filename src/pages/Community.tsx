@@ -47,7 +47,7 @@ const Community = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-warm via-background to-primary/10 py-16 md:py-24">
+      <section className="bg-[#EBF4FA] py-16 md:py-24">
         <div className="container-main text-center">
           <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-6">
             Community <span className="text-primary">Outreach</span>
@@ -156,12 +156,8 @@ const Community = () => {
       </section>
 
       {/* CTA */}
-      <section className="py-16 md:py-24 bg-gradient-to-br from-blue-600 via-primary to-blue-800 relative overflow-hidden">
-        {/* Premium decorative elements */}
-        <div className="absolute top-0 left-1/4 w-80 h-64 bg-white/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-20 -right-10 w-72 h-72 bg-blue-400/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-1/2 -left-10 w-48 h-48 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="container-main relative z-10 text-center">
+      <section className="py-16 md:py-24 bg-[#0B2545]">
+        <div className="container-main text-center">
           <h2 className="font-display text-2xl md:text-3xl font-bold text-primary-foreground mb-4">
             Join Our Mission
           </h2>

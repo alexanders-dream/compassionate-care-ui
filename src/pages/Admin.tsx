@@ -79,7 +79,7 @@ const Admin = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Admin user info (in a real app, this would come from auth context)
-  const adminFirstName = "Jane";
+  const adminFirstName = "Jayne";
 
   // Get time-based greeting
   const getGreeting = () => {

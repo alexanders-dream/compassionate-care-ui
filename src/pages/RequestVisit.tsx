@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,6 +31,13 @@ const RequestVisit = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const { toast } = useToast();
 
+  // Scroll to top when form is submitted
+  useEffect(() => {
+    if (isSubmitted) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [isSubmitted]);
+
   const {
     register,
     handleSubmit,
@@ -58,7 +65,7 @@ const RequestVisit = () => {
           <title>Request Submitted | AR Advanced Woundcare Solutions</title>
         </Helmet>
         <Layout>
-          <section className="section-padding bg-gradient-to-b from-warm to-background">
+          <section className="section-padding bg-[#EBF4FA]">
             <div className="container-main">
               <div className="max-w-xl mx-auto text-center">
                 <div className="w-20 h-20 mx-auto rounded-full bg-primary/20 flex items-center justify-center mb-6">
@@ -68,7 +75,7 @@ const RequestVisit = () => {
                   Thank You!
                 </h1>
                 <p className="text-lg text-muted-foreground mb-8">
-                  Your visit request has been submitted successfully. Our care 
+                  Your visit request has been submitted successfully. Our care
                   coordinator will contact you within 24 hours to schedule your appointment.
                 </p>
                 <div className="bg-card rounded-xl p-6 card-shadow">
@@ -100,18 +107,18 @@ const RequestVisit = () => {
     <>
       <Helmet>
         <title>Request a Visit | AR Advanced Woundcare Solutions</title>
-        <meta 
-          name="description" 
-          content="Request a wound care visit from AR Advanced Woundcare Solutions. Fill out our simple form and a care coordinator will contact you within 24 hours." 
+        <meta
+          name="description"
+          content="Request a wound care visit from AR Advanced Woundcare Solutions. Fill out our simple form and a care coordinator will contact you within 24 hours."
         />
       </Helmet>
       <Layout>
         {/* Hero */}
-        <section className="bg-gradient-to-b from-warm to-background py-12 md:py-16">
+        <section className="bg-[#EBF4FA] py-12 md:py-16">
           <div className="container-main text-center">
             <h1 className="text-foreground mb-4">Request a Visit</h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Take the first step toward healing. Fill out the form below and our 
+              Take the first step toward healing. Fill out the form below and our
               care team will contact you within 24 hours.
             </p>
           </div>
@@ -261,7 +268,7 @@ const RequestVisit = () => {
                       </Button>
 
                       <p className="text-xs text-muted-foreground text-center">
-                        By submitting this form, you agree to our privacy policy. 
+                        By submitting this form, you agree to our privacy policy.
                         Your information will be kept confidential.
                       </p>
                     </form>
@@ -273,8 +280,8 @@ const RequestVisit = () => {
               <div className="space-y-6">
                 {/* Image */}
                 <div className="hidden lg:block rounded-xl overflow-hidden soft-shadow">
-                  <img 
-                    src={woundCareImage} 
+                  <img
+                    src={woundCareImage}
                     alt="Professional wound care supplies and treatment"
                     className="w-full h-48 object-cover"
                   />

@@ -25,12 +25,8 @@ const stats = [
 
 const TrustSection = () => {
   return (
-    <section className="py-12 bg-gradient-to-r from-primary via-blue-600 to-blue-700 text-primary-foreground relative overflow-hidden">
-      {/* Premium decorative elements - positioned behind content */}
-      <div className="absolute -left-20 top-1/2 -translate-y-1/2 w-96 h-96 bg-white/15 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -right-20 top-0 w-72 h-72 bg-blue-400/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute left-1/3 -bottom-20 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="container-main relative z-10">
+    <section className="py-12 bg-[#0B2545] text-primary-foreground">
+      <div className="container-main">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           {stats.map((stat) => (
             <div key={stat.label} className="text-center">

@@ -4,14 +4,10 @@ import { ArrowRight, Phone } from "lucide-react";
 
 const CTABanner = () => {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-primary to-blue-800 text-primary-foreground py-16 md:py-20">
-      {/* Premium decorative elements */}
-      <div className="absolute top-0 left-1/3 w-96 h-64 bg-white/15 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-blue-400/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute top-1/2 -left-20 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="container-main relative z-10">
+    <section className="bg-[#0B2545] text-primary-foreground py-16 md:py-20">
+      <div className="container-main">
         <div className="text-center max-w-3xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-semibold mb-4">
+          <h2 className="text-3xl md:text-4xl font-semibold mb-4 text-white">
             Ready to Start Your Healing Journey?
           </h2>
           <p className="text-lg opacity-90 mb-8 max-w-xl mx-auto">

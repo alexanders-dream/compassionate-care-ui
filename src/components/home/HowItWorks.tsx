@@ -43,7 +43,7 @@ const HowItWorks = () => {
             >
               {/* Connector Line (hidden on mobile, last item) */}
               {index < steps.length - 1 && (
-                <div className="hidden md:block absolute top-12 left-[60%] w-[80%] h-0.5 bg-gradient-to-r from-primary/30 to-transparent" />
+                <div className="hidden md:block absolute top-12 left-[60%] w-[80%] h-0.5 bg-primary/20" />
               )}
 
               {/* Step Number & Icon */}

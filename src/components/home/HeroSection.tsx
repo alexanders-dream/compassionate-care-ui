@@ -5,16 +5,17 @@ import heroImage from "@/assets/hero-clinician.jpg";
 
 const HeroSection = () => {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-background via-background to-primary/5">
-      <div className="container-main pt-12 pb-8 md:pt-20 md:pb-12">
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+    <section className="relative overflow-hidden bg-white min-h-[calc(100vh-80px)] flex items-center">
+      <div className="container-main py-16 md:py-24">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Content */}
           <div className="space-y-6 animate-fade-in">
             {/* Badge Removed */}
 
-            <h1 className="text-foreground">
-              Advanced Wound Care{" "}
-              <span className="text-primary">You Can Trust</span>
+            <h1>
+              <span className="text-primary">Advanced Wound Care</span>
+              <br />
+              <span className="text-primary text-[0.75em] font-medium">You Can Trust</span>
             </h1>
 
             <p className="text-lg md:text-xl text-muted-foreground max-w-xl">

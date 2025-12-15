@@ -33,7 +33,7 @@ const Services = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-background via-background to-primary/5 py-16 md:py-24">
+      <section className="bg-white py-16 md:py-24">
         <div className="container-main">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
@@ -101,12 +101,8 @@ const Services = () => {
       </section>
 
       {/* Benefits Section */}
-      <section className="py-16 md:py-24 bg-gradient-to-r from-secondary via-blue-800 to-blue-900 relative overflow-hidden">
-        {/* Premium decorative elements */}
-        <div className="absolute -right-20 top-1/2 -translate-y-1/2 w-80 h-80 bg-white/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -left-10 top-0 w-64 h-64 bg-blue-400/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute right-1/3 -bottom-10 w-48 h-48 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="container-main relative z-10">
+      <section className="py-16 md:py-24 bg-[#0B2545]">
+        <div className="container-main">
           <div className="text-center mb-12">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-secondary-foreground mb-4">
               Why Choose AR Advanced Woundcare?

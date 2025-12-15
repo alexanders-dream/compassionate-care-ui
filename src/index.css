@@ -3,81 +3,82 @@
 @tailwind utilities;
 
 /* AR Advanced Woundcare Solutions Design System
-   Warm, human-centered healthcare palette
-   All colors in HSL format
+   Clean, professional healthcare palette
+   NO GRADIENTS except subtle nav bar
 */
 
 @layer base {
   :root {
-    /* Brand Colors (HSL conversions) */
-    /* Teal #008080 = 180 100% 25% */
-    /* Regal Navy #083d77 = 213 87% 25% */
-    /* Pearl Aqua #a6ece0 = 164 64% 79% */
-    /* Lavender Blush #ffeaec = 354 100% 96% */
+    /* New Color Scheme */
+    /* Dark Navy #0B2545 = 213 74% 16% */
+    /* Soft Blue #5588BB = 210 43% 53% */
+    /* Very Light Blue #EBF4FA = 205 53% 95% */
+    /* Dark Gray #374151 = 220 13% 26% */
+    /* Light Gray #F9FAFB = 210 20% 98% */
 
     --background: 0 0% 100%;
-    --foreground: 213 87% 25%;
+    --foreground: 220 13% 26%;
 
     --card: 0 0% 100%;
-    --card-foreground: 213 87% 25%;
+    --card-foreground: 220 13% 26%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 213 87% 25%;
+    --popover-foreground: 220 13% 26%;
 
-    /* Primary: Blue */
-    --primary: 221 83% 53%;
+    /* Primary: Dark Navy - for nav and primary buttons */
+    --primary: 213 74% 16%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary: Regal Navy */
-    --secondary: 213 87% 25%;
+    /* Secondary: Soft Blue - for secondary buttons and links */
+    --secondary: 210 43% 53%;
     --secondary-foreground: 0 0% 100%;
 
-    /* Muted: Light gray with warmth */
+    /* Muted: Light gray - darkened foreground for better contrast */
     --muted: 210 20% 96%;
-    --muted-foreground: 213 30% 45%;
+    --muted-foreground: 220 13% 30%;
 
-    /* Accent: Pearl Aqua */
-    --accent: 210 96% 89%;
-    --accent-foreground: 213 87% 25%;
+    /* Accent: Very Light Blue - for alternate sections */
+    --accent: 205 53% 95%;
+    --accent-foreground: 213 74% 16%;
 
-    /* Warm: Lavender Blush */
-    --warm: 354 100% 96%;
-    --warm-foreground: 213 87% 25%;
+    /* Warm: Very Light Blue (unified with accent for consistency) */
+    --warm: 205 53% 95%;
+    --warm-foreground: 213 74% 16%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 210 20% 90%;
     --input: 210 20% 90%;
-    --ring: 221 83% 53%;
+    --ring: 213 74% 16%;
 
     --radius: 0.75rem;
 
     /* Shadows */
-    --shadow-soft: 0 4px 20px -4px hsl(213 87% 25% / 0.08);
-    --shadow-card: 0 2px 12px -2px hsl(213 87% 25% / 0.06);
+    --shadow-soft: 0 4px 20px -4px hsl(213 74% 16% / 0.08);
+    --shadow-card: 0 2px 12px -2px hsl(213 74% 16% / 0.06);
 
     --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 213 87% 25%;
-    --sidebar-primary: 221 83% 53%;
+    --sidebar-foreground: 213 74% 16%;
+    --sidebar-primary: 213 74% 16%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 96% 89%;
-    --sidebar-accent-foreground: 213 87% 25%;
+    --sidebar-accent: 205 53% 95%;
+    --sidebar-accent-foreground: 213 74% 16%;
     --sidebar-border: 210 20% 90%;
-    --sidebar-ring: 221 83% 53%;
+    --sidebar-ring: 213 74% 16%;
   }
 
   .dark {
-    --background: 213 87% 8%;
+    --background: 213 74% 8%;
     --foreground: 210 40% 98%;
 
-    --card: 213 87% 12%;
+    --card: 213 74% 12%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 213 87% 12%;
+    --popover: 213 74% 12%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 217 91% 60%;
+    --primary: 210 43% 53%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 213 60% 40%;
@@ -86,27 +87,27 @@
     --muted: 213 40% 20%;
     --muted-foreground: 210 20% 70%;
 
-    --accent: 217 91% 25%;
+    --accent: 213 50% 25%;
     --accent-foreground: 210 40% 98%;
 
-    --warm: 354 40% 20%;
-    --warm-foreground: 354 100% 96%;
+    --warm: 213 50% 25%;
+    --warm-foreground: 210 40% 98%;
 
     --destructive: 0 62% 30%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 213 40% 20%;
     --input: 213 40% 20%;
-    --ring: 217 91% 60%;
+    --ring: 210 43% 53%;
 
-    --sidebar-background: 213 87% 10%;
+    --sidebar-background: 213 74% 10%;
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary: 210 43% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 91% 25%;
+    --sidebar-accent: 213 50% 25%;
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 213 40% 20%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-ring: 210 43% 53%;
   }
 }
 
@@ -125,13 +126,14 @@
     scroll-behavior: smooth;
   }
 
+  /* Headlines use dark navy */
   h1,
   h2,
   h3,
   h4,
   h5,
   h6 {
-    @apply font-semibold tracking-tight;
+    @apply font-semibold tracking-tight text-primary;
   }
 
   h1 {
@@ -148,6 +150,11 @@
 
   p {
     @apply leading-relaxed;
+  }
+
+  /* Links use soft blue - NO hover effects to avoid affecting buttons */
+  a {
+    @apply text-secondary;
   }
 }
 
@@ -167,6 +174,23 @@
   .soft-shadow {
     box-shadow: var(--shadow-soft);
   }
+
+  /* Section backgrounds - NO gradients */
+  .section-white {
+    @apply bg-white;
+  }
+
+  .section-light-gray {
+    @apply bg-[#F9FAFB];
+  }
+
+  .section-light-blue {
+    @apply bg-[#EBF4FA];
+  }
+
+  .section-navy {
+    @apply bg-primary text-primary-foreground;
+  }
 }
 
 /* TipTap Editor Styles */
@@ -183,7 +207,7 @@
   font-weight: 600;
   margin-top: 1.5em;
   margin-bottom: 0.5em;
-  color: hsl(var(--foreground));
+  color: hsl(var(--primary));
 }
 
 .tiptap h3 {
@@ -191,7 +215,7 @@
   font-weight: 600;
   margin-top: 1.25em;
   margin-bottom: 0.5em;
-  color: hsl(var(--foreground));
+  color: hsl(var(--primary));
 }
 
 .tiptap ul,
@@ -213,7 +237,7 @@
 }
 
 .tiptap blockquote {
-  border-left: 3px solid hsl(var(--primary));
+  border-left: 3px solid hsl(var(--secondary));
   padding-left: 1rem;
   margin: 1em 0;
   font-style: italic;
@@ -221,7 +245,7 @@
 }
 
 .tiptap a {
-  color: hsl(var(--primary));
+  color: hsl(var(--secondary));
   text-decoration: underline;
 }
 
