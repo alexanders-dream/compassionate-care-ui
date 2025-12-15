@@ -52,13 +52,13 @@ const Conditions = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-warm via-background to-primary/10 py-16 md:py-24">
+      <section className="bg-white py-16 md:py-24">
         <div className="container-main text-center">
           <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-6">
             Conditions We <span className="text-primary">Treat</span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Our specialized team provides expert care for a wide range of wound types, 
+            Our specialized team provides expert care for a wide range of wound types,
             delivering personalized treatment plans in the comfort of your home.
           </p>
         </div>
@@ -97,13 +97,13 @@ const Conditions = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 md:py-24 bg-warm">
+      <section className="py-16 md:py-24 bg-muted/30">
         <div className="container-main text-center">
           <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
             Not Sure About Your Condition?
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto mb-8">
-            Our clinical team can assess your wound and recommend the best treatment approach. 
+            Our clinical team can assess your wound and recommend the best treatment approach.
             Contact us for a consultation.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

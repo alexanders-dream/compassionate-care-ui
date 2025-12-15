@@ -50,7 +50,7 @@ const contactInfo = [
 
 const Contact = () => {
   const { toast } = useToast();
-  
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -79,13 +79,13 @@ const Contact = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-warm via-background to-primary/10 py-16 md:py-24">
+      <section className="bg-white py-16 md:py-24">
         <div className="container-main text-center">
           <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-6">
             Get in <span className="text-primary">Touch</span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Have questions about our services? Need to schedule a visit or discuss a referral? 
+            Have questions about our services? Need to schedule a visit or discuss a referral?
             We're here to help.
           </p>
         </div>
@@ -96,7 +96,7 @@ const Contact = () => {
         <div className="container-main">
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {contactInfo.map((item, index) => (
-              <div 
+              <div
                 key={index}
                 className="bg-card rounded-2xl p-6 shadow-soft text-center"
               >
@@ -112,7 +112,7 @@ const Contact = () => {
                   </p>
                 ))}
                 {item.action && (
-                  <a 
+                  <a
                     href={item.action.href}
                     className="inline-block mt-3 text-sm font-medium text-primary hover:underline"
                   >
@@ -133,7 +133,7 @@ const Contact = () => {
               <h2 className="font-display text-2xl font-bold text-foreground mb-6 text-center">
                 Send Us a Message
               </h2>
-              
+
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   <div className="grid sm:grid-cols-2 gap-4">
@@ -201,10 +201,10 @@ const Contact = () => {
                       <FormItem>
                         <FormLabel>Message *</FormLabel>
                         <FormControl>
-                          <Textarea 
+                          <Textarea
                             placeholder="Tell us more about your inquiry..."
                             className="min-h-[120px]"
-                            {...field} 
+                            {...field}
                           />
                         </FormControl>
                         <FormMessage />

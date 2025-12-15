@@ -47,13 +47,13 @@ const Community = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-warm via-background to-primary/10 py-16 md:py-24">
+      <section className="bg-[#EBF4FA] py-16 md:py-24">
         <div className="container-main text-center">
           <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-6">
             Community <span className="text-primary">Outreach</span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            We're committed to improving wound care outcomes across our communities through education, 
+            We're committed to improving wound care outcomes across our communities through education,
             partnerships, and accessible care initiatives.
           </p>
         </div>
@@ -67,7 +67,7 @@ const Community = () => {
               Our Community Initiatives
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              From health screenings to provider education, we're actively working to improve 
+              From health screenings to provider education, we're actively working to improve
               wound care awareness and outcomes in our community.
             </p>
           </div>
@@ -100,8 +100,8 @@ const Community = () => {
                 Partner With Us
               </h2>
               <p className="text-muted-foreground mb-6">
-                We collaborate with healthcare providers and facilities across our service area to 
-                deliver coordinated, comprehensive wound care. Our partnerships ensure patients 
+                We collaborate with healthcare providers and facilities across our service area to
+                deliver coordinated, comprehensive wound care. Our partnerships ensure patients
                 receive seamless care transitions and optimal outcomes.
               </p>
               <h3 className="font-semibold text-foreground mb-3">We Partner With:</h3>
@@ -119,7 +119,7 @@ const Community = () => {
                 Interested in Partnering?
               </h3>
               <p className="text-muted-foreground mb-6">
-                Contact our partnership team to learn how we can work together to improve wound care 
+                Contact our partnership team to learn how we can work together to improve wound care
                 outcomes in your patient population.
               </p>
               <div className="space-y-3">
@@ -143,7 +143,7 @@ const Community = () => {
             Our Service Area
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto mb-8">
-            We provide in-home wound care services throughout the greater metropolitan area and 
+            We provide in-home wound care services throughout the greater metropolitan area and
             surrounding communities. Contact us to confirm service availability in your location.
           </p>
           <Button size="lg" variant="outline" asChild>
@@ -156,13 +156,13 @@ const Community = () => {
       </section>
 
       {/* CTA */}
-      <section className="py-16 md:py-24 bg-primary">
+      <section className="py-16 md:py-24 bg-[#0B2545]">
         <div className="container-main text-center">
           <h2 className="font-display text-2xl md:text-3xl font-bold text-primary-foreground mb-4">
             Join Our Mission
           </h2>
           <p className="text-primary-foreground/80 max-w-2xl mx-auto mb-8">
-            Together, we can improve wound care outcomes and quality of life for patients 
+            Together, we can improve wound care outcomes and quality of life for patients
             across our community.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

@@ -46,7 +46,7 @@ const About = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-warm via-background to-primary/10 py-16 md:py-24">
+      <section className="bg-white py-16 md:py-24">
         <div className="container-main">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
@@ -54,13 +54,13 @@ const About = () => {
                 Healing with <span className="text-primary">Compassion</span> & Expertise
               </h1>
               <p className="text-lg text-muted-foreground mb-8">
-                AR Advanced Woundcare Solutions was founded on a simple belief: everyone deserves access to 
+                AR Advanced Woundcare Solutions was founded on a simple belief: everyone deserves access to
                 exceptional wound care delivered with compassion, in the comfort of their own home.
               </p>
             </div>
             <div className="relative">
-              <img 
-                src={heroClinician} 
+              <img
+                src={heroClinician}
                 alt="AR Advanced Woundcare team providing compassionate care"
                 className="rounded-2xl shadow-elegant w-full"
               />
@@ -70,7 +70,7 @@ const About = () => {
       </section>
 
       {/* Mission & Vision */}
-      <section className="py-16 md:py-24">
+      <section className="py-16 md:py-24 bg-warm">
         <div className="container-main">
           <div className="grid md:grid-cols-2 gap-8">
             <div className="bg-card rounded-2xl p-8 shadow-soft">
@@ -79,7 +79,7 @@ const About = () => {
               </div>
               <h2 className="font-display text-2xl font-bold text-foreground mb-4">Our Mission</h2>
               <p className="text-muted-foreground">
-                To deliver exceptional, patient-centered wound care that promotes healing, improves quality of life, 
+                To deliver exceptional, patient-centered wound care that promotes healing, improves quality of life,
                 and empowers patients and their families through education and compassionate support.
               </p>
             </div>
@@ -89,7 +89,7 @@ const About = () => {
               </div>
               <h2 className="font-display text-2xl font-bold text-foreground mb-4">Our Vision</h2>
               <p className="text-muted-foreground">
-                To be the most trusted provider of in-home wound care services, recognized for clinical excellence, 
+                To be the most trusted provider of in-home wound care services, recognized for clinical excellence,
                 innovation, and unwavering commitment to patient outcomes and satisfaction.
               </p>
             </div>
@@ -98,7 +98,7 @@ const About = () => {
       </section>
 
       {/* Values Section */}
-      <section className="py-16 md:py-24 bg-warm">
+      <section className="py-16 md:py-24 bg-muted/30">
         <div className="container-main">
           <div className="text-center mb-12">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
@@ -111,7 +111,7 @@ const About = () => {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {values.map((value, index) => (
-              <div 
+              <div
                 key={index}
                 className="bg-card rounded-2xl p-6 shadow-soft text-center"
               >
@@ -131,7 +131,7 @@ const About = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 md:py-24 bg-primary">
+      <section className="py-16 md:py-24 bg-[#0B2545]">
         <div className="container-main">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
@@ -162,14 +162,14 @@ const About = () => {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {teamMembers.map((member) => (
-              <div 
+              <div
                 key={member.id}
                 className="bg-card rounded-2xl overflow-hidden shadow-soft group"
               >
                 <div className="aspect-[4/3] bg-muted relative overflow-hidden">
                   {member.image ? (
-                    <img 
-                      src={member.image} 
+                    <img
+                      src={member.image}
                       alt={member.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
@@ -203,7 +203,7 @@ const About = () => {
             Partner With Us
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto mb-8">
-            Whether you're a patient seeking care or a healthcare provider looking to refer patients, 
+            Whether you're a patient seeking care or a healthcare provider looking to refer patients,
             we're here to help.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

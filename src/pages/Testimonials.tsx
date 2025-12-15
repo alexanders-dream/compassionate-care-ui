@@ -15,13 +15,13 @@ const Testimonials = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-warm via-background to-primary/10 py-16 md:py-24">
+      <section className="bg-[#EBF4FA] py-16 md:py-24">
         <div className="container-main text-center">
           <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-6">
             Patient <span className="text-primary">Testimonials</span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Hear from our patients and healthcare partners about their experience with our compassionate, 
+            Hear from our patients and healthcare partners about their experience with our compassionate,
             expert wound care services.
           </p>
         </div>
@@ -55,7 +55,7 @@ const Testimonials = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 md:py-24 bg-primary">
+      <section className="py-16 md:py-24 bg-[#0B2545]">
         <div className="container-main">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
             <div>
@@ -85,7 +85,7 @@ const Testimonials = () => {
             Ready to Experience Our Care?
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto mb-8">
-            Join thousands of satisfied patients who have trusted AR Advanced Woundcare Solutions 
+            Join thousands of satisfied patients who have trusted AR Advanced Woundcare Solutions
             with their healing journey.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

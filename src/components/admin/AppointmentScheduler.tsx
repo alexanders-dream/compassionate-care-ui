@@ -9,14 +9,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Plus, Pencil, Trash2, CalendarIcon, Clock, MapPin, User, Phone, Mail, FileText, AlertCircle, Send, CheckCircle2 } from "lucide-react";
+import { Plus, Pencil, Trash2, CalendarIcon, Clock, MapPin, User, Phone, Mail, FileText, AlertCircle, Send, CheckCircle2, ArrowUpDown, Filter, Search } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { 
-  Appointment, sampleAppointments, 
-  VisitRequest, ProviderReferralSubmission 
+import {
+  Appointment, sampleAppointments,
+  VisitRequest, ProviderReferralSubmission
 } from "@/data/siteContent";
 
 // Shared constants
@@ -90,10 +90,10 @@ interface ScheduleDialogProps {
   existingAppointments?: Appointment[];
 }
 
-export const ScheduleDialog = ({ 
-  open, 
-  onOpenChange, 
-  initialData, 
+export const ScheduleDialog = ({
+  open,
+  onOpenChange,
+  initialData,
   onSchedule,
   editingAppointment,
   existingAppointments = []
@@ -139,15 +139,15 @@ export const ScheduleDialog = ({
   const getBlockedSlots = (startTime: string, duration: number): string[] => {
     const startIndex = timeSlots.indexOf(startTime);
     if (startIndex === -1) return [startTime];
-    
+
     // Each slot is 30 minutes, so calculate how many slots the duration covers
     const slotsNeeded = Math.ceil(duration / 30);
     const blockedSlots: string[] = [];
-    
+
     for (let i = 0; i < slotsNeeded && (startIndex + i) < timeSlots.length; i++) {
       blockedSlots.push(timeSlots[startIndex + i]);
     }
-    
+
     return blockedSlots;
   };
 
@@ -156,10 +156,10 @@ export const ScheduleDialog = ({
     if (!date) return [];
     const dateStr = format(date, "yyyy-MM-dd");
     const bookedTimes: string[] = [];
-    
+
     existingAppointments
-      .filter(apt => 
-        apt.appointmentDate === dateStr && 
+      .filter(apt =>
+        apt.appointmentDate === dateStr &&
         apt.clinician === clinician &&
         apt.status !== "cancelled" &&
         apt.id !== editingAppointment?.id // Allow editing current appointment's time
@@ -168,7 +168,7 @@ export const ScheduleDialog = ({
         const blockedSlots = getBlockedSlots(apt.appointmentTime, apt.duration);
         bookedTimes.push(...blockedSlots);
       });
-    
+
     return [...new Set(bookedTimes)]; // Remove duplicates
   };
 
@@ -200,7 +200,7 @@ export const ScheduleDialog = ({
         const blockedSlots = getBlockedSlots(apt.appointmentTime, apt.duration);
         blockedSlots.forEach(slot => dateBookings[apt.appointmentDate].add(slot));
       });
-    
+
     // Consider a date fully booked if all time slots are blocked
     return Object.entries(dateBookings)
       .filter(([_, slots]) => slots.size >= timeSlots.length)
@@ -217,7 +217,7 @@ export const ScheduleDialog = ({
       if (wouldConflict(formData.appointmentTime, formData.duration)) {
         // Find the first available slot that fits the duration
         const bookedTimes = getBookedTimesForDate(selectedDate, formData.clinician);
-        const firstAvailable = timeSlots.find(t => 
+        const firstAvailable = timeSlots.find(t =>
           !bookedTimes.includes(t) && !wouldConflict(t, formData.duration)
         );
         if (firstAvailable) {
@@ -289,7 +289,7 @@ export const ScheduleDialog = ({
                         </span>
                       )}
                     </div>
-                    
+
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                       <div className="flex items-center gap-2">
                         <User className="h-3.5 w-3.5 text-muted-foreground" />
@@ -312,8 +312,8 @@ export const ScheduleDialog = ({
                         </Badge>
                       )}
                       {formData.urgency && (
-                        <Badge 
-                          variant={formData.urgency === "urgent" ? "destructive" : "secondary"} 
+                        <Badge
+                          variant={formData.urgency === "urgent" ? "destructive" : "secondary"}
                           className="text-xs"
                         >
                           {formData.urgency}
@@ -358,15 +358,15 @@ export const ScheduleDialog = ({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <Label>Patient Name *</Label>
-              <Input 
-                value={formData.patientName} 
+              <Input
+                value={formData.patientName}
                 onChange={(e) => setFormData(prev => ({ ...prev, patientName: e.target.value }))}
                 placeholder="Full name"
               />
             </div>
             <div>
               <Label>Phone</Label>
-              <Input 
+              <Input
                 value={formData.patientPhone}
                 onChange={(e) => setFormData(prev => ({ ...prev, patientPhone: e.target.value }))}
                 placeholder="(555) 123-4567"
@@ -374,7 +374,7 @@ export const ScheduleDialog = ({
             </div>
             <div>
               <Label>Email</Label>
-              <Input 
+              <Input
                 type="email"
                 value={formData.patientEmail}
                 onChange={(e) => setFormData(prev => ({ ...prev, patientEmail: e.target.value }))}
@@ -407,9 +407,9 @@ export const ScheduleDialog = ({
                     onSelect={setSelectedDate}
                     initialFocus
                     className="p-3 pointer-events-auto"
-                    disabled={(date) => 
-                      date < new Date(new Date().setHours(0, 0, 0, 0)) || 
-                      fullyBookedDates.some(d => 
+                    disabled={(date) =>
+                      date < new Date(new Date().setHours(0, 0, 0, 0)) ||
+                      fullyBookedDates.some(d =>
                         d.toDateString() === date.toDateString()
                       )
                     }
@@ -419,7 +419,7 @@ export const ScheduleDialog = ({
             </div>
             <div>
               <Label>Time * {!hasAvailableSlots && selectedDate && <span className="text-destructive text-xs">(No slots available)</span>}</Label>
-              <Select 
+              <Select
                 value={formData.appointmentTime}
                 onValueChange={(value) => setFormData(prev => ({ ...prev, appointmentTime: value }))}
               >
@@ -428,8 +428,8 @@ export const ScheduleDialog = ({
                 </SelectTrigger>
                 <SelectContent>
                   {availableSlots.map(({ time, isBooked }) => (
-                    <SelectItem 
-                      key={time} 
+                    <SelectItem
+                      key={time}
                       value={time}
                       disabled={isBooked}
                       className={isBooked ? "text-muted-foreground line-through" : ""}
@@ -447,7 +447,7 @@ export const ScheduleDialog = ({
             </div>
             <div>
               <Label>Duration (minutes)</Label>
-              <Select 
+              <Select
                 value={String(formData.duration)}
                 onValueChange={(value) => setFormData(prev => ({ ...prev, duration: Number(value) }))}
               >
@@ -468,7 +468,7 @@ export const ScheduleDialog = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label>Appointment Type</Label>
-              <Select 
+              <Select
                 value={formData.type}
                 onValueChange={(value) => setFormData(prev => ({ ...prev, type: value as Appointment["type"] }))}
               >
@@ -484,7 +484,7 @@ export const ScheduleDialog = ({
             </div>
             <div>
               <Label>Clinician</Label>
-              <Select 
+              <Select
                 value={formData.clinician}
                 onValueChange={(value) => setFormData(prev => ({ ...prev, clinician: value }))}
               >
@@ -504,7 +504,7 @@ export const ScheduleDialog = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label>Location</Label>
-              <Select 
+              <Select
                 value={formData.location}
                 onValueChange={(value) => setFormData(prev => ({ ...prev, location: value as Appointment["location"] }))}
               >
@@ -520,7 +520,7 @@ export const ScheduleDialog = ({
             {formData.location === "in-home" && (
               <div>
                 <Label>Address</Label>
-                <Input 
+                <Input
                   value={formData.address}
                   onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
                   placeholder="Patient's address"
@@ -532,7 +532,7 @@ export const ScheduleDialog = ({
           {/* Notes */}
           <div>
             <Label>Notes</Label>
-            <Textarea 
+            <Textarea
               value={formData.notes}
               onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
               placeholder="Additional notes..."
@@ -559,8 +559,8 @@ interface AppointmentSchedulerProps {
   onAppointmentsChange?: (appointments: Appointment[]) => void;
 }
 
-const AppointmentScheduler = ({ 
-  visitRequests, 
+const AppointmentScheduler = ({
+  visitRequests,
   referrals,
   onUpdateVisitStatus,
   onUpdateReferralStatus,
@@ -573,7 +573,7 @@ const AppointmentScheduler = ({
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [formData, setFormData] = useState<AppointmentFormData>(getDefaultFormData());
-  
+
   // Email dialog state
   const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
   const [emailAppointment, setEmailAppointment] = useState<Appointment | null>(null);
@@ -581,10 +581,66 @@ const AppointmentScheduler = ({
   const [emailBody, setEmailBody] = useState("");
   const [emailsSent, setEmailsSent] = useState<Record<string, boolean>>({});
 
+  // Filtering and sorting state
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [sortField, setSortField] = useState<"name" | "date" | "status">("date");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Helper function for status row background colors
+  const getStatusRowClass = (status: string) => {
+    const statusClasses: Record<string, string> = {
+      scheduled: "status-scheduled",
+      confirmed: "status-confirmed",
+      completed: "status-completed",
+      cancelled: "status-cancelled",
+      "no-show": "status-no-show"
+    };
+    return statusClasses[status] || "";
+  };
+
+  // Helper for toggling sort direction
+  const toggleSort = (field: "name" | "date" | "status") => {
+    if (field === sortField) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
+
   // Combine internal and external appointments, deduplicating by id
   const appointments = [...internalAppointments, ...externalAppointments].filter(
     (apt, index, self) => self.findIndex(a => a.id === apt.id) === index
   );
+
+  // Filtered and sorted appointments
+  const filteredAppointments = appointments
+    .filter(apt => {
+      const matchesStatus = filterStatus === "all" || apt.status === filterStatus;
+      const matchesSearch = searchQuery === "" ||
+        apt.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        apt.clinician.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        apt.type.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesStatus && matchesSearch;
+    })
+    .sort((a, b) => {
+      let comparison = 0;
+      switch (sortField) {
+        case "name":
+          comparison = a.patientName.localeCompare(b.patientName);
+          break;
+        case "date":
+          const dateA = new Date(`${a.appointmentDate}T${a.appointmentTime}`);
+          const dateB = new Date(`${b.appointmentDate}T${b.appointmentTime}`);
+          comparison = dateA.getTime() - dateB.getTime();
+          break;
+        case "status":
+          comparison = a.status.localeCompare(b.status);
+          break;
+      }
+      return sortDirection === "asc" ? comparison : -comparison;
+    });
 
   // Wrapper to update appointments and notify parent
   const setAppointments = (updater: Appointment[] | ((prev: Appointment[]) => Appointment[])) => {
@@ -689,7 +745,7 @@ const AppointmentScheduler = ({
       toast({ title: "Appointment updated" });
     } else {
       setAppointments([...appointments, appointmentData]);
-      
+
       // Update linked submission status
       if (formData.linkedSubmissionId && formData.linkedSubmissionType) {
         if (formData.linkedSubmissionType === "visit") {
@@ -698,7 +754,7 @@ const AppointmentScheduler = ({
           onUpdateReferralStatus(formData.linkedSubmissionId, "scheduled");
         }
       }
-      
+
       toast({ title: "Appointment scheduled" });
     }
 
@@ -713,7 +769,7 @@ const AppointmentScheduler = ({
 
   const handleUpdateStatus = (id: string, status: Appointment["status"]) => {
     setAppointments(appointments.map(a => a.id === id ? { ...a, status } : a));
-    
+
     const apt = appointments.find(a => a.id === id);
     if (apt?.linkedSubmissionId && apt?.linkedSubmissionType && status === "completed") {
       if (apt.linkedSubmissionType === "visit") {
@@ -722,7 +778,7 @@ const AppointmentScheduler = ({
         onUpdateReferralStatus(apt.linkedSubmissionId, "completed");
       }
     }
-    
+
     toast({ title: "Status updated" });
   };
 
@@ -737,10 +793,10 @@ const AppointmentScheduler = ({
 
   const handleSendEmail = () => {
     if (!emailAppointment) return;
-    
+
     setEmailsSent(prev => ({ ...prev, [emailAppointment.id]: true }));
-    
-    toast({ 
+
+    toast({
       title: "Email Sent",
       description: `Confirmation email sent to ${emailAppointment.patientEmail || emailAppointment.patientName}`
     });
@@ -779,8 +835,8 @@ const AppointmentScheduler = ({
     if (!date) return [];
     const dateStr = format(date, "yyyy-MM-dd");
     return appointments
-      .filter(apt => 
-        apt.appointmentDate === dateStr && 
+      .filter(apt =>
+        apt.appointmentDate === dateStr &&
         apt.clinician === clinician &&
         apt.status !== "cancelled" &&
         apt.id !== editingAppointment?.id
@@ -810,239 +866,270 @@ const AppointmentScheduler = ({
 
   return (
     <div className="space-y-4 md:space-y-6">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-        <h2 className="text-lg md:text-xl font-semibold">Appointments ({appointments.length})</h2>
-        <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
-          <DialogTrigger asChild>
-            <Button onClick={() => resetForm()} className="w-full sm:w-auto">
-              <Plus className="h-4 w-4 mr-2" /> Schedule Appointment
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>{editingAppointment ? "Edit Appointment" : "Schedule New Appointment"}</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              {/* Link to existing submission */}
-              {!editingAppointment && pendingSubmissions.length > 0 && (
-                <div>
-                  <Label>Link to Submission (optional)</Label>
-                  <Select 
-                    value={formData.linkedSubmissionId ? `${formData.linkedSubmissionType}:${formData.linkedSubmissionId}` : ""}
-                    onValueChange={handleSubmissionSelect}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a pending request to auto-fill..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {pendingSubmissions.map(sub => (
-                        <SelectItem key={`${sub.type}:${sub.id}`} value={`${sub.type}:${sub.id}`}>
-                          {sub.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-
-              {/* Patient Info */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label>Patient Name *</Label>
-                  <Input 
-                    value={formData.patientName} 
-                    onChange={(e) => setFormData(prev => ({ ...prev, patientName: e.target.value }))}
-                    placeholder="Full name"
-                  />
-                </div>
-                <div>
-                  <Label>Phone</Label>
-                  <Input 
-                    value={formData.patientPhone}
-                    onChange={(e) => setFormData(prev => ({ ...prev, patientPhone: e.target.value }))}
-                    placeholder="(555) 123-4567"
-                  />
-                </div>
-                <div>
-                  <Label>Email</Label>
-                  <Input 
-                    type="email"
-                    value={formData.patientEmail}
-                    onChange={(e) => setFormData(prev => ({ ...prev, patientEmail: e.target.value }))}
-                    placeholder="patient@email.com"
-                  />
-                </div>
-              </div>
-
-              {/* Date & Time */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label>Date *</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !selectedDate && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={selectedDate}
-                        onSelect={setSelectedDate}
-                        initialFocus
-                        className="p-3 pointer-events-auto"
-                        disabled={(date) => 
-                          date < new Date(new Date().setHours(0, 0, 0, 0)) || 
-                          internalFullyBookedDates.some(d => 
-                            d.toDateString() === date.toDateString()
-                          )
-                        }
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                <div>
-                  <Label>Time * {!internalHasAvailableSlots && selectedDate && <span className="text-destructive text-xs">(No slots)</span>}</Label>
-                  <Select 
-                    value={formData.appointmentTime}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, appointmentTime: value }))}
-                  >
-                    <SelectTrigger className={!internalHasAvailableSlots ? "border-destructive" : ""}>
-                      <SelectValue placeholder="Select time" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {internalAvailableSlots.map(({ time, isBooked }) => (
-                        <SelectItem 
-                          key={time} 
-                          value={time}
-                          disabled={isBooked}
-                          className={isBooked ? "text-muted-foreground line-through" : ""}
-                        >
-                          {time} {isBooked && "(Booked)"}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {selectedDate && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {internalAvailableSlots.filter(s => !s.isBooked).length}/{timeSlots.length} available
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <Label>Duration (minutes)</Label>
-                  <Select 
-                    value={String(formData.duration)}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, duration: Number(value) }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="30">30 min</SelectItem>
-                      <SelectItem value="45">45 min</SelectItem>
-                      <SelectItem value="60">60 min</SelectItem>
-                      <SelectItem value="90">90 min</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* Appointment Details */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label>Appointment Type</Label>
-                  <Select 
-                    value={formData.type}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, type: value as Appointment["type"] }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {appointmentTypes.map(t => (
-                        <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Clinician</Label>
-                  <Select 
-                    value={formData.clinician}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, clinician: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {clinicians.map(c => (
-                        <SelectItem key={c} value={c}>{c}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* Location */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label>Location</Label>
-                  <Select 
-                    value={formData.location}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, location: value as Appointment["location"] }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="in-home">In-Home Visit</SelectItem>
-                      <SelectItem value="clinic">Clinic</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                {formData.location === "in-home" && (
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+          <h2 className="text-lg md:text-xl font-semibold">
+            Appointments ({filteredAppointments.length}{filterStatus !== "all" || searchQuery ? ` of ${appointments.length}` : ""})
+          </h2>
+          <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
+            <DialogTrigger asChild>
+              <Button onClick={() => resetForm()} className="w-full sm:w-auto">
+                <Plus className="h-4 w-4 mr-2" /> Schedule Appointment
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>{editingAppointment ? "Edit Appointment" : "Schedule New Appointment"}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                {/* Link to existing submission */}
+                {!editingAppointment && pendingSubmissions.length > 0 && (
                   <div>
-                    <Label>Address</Label>
-                    <Input 
-                      value={formData.address}
-                      onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-                      placeholder="Patient's address"
-                    />
+                    <Label>Link to Submission (optional)</Label>
+                    <Select
+                      value={formData.linkedSubmissionId ? `${formData.linkedSubmissionType}:${formData.linkedSubmissionId}` : ""}
+                      onValueChange={handleSubmissionSelect}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a pending request to auto-fill..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {pendingSubmissions.map(sub => (
+                          <SelectItem key={`${sub.type}:${sub.id}`} value={`${sub.type}:${sub.id}`}>
+                            {sub.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 )}
-              </div>
 
-              {/* Notes */}
-              <div>
-                <Label>Notes</Label>
-                <Textarea 
-                  value={formData.notes}
-                  onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                  placeholder="Additional notes..."
-                  rows={3}
-                />
-              </div>
+                {/* Patient Info */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label>Patient Name *</Label>
+                    <Input
+                      value={formData.patientName}
+                      onChange={(e) => setFormData(prev => ({ ...prev, patientName: e.target.value }))}
+                      placeholder="Full name"
+                    />
+                  </div>
+                  <div>
+                    <Label>Phone</Label>
+                    <Input
+                      value={formData.patientPhone}
+                      onChange={(e) => setFormData(prev => ({ ...prev, patientPhone: e.target.value }))}
+                      placeholder="(555) 123-4567"
+                    />
+                  </div>
+                  <div>
+                    <Label>Email</Label>
+                    <Input
+                      type="email"
+                      value={formData.patientEmail}
+                      onChange={(e) => setFormData(prev => ({ ...prev, patientEmail: e.target.value }))}
+                      placeholder="patient@email.com"
+                    />
+                  </div>
+                </div>
 
-              <Button onClick={handleSaveAppointment} className="w-full">
-                {editingAppointment ? "Update Appointment" : "Schedule Appointment"}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+                {/* Date & Time */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label>Date *</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !selectedDate && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={selectedDate}
+                          onSelect={setSelectedDate}
+                          initialFocus
+                          className="p-3 pointer-events-auto"
+                          disabled={(date) =>
+                            date < new Date(new Date().setHours(0, 0, 0, 0)) ||
+                            internalFullyBookedDates.some(d =>
+                              d.toDateString() === date.toDateString()
+                            )
+                          }
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div>
+                    <Label>Time * {!internalHasAvailableSlots && selectedDate && <span className="text-destructive text-xs">(No slots)</span>}</Label>
+                    <Select
+                      value={formData.appointmentTime}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, appointmentTime: value }))}
+                    >
+                      <SelectTrigger className={!internalHasAvailableSlots ? "border-destructive" : ""}>
+                        <SelectValue placeholder="Select time" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {internalAvailableSlots.map(({ time, isBooked }) => (
+                          <SelectItem
+                            key={time}
+                            value={time}
+                            disabled={isBooked}
+                            className={isBooked ? "text-muted-foreground line-through" : ""}
+                          >
+                            {time} {isBooked && "(Booked)"}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {selectedDate && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {internalAvailableSlots.filter(s => !s.isBooked).length}/{timeSlots.length} available
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <Label>Duration (minutes)</Label>
+                    <Select
+                      value={String(formData.duration)}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, duration: Number(value) }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="30">30 min</SelectItem>
+                        <SelectItem value="45">45 min</SelectItem>
+                        <SelectItem value="60">60 min</SelectItem>
+                        <SelectItem value="90">90 min</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Appointment Details */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Appointment Type</Label>
+                    <Select
+                      value={formData.type}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, type: value as Appointment["type"] }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {appointmentTypes.map(t => (
+                          <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Clinician</Label>
+                    <Select
+                      value={formData.clinician}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, clinician: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {clinicians.map(c => (
+                          <SelectItem key={c} value={c}>{c}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Location */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Location</Label>
+                    <Select
+                      value={formData.location}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, location: value as Appointment["location"] }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="in-home">In-Home Visit</SelectItem>
+                        <SelectItem value="clinic">Clinic</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {formData.location === "in-home" && (
+                    <div>
+                      <Label>Address</Label>
+                      <Input
+                        value={formData.address}
+                        onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                        placeholder="Patient's address"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Notes */}
+                <div>
+                  <Label>Notes</Label>
+                  <Textarea
+                    value={formData.notes}
+                    onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                    placeholder="Additional notes..."
+                    rows={3}
+                  />
+                </div>
+
+                <Button onClick={handleSaveAppointment} className="w-full">
+                  {editingAppointment ? "Update Appointment" : "Schedule Appointment"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        {/* Filter Controls */}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative flex-1 md:flex-none md:w-48">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-8 h-9"
+            />
+          </div>
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="w-32 h-9">
+              <Filter className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="scheduled">Scheduled</SelectItem>
+              <SelectItem value="confirmed">Confirmed</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+              <SelectItem value="cancelled">Cancelled</SelectItem>
+              <SelectItem value="no-show">No Show</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Mobile Cards */}
       <div className="md:hidden space-y-3">
-        {appointments.map(apt => (
-          <Card key={apt.id} className="p-4">
+        {filteredAppointments.map(apt => (
+          <Card key={apt.id} className={`p-4 ${getStatusRowClass(apt.status)}`}>
             <div className="flex justify-between items-start mb-3">
               <div className="flex items-center gap-2">
                 <User className="h-4 w-4 text-muted-foreground" />
@@ -1053,7 +1140,7 @@ const AppointmentScheduler = ({
               </div>
               {getStatusBadge(apt.status)}
             </div>
-            
+
             <div className="grid grid-cols-2 gap-2 text-sm mb-3">
               <div className="flex items-center gap-1.5">
                 <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
@@ -1071,11 +1158,11 @@ const AppointmentScheduler = ({
                 {getTypeBadge(apt.type)}
               </div>
             </div>
-            
+
             <p className="text-xs text-muted-foreground mb-3">{apt.clinician}</p>
-            
+
             <div className="flex items-center justify-between">
-              <Select 
+              <Select
                 value={apt.status}
                 onValueChange={(value) => handleUpdateStatus(apt.id, value as Appointment["status"])}
               >
@@ -1091,9 +1178,9 @@ const AppointmentScheduler = ({
                 </SelectContent>
               </Select>
               <div className="flex gap-1">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => openEmailDialog(apt)}
                   disabled={!apt.patientEmail}
                   className="h-8 px-2"
@@ -1111,28 +1198,55 @@ const AppointmentScheduler = ({
             </div>
           </Card>
         ))}
-        {appointments.length === 0 && (
-          <p className="text-center text-muted-foreground py-8">No appointments scheduled</p>
+        {filteredAppointments.length === 0 && (
+          <p className="text-center text-muted-foreground py-8">
+            {appointments.length === 0 ? "No appointments scheduled" : "No results match your filters"}
+          </p>
         )}
       </div>
+
 
       {/* Desktop Table */}
       <div className="hidden md:block overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Patient</TableHead>
-              <TableHead>Date & Time</TableHead>
+              <TableHead
+                className="cursor-pointer hover:bg-muted/50 select-none"
+                onClick={() => toggleSort("name")}
+              >
+                <div className="flex items-center gap-1">
+                  Patient
+                  <ArrowUpDown className={`h-3.5 w-3.5 ${sortField === "name" ? "text-primary" : "text-muted-foreground"}`} />
+                </div>
+              </TableHead>
+              <TableHead
+                className="cursor-pointer hover:bg-muted/50 select-none"
+                onClick={() => toggleSort("date")}
+              >
+                <div className="flex items-center gap-1">
+                  Date & Time
+                  <ArrowUpDown className={`h-3.5 w-3.5 ${sortField === "date" ? "text-primary" : "text-muted-foreground"}`} />
+                </div>
+              </TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Clinician</TableHead>
               <TableHead>Location</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead
+                className="cursor-pointer hover:bg-muted/50 select-none"
+                onClick={() => toggleSort("status")}
+              >
+                <div className="flex items-center gap-1">
+                  Status
+                  <ArrowUpDown className={`h-3.5 w-3.5 ${sortField === "status" ? "text-primary" : "text-muted-foreground"}`} />
+                </div>
+              </TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {appointments.map(apt => (
-              <TableRow key={apt.id}>
+            {filteredAppointments.map(apt => (
+              <TableRow key={apt.id} className={getStatusRowClass(apt.status)}>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <User className="h-4 w-4 text-muted-foreground" />
@@ -1163,7 +1277,7 @@ const AppointmentScheduler = ({
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Select 
+                  <Select
                     value={apt.status}
                     onValueChange={(value) => handleUpdateStatus(apt.id, value as Appointment["status"])}
                   >
@@ -1180,9 +1294,9 @@ const AppointmentScheduler = ({
                   </Select>
                 </TableCell>
                 <TableCell className="text-right space-x-1">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => openEmailDialog(apt)}
                     className="gap-1"
                     disabled={!apt.patientEmail}
@@ -1201,16 +1315,17 @@ const AppointmentScheduler = ({
                 </TableCell>
               </TableRow>
             ))}
-            {appointments.length === 0 && (
+            {filteredAppointments.length === 0 && (
               <TableRow>
                 <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                  No appointments scheduled
+                  {appointments.length === 0 ? "No appointments scheduled" : "No results match your filters"}
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </div>
+
 
       {/* Email Dialog */}
       <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
@@ -1224,32 +1339,32 @@ const AppointmentScheduler = ({
           <div className="space-y-4">
             <div>
               <Label>Recipient</Label>
-              <Input 
-                value={emailAppointment?.patientEmail || ""} 
-                disabled 
+              <Input
+                value={emailAppointment?.patientEmail || ""}
+                disabled
               />
             </div>
             <div>
               <Label>Patient</Label>
-              <Input 
-                value={emailAppointment?.patientName || ""} 
-                disabled 
+              <Input
+                value={emailAppointment?.patientName || ""}
+                disabled
               />
             </div>
             <div>
               <Label htmlFor="emailSubject">Subject</Label>
-              <Input 
-                id="emailSubject" 
-                value={emailSubject} 
-                onChange={(e) => setEmailSubject(e.target.value)} 
+              <Input
+                id="emailSubject"
+                value={emailSubject}
+                onChange={(e) => setEmailSubject(e.target.value)}
               />
             </div>
             <div>
               <Label htmlFor="emailBody">Message</Label>
-              <Textarea 
-                id="emailBody" 
-                value={emailBody} 
-                onChange={(e) => setEmailBody(e.target.value)} 
+              <Textarea
+                id="emailBody"
+                value={emailBody}
+                onChange={(e) => setEmailBody(e.target.value)}
                 rows={12}
               />
             </div>

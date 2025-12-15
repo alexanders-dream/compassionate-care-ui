@@ -48,13 +48,13 @@ const Insurance = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-warm via-background to-primary/10 py-16 md:py-24">
+      <section className="bg-[#EBF4FA] py-16 md:py-24">
         <div className="container-main text-center">
           <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-6">
             Insurance & <span className="text-primary">Payment</span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            We work with most major insurance providers to make expert wound care accessible. 
+            We work with most major insurance providers to make expert wound care accessible.
             Our team handles the paperwork so you can focus on healing.
           </p>
         </div>
@@ -70,8 +70,8 @@ const Insurance = () => {
                 Accepted Insurance Plans
               </h2>
               <p className="text-muted-foreground mb-6">
-                We accept most major insurance plans and work directly with your provider to maximize 
-                your benefits. If you don't see your insurance listed, please contact us—we may still 
+                We accept most major insurance plans and work directly with your provider to maximize
+                your benefits. If you don't see your insurance listed, please contact us—we may still
                 be able to help.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -89,7 +89,7 @@ const Insurance = () => {
                 Not Sure About Your Coverage?
               </h3>
               <p className="text-muted-foreground mb-6">
-                Contact our billing team for a free insurance verification. We'll check your benefits 
+                Contact our billing team for a free insurance verification. We'll check your benefits
                 and explain your coverage before your first visit.
               </p>
               <Button asChild className="w-full">
@@ -142,7 +142,7 @@ const Insurance = () => {
                 Self-Pay Options
               </h3>
               <p className="text-muted-foreground mb-4">
-                For patients without insurance or with high deductibles, we offer competitive self-pay 
+                For patients without insurance or with high deductibles, we offer competitive self-pay
                 rates and flexible payment plans.
               </p>
               <ul className="space-y-2 text-muted-foreground">
@@ -166,7 +166,7 @@ const Insurance = () => {
                 Billing Questions?
               </h3>
               <p className="text-muted-foreground mb-4">
-                Our dedicated billing team is here to help with any questions about your account, 
+                Our dedicated billing team is here to help with any questions about your account,
                 insurance claims, or payment options.
               </p>
               <div className="space-y-3">
@@ -186,13 +186,13 @@ const Insurance = () => {
       </section>
 
       {/* CTA */}
-      <section className="py-16 md:py-24 bg-primary">
+      <section className="py-16 md:py-24 bg-[#0B2545]">
         <div className="container-main text-center">
           <h2 className="font-display text-2xl md:text-3xl font-bold text-primary-foreground mb-4">
             Ready to Get Started?
           </h2>
           <p className="text-primary-foreground/80 max-w-2xl mx-auto mb-8">
-            Don't let insurance concerns delay your care. Contact us today and we'll help you 
+            Don't let insurance concerns delay your care. Contact us today and we'll help you
             understand your coverage options.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

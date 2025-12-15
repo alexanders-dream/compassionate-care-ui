@@ -4,21 +4,21 @@ import { ArrowRight, Phone } from "lucide-react";
 
 const CTABanner = () => {
   return (
-    <section className="bg-primary text-primary-foreground">
-      <div className="container-main py-16 md:py-20">
+    <section className="bg-[#0B2545] text-primary-foreground py-16 md:py-20">
+      <div className="container-main">
         <div className="text-center max-w-3xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-semibold mb-4">
+          <h2 className="text-3xl md:text-4xl font-semibold mb-4 text-white">
             Ready to Start Your Healing Journey?
           </h2>
           <p className="text-lg opacity-90 mb-8 max-w-xl mx-auto">
-            Our compassionate team is here to help. Request a visit today and 
+            Our compassionate team is here to help. Request a visit today and
             experience the difference expert wound care can make.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg" 
-              variant="secondary" 
-              asChild 
+            <Button
+              size="lg"
+              variant="secondary"
+              asChild
               className="text-base bg-background text-foreground hover:bg-background/90"
             >
               <Link to="/request-visit">
@@ -26,10 +26,10 @@ const CTABanner = () => {
                 <ArrowRight size={18} />
               </Link>
             </Button>
-            <Button 
-              size="lg" 
-              variant="ghost" 
-              asChild 
+            <Button
+              size="lg"
+              variant="ghost"
+              asChild
               className="text-base border border-white text-white hover:bg-white/10 hover:text-white"
             >
               <a href="tel:+18001234567">

@@ -5,24 +5,22 @@ import heroImage from "@/assets/hero-clinician.jpg";
 
 const HeroSection = () => {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-warm via-background to-primary/10">
-      <div className="container-main section-padding">
+    <section className="relative overflow-hidden bg-white min-h-[calc(100vh-80px)] flex items-center">
+      <div className="container-main py-16 md:py-24">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Content */}
-          <div className="space-y-8 animate-fade-in">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/15 rounded-full text-sm font-medium text-primary">
-              <Heart size={16} className="text-primary" />
-              <span>Compassionate Expert Care</span>
-            </div>
+          <div className="space-y-6 animate-fade-in">
+            {/* Badge Removed */}
 
-            <h1 className="text-foreground">
-              Advanced Wound Care{" "}
-              <span className="text-primary">You Can Trust</span>
+            <h1>
+              <span className="text-primary">Advanced Wound Care</span>
+              <br />
+              <span className="text-primary text-[0.75em] font-medium">You Can Trust</span>
             </h1>
 
             <p className="text-lg md:text-xl text-muted-foreground max-w-xl">
-              We bring specialized wound care directly to you. Our team of experienced 
-              clinicians delivers compassionate, evidence-based treatment for faster 
+              We bring specialized wound care directly to you. Our team of experienced
+              clinicians delivers compassionate, evidence-based treatment for faster
               healing and better outcomes.
             </p>
 
@@ -33,7 +31,7 @@ const HeroSection = () => {
                   <ArrowRight size={18} />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" asChild className="text-base border-secondary text-secondary hover:bg-secondary hover:text-secondary-foreground">
+              <Button size="lg" variant="outline" asChild className="text-base">
                 <Link to="/refer">
                   Refer a Patient
                 </Link>
@@ -41,7 +39,7 @@ const HeroSection = () => {
             </div>
 
             {/* Trust Indicators */}
-            <div className="flex flex-wrap gap-6 pt-4">
+            <div className="flex flex-wrap gap-6 pt-2">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Shield size={20} className="text-primary" />
                 <span>Licensed & Certified</span>
@@ -55,16 +53,14 @@ const HeroSection = () => {
 
           {/* Hero Image */}
           <div className="relative animate-fade-in" style={{ animationDelay: "0.2s" }}>
-            <div className="aspect-square lg:aspect-[4/5] rounded-2xl overflow-hidden soft-shadow border border-primary/20">
-              <img 
-                src={heroImage} 
+            <div className="aspect-square lg:aspect-[4/3] rounded-[30%_70%_70%_30%_/_30%_30%_70%_70%] overflow-hidden soft-shadow">
+              <img
+                src={heroImage}
                 alt="Compassionate wound care clinician ready to help"
                 className="w-full h-full object-cover"
               />
             </div>
-            {/* Decorative Elements */}
-            <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-primary/10 rounded-full blur-2xl" />
-            <div className="absolute -top-4 -right-4 w-32 h-32 bg-primary/20 rounded-full blur-2xl" />
+
           </div>
         </div>
       </div>

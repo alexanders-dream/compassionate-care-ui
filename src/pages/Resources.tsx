@@ -21,13 +21,13 @@ const Resources = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-warm via-background to-primary/10 py-16 md:py-24">
+      <section className="bg-[#EBF4FA] py-16 md:py-24">
         <div className="container-main text-center">
           <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-6">
             Patient <span className="text-primary">Resources</span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Educational materials and guides to support your wound care journey and empower you 
+            Educational materials and guides to support your wound care journey and empower you
             with knowledge for better healing outcomes.
           </p>
         </div>
@@ -101,7 +101,7 @@ const Resources = () => {
               Have More Questions?
             </h2>
             <p className="text-muted-foreground max-w-xl mx-auto mb-6">
-              Our patient care team is here to help. Contact us for personalized support 
+              Our patient care team is here to help. Contact us for personalized support
               and answers to your specific questions.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">

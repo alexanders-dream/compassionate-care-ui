@@ -19,7 +19,7 @@ const Header = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full bg-primary">
+      <header className="sticky top-0 z-50 w-full bg-gradient-to-r from-[#0B2545] to-[#0F3460]">
         <div className="container-main">
           <div className="flex h-16 md:h-20 items-center justify-between">
             {/* Logo */}
@@ -39,9 +39,8 @@ const Header = () => {
                 <Link
                   key={link.href}
                   to={link.href}
-                  className={`text-sm font-medium transition-colors hover:text-white ${
-                    isActive(link.href) ? "text-white" : "text-white/80"
-                  }`}
+                  className={`text-sm font-medium transition-colors hover:text-white ${isActive(link.href) ? "text-white" : "text-white/80"
+                    }`}
                 >
                   {link.label}
                 </Link>
@@ -50,7 +49,7 @@ const Header = () => {
 
             {/* CTA Buttons */}
             <div className="hidden md:flex items-center gap-3">
-              <Button variant="ghost" asChild className="border border-white/30 text-white hover:bg-white/10 hover:text-white">
+              <Button variant="ghost" asChild className="border-2 border-white text-white hover:bg-white/10 hover:text-white">
                 <Link to="/refer">Refer a Patient</Link>
               </Button>
               <Button asChild className="bg-white text-primary hover:bg-white/90 hover:text-primary">
@@ -71,22 +70,21 @@ const Header = () => {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="lg:hidden border-t border-white/20 bg-primary">
+          <div className="lg:hidden border-t border-white/20 bg-gradient-to-r from-[#0B2545] to-[#0F3460]">
             <nav className="container-main py-4 flex flex-col gap-2">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   to={link.href}
                   onClick={() => setIsMenuOpen(false)}
-                  className={`py-2 text-base font-medium transition-colors ${
-                    isActive(link.href) ? "text-white" : "text-white/80"
-                  }`}
+                  className={`py-2 text-base font-medium transition-colors ${isActive(link.href) ? "text-white" : "text-white/80"
+                    }`}
                 >
                   {link.label}
                 </Link>
               ))}
               <div className="flex flex-col gap-2 pt-4 border-t border-white/20 mt-2">
-                <Button variant="ghost" asChild className="w-full border border-white/30 text-white hover:bg-white/10">
+                <Button variant="ghost" asChild className="w-full border-2 border-white text-white hover:bg-white/10">
                   <Link to="/refer" onClick={() => setIsMenuOpen(false)}>Refer a Patient</Link>
                 </Button>
                 <Button asChild className="w-full bg-white text-primary hover:bg-white/90 hover:text-primary">

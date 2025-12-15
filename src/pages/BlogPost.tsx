@@ -57,30 +57,25 @@ const BlogPost = () => {
       </Helmet>
 
       {/* Article Header */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-warm via-background to-accent/20 py-16 md:py-24">
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-          <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-accent/20 rounded-full blur-3xl" />
-        </div>
-        
-        <div className="container-main relative">
+      <section className="bg-[#EBF4FA] py-16 md:py-24">
+        <div className="container-main">
           <div className="max-w-4xl mx-auto">
-            <Link 
-              to="/blog" 
+            <Link
+              to="/blog"
               className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors mb-8 group"
             >
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
               Back to Blog
             </Link>
-            
+
             <Badge variant="secondary" className="capitalize text-sm px-4 py-1.5 mb-6">
               {post.category}
             </Badge>
-            
+
             <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-8 leading-tight">
               {post.title}
             </h1>
-            
+
             <div className="flex flex-wrap items-center gap-4 text-muted-foreground">
               <div className="flex items-center gap-3 bg-card/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm">
                 <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
@@ -99,7 +94,7 @@ const BlogPost = () => {
                 <Clock className="w-4 h-4 text-primary" />
                 {post.readTime}
               </span>
-              <button 
+              <button
                 onClick={handleShare}
                 className="flex items-center gap-2 bg-card/80 backdrop-blur-sm px-4 py-2.5 rounded-full shadow-sm hover:bg-primary hover:text-primary-foreground transition-colors"
               >
@@ -116,7 +111,7 @@ const BlogPost = () => {
         <div className="container-main">
           <div className="max-w-3xl mx-auto">
             {/* Article Body */}
-            <article 
+            <article
               className="prose prose-lg max-w-none
                 prose-headings:font-display prose-headings:text-foreground prose-headings:font-bold
                 prose-h2:text-2xl prose-h2:md:text-3xl prose-h2:mt-12 prose-h2:mb-6 prose-h2:pb-3 prose-h2:border-b prose-h2:border-border/50
@@ -133,7 +128,7 @@ const BlogPost = () => {
             {/* Post Navigation */}
             <div className="mt-16 pt-8 border-t border-border grid md:grid-cols-2 gap-4">
               {prevPost ? (
-                <Link 
+                <Link
                   to={`/blog/${prevPost.id}`}
                   className="group p-5 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors"
                 >
@@ -144,7 +139,7 @@ const BlogPost = () => {
                 </Link>
               ) : <div />}
               {nextPost && (
-                <Link 
+                <Link
                   to={`/blog/${nextPost.id}`}
                   className="group p-5 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors text-right"
                 >
@@ -158,8 +153,8 @@ const BlogPost = () => {
 
             {/* CTA Card */}
             <div className="mt-12">
-              <Card className="border-0 shadow-xl bg-gradient-to-br from-primary/5 via-accent/10 to-warm/20 overflow-hidden">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,hsl(var(--primary)/0.08),transparent_50%)]" />
+              <Card className="border-0 shadow-xl bg-[#EBF4FA] overflow-hidden">
+                <div className="absolute inset-0" />
                 <CardContent className="relative p-8 md:p-10 text-center">
                   <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
                     <BookOpen className="w-8 h-8 text-primary" />
@@ -197,8 +192,8 @@ const BlogPost = () => {
                 <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">
                   Related Articles
                 </h2>
-                <Link 
-                  to="/blog" 
+                <Link
+                  to="/blog"
                   className="text-primary font-medium inline-flex items-center gap-1 hover:gap-2 transition-all"
                 >
                   View All
@@ -207,11 +202,11 @@ const BlogPost = () => {
               </div>
               <div className="grid md:grid-cols-3 gap-6">
                 {relatedPosts.map((relatedPost) => (
-                  <Card 
-                    key={relatedPost.id} 
+                  <Card
+                    key={relatedPost.id}
                     className="group overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
                   >
-                    <div className="h-32 bg-gradient-to-br from-primary/5 via-accent/10 to-warm/20 flex items-center justify-center">
+                    <div className="h-32 bg-[#EBF4FA] flex items-center justify-center">
                       <Badge variant="secondary" className="capitalize">
                         {relatedPost.category}
                       </Badge>
@@ -229,7 +224,7 @@ const BlogPost = () => {
                       </p>
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
                         <span>{relatedPost.readTime}</span>
-                        <Link 
+                        <Link
                           to={`/blog/${relatedPost.id}`}
                           className="text-primary font-medium inline-flex items-center gap-1 group-hover:gap-2 transition-all"
                         >

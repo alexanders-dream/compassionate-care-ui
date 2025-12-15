@@ -29,7 +29,7 @@ const HowItWorks = () => {
         <div className="text-center max-w-2xl mx-auto mb-12">
           <h2 className="text-foreground mb-4">How It Works</h2>
           <p className="text-muted-foreground text-lg">
-            Getting started is easy. We've simplified the process so you can 
+            Getting started is easy. We've simplified the process so you can
             focus on what matters most—your healing.
           </p>
         </div>
@@ -37,20 +37,18 @@ const HowItWorks = () => {
         {/* Steps */}
         <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
           {steps.map((step, index) => (
-            <div 
+            <div
               key={step.number}
               className="relative text-center group"
             >
               {/* Connector Line (hidden on mobile, last item) */}
               {index < steps.length - 1 && (
-                <div className="hidden md:block absolute top-12 left-[60%] w-[80%] h-0.5 bg-gradient-to-r from-primary/30 to-transparent" />
+                <div className="hidden md:block absolute top-12 left-[60%] w-[80%] h-0.5 bg-primary/20" />
               )}
 
               {/* Step Number & Icon */}
               <div className="relative inline-flex flex-col items-center mb-6">
-                <span className="text-6xl font-bold text-primary/10 absolute -top-4 left-1/2 -translate-x-1/2">
-                  {step.number}
-                </span>
+                {/* Number Removed */}
                 <div className="relative z-10 w-20 h-20 rounded-full bg-primary/15 flex items-center justify-center group-hover:bg-primary/25 transition-colors">
                   <step.icon size={36} className="text-primary" />
                 </div>
