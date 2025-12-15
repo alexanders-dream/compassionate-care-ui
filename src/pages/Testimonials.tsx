@@ -40,7 +40,7 @@ const Testimonials = () => {
                   ))}
                 </div>
                 <p className="text-muted-foreground mb-6 italic">
-                  "{testimonial.content}"
+                  "{testimonial.quote}"
                 </p>
                 <div className="border-t border-border pt-4">
                   <p className="font-semibold text-foreground">{testimonial.name}</p>

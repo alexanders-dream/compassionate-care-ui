@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
+import { useProviderReferrals } from "@/hooks/useSupabaseData";
 import {
   Phone, Mail, CheckCircle2, Building2, UserRound,
   FileText, Clock, ArrowRight, Handshake, MapPin
@@ -56,7 +56,7 @@ const benefits = [
 
 const ProviderReferral = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const { toast } = useToast();
+  const { submitReferral } = useProviderReferrals();
 
   const {
     register,
@@ -68,13 +68,22 @@ const ProviderReferral = () => {
   });
 
   const onSubmit = async (data: FormData) => {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    console.log("Referral submitted:", data);
-    setIsSubmitted(true);
-    toast({
-      title: "Referral Submitted",
-      description: "We'll contact the patient within 24 hours.",
+    const result = await submitReferral({
+      provider_name: data.providerName,
+      provider_organization: data.practiceName,
+      provider_phone: data.providerPhone,
+      provider_email: data.providerEmail,
+      patient_name: `${data.patientFirstName} ${data.patientLastName}`,
+      patient_phone: data.patientPhone,
+      patient_address: data.patientAddress,
+      wound_type: data.woundType,
+      urgency: data.urgency,
+      clinical_notes: data.clinicalNotes,
     });
+    
+    if (result.success) {
+      setIsSubmitted(true);
+    }
   };
 
   if (isSubmitted) {
