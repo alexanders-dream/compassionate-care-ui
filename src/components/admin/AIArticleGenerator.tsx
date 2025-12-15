@@ -8,13 +8,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { 
-  Sparkles, Search, Loader2, Plus, X, Image, Youtube, Save, Send, Clock, 
-  Eye, EyeOff, RefreshCw, FileText, Wand2 
+import {
+  Sparkles, Search, Loader2, Plus, X, Image, Youtube, Save, Send, Clock,
+  Eye, EyeOff, RefreshCw, FileText, Wand2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { aiProviders, getProviderById } from "@/data/aiProviders";
 import { BlogPost, categories } from "@/data/blogPosts";
+import DOMPurify from "dompurify";
 
 interface AIArticleGeneratorProps {
   onSaveArticle: (article: BlogPost & { status: "draft" | "published" | "scheduled"; scheduledDate?: string; media?: ArticleMedia[] }) => void;
@@ -29,23 +30,23 @@ export interface ArticleMedia {
 
 const AIArticleGenerator = ({ onSaveArticle, editingArticle }: AIArticleGeneratorProps) => {
   const { toast } = useToast();
-  
+
   // AI Configuration State
   const [selectedProvider, setSelectedProvider] = useState<string>("");
   const [selectedModel, setSelectedModel] = useState<string>("");
   const [apiKey, setApiKey] = useState<string>("");
   const [showApiKey, setShowApiKey] = useState(false);
-  
+
   // SEO Keywords State
   const [topic, setTopic] = useState("");
   const [keywords, setKeywords] = useState<string[]>([]);
   const [newKeyword, setNewKeyword] = useState("");
   const [isResearchingKeywords, setIsResearchingKeywords] = useState(false);
-  
+
   // Article Generation State
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedContent, setGeneratedContent] = useState("");
-  
+
   // Article Editor State
   const [title, setTitle] = useState(editingArticle?.title || "");
   const [excerpt, setExcerpt] = useState(editingArticle?.excerpt || "");
@@ -54,13 +55,13 @@ const AIArticleGenerator = ({ onSaveArticle, editingArticle }: AIArticleGenerato
   const [author, setAuthor] = useState(editingArticle?.author || "");
   const [readTime, setReadTime] = useState(editingArticle?.readTime || "");
   const [featuredImage, setFeaturedImage] = useState(editingArticle?.image || "");
-  
+
   // Media State
   const [media, setMedia] = useState<ArticleMedia[]>([]);
   const [newMediaUrl, setNewMediaUrl] = useState("");
   const [newMediaCaption, setNewMediaCaption] = useState("");
   const [mediaType, setMediaType] = useState<"image" | "youtube">("image");
-  
+
   // Publish State
   const [status, setStatus] = useState<"draft" | "published" | "scheduled">("draft");
   const [scheduledDate, setScheduledDate] = useState("");
@@ -95,11 +96,11 @@ const AIArticleGenerator = ({ onSaveArticle, editingArticle }: AIArticleGenerato
     }
 
     setIsResearchingKeywords(true);
-    
+
     // Simulate API call - in production, this would call the actual AI API
     try {
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
+
       // Simulated SEO keywords based on topic
       const simulatedKeywords = [
         `${topic} treatment`,
@@ -110,7 +111,7 @@ const AIArticleGenerator = ({ onSaveArticle, editingArticle }: AIArticleGenerato
         `${topic} recovery`,
         `best practices ${topic}`,
       ].slice(0, 5);
-      
+
       setKeywords(prev => [...new Set([...prev, ...simulatedKeywords])]);
       toast({ title: "Keywords researched successfully" });
     } catch (error) {
@@ -131,10 +132,10 @@ const AIArticleGenerator = ({ onSaveArticle, editingArticle }: AIArticleGenerato
     }
 
     setIsGenerating(true);
-    
+
     try {
       await new Promise(resolve => setTimeout(resolve, 3000));
-      
+
       // Simulated article generation
       const keywordsList = keywords.length > 0 ? keywords.join(", ") : topic;
       const simulatedTitle = `Complete Guide to ${topic || keywords[0]}: Expert Tips and Best Practices`;
@@ -177,7 +178,7 @@ const AIArticleGenerator = ({ onSaveArticle, editingArticle }: AIArticleGenerato
       setContent(simulatedContent);
       setGeneratedContent(simulatedContent);
       setReadTime(`${Math.ceil(simulatedContent.split(' ').length / 200)} min read`);
-      
+
       toast({ title: "Article generated successfully" });
     } catch (error) {
       toast({ title: "Failed to generate article", variant: "destructive" });
@@ -188,7 +189,7 @@ const AIArticleGenerator = ({ onSaveArticle, editingArticle }: AIArticleGenerato
 
   const addMedia = () => {
     if (!newMediaUrl.trim()) return;
-    
+
     setMedia([...media, { type: mediaType, url: newMediaUrl, caption: newMediaCaption }]);
     setNewMediaUrl("");
     setNewMediaCaption("");
@@ -205,7 +206,7 @@ const AIArticleGenerator = ({ onSaveArticle, editingArticle }: AIArticleGenerato
     }
 
     const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-    
+
     const article: BlogPost & { status: "draft" | "published" | "scheduled"; scheduledDate?: string; media?: ArticleMedia[] } = {
       id: editingArticle?.id || slug,
       title,
@@ -222,10 +223,10 @@ const AIArticleGenerator = ({ onSaveArticle, editingArticle }: AIArticleGenerato
     };
 
     onSaveArticle(article);
-    toast({ 
-      title: saveStatus === "published" ? "Article published!" : 
-             saveStatus === "scheduled" ? "Article scheduled!" : 
-             "Draft saved!" 
+    toast({
+      title: saveStatus === "published" ? "Article published!" :
+        saveStatus === "scheduled" ? "Article scheduled!" :
+          "Draft saved!"
     });
   };
 
@@ -266,8 +267,8 @@ const AIArticleGenerator = ({ onSaveArticle, editingArticle }: AIArticleGenerato
 
                 <div className="space-y-2">
                   <Label>AI Model</Label>
-                  <Select 
-                    value={selectedModel} 
+                  <Select
+                    value={selectedModel}
                     onValueChange={setSelectedModel}
                     disabled={!selectedProvider}
                   >
@@ -301,8 +302,8 @@ const AIArticleGenerator = ({ onSaveArticle, editingArticle }: AIArticleGenerato
                       placeholder={provider?.apiKeyPlaceholder || "Enter API key..."}
                     />
                   </div>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="icon"
                     onClick={() => setShowApiKey(!showApiKey)}
                   >
@@ -344,7 +345,7 @@ const AIArticleGenerator = ({ onSaveArticle, editingArticle }: AIArticleGenerato
                     onChange={(e) => setTopic(e.target.value)}
                     placeholder="e.g., diabetic foot care, wound healing"
                   />
-                  <Button 
+                  <Button
                     onClick={researchKeywords}
                     disabled={isResearchingKeywords || !topic.trim()}
                   >
@@ -373,7 +374,7 @@ const AIArticleGenerator = ({ onSaveArticle, editingArticle }: AIArticleGenerato
                     <Plus className="h-4 w-4" />
                   </Button>
                 </div>
-                
+
                 {keywords.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-3">
                     {keywords.map((keyword, index) => (
@@ -407,7 +408,7 @@ const AIArticleGenerator = ({ onSaveArticle, editingArticle }: AIArticleGenerato
               <div className="p-4 bg-muted/50 rounded-lg space-y-2">
                 <p className="text-sm font-medium">Generation Settings:</p>
                 <p className="text-sm text-muted-foreground">
-                  Provider: {provider?.name || "Not selected"} | 
+                  Provider: {provider?.name || "Not selected"} |
                   Model: {provider?.models.find(m => m.id === selectedModel)?.name || "Not selected"}
                 </p>
                 <p className="text-sm text-muted-foreground">
@@ -415,7 +416,7 @@ const AIArticleGenerator = ({ onSaveArticle, editingArticle }: AIArticleGenerato
                 </p>
               </div>
 
-              <Button 
+              <Button
                 onClick={generateArticle}
                 disabled={isGenerating || !selectedProvider || !selectedModel || !apiKey}
                 className="w-full"
@@ -448,9 +449,9 @@ const AIArticleGenerator = ({ onSaveArticle, editingArticle }: AIArticleGenerato
                       <RefreshCw className="h-4 w-4 mr-1" /> Regenerate
                     </Button>
                   </div>
-                  <div 
+                  <div
                     className="prose prose-sm max-w-none max-h-64 overflow-y-auto"
-                    dangerouslySetInnerHTML={{ __html: generatedContent }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(generatedContent) }}
                   />
                 </div>
               )}
@@ -567,9 +568,9 @@ const AIArticleGenerator = ({ onSaveArticle, editingArticle }: AIArticleGenerato
                               {item.caption}
                             </span>
                           )}
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => removeMedia(index)}
                           >
                             <X className="h-4 w-4" />
@@ -650,28 +651,28 @@ const AIArticleGenerator = ({ onSaveArticle, editingArticle }: AIArticleGenerato
                   </div>
 
                   <div className="space-y-2">
-                    <Button 
-                      onClick={() => handleSave("draft")} 
-                      variant="outline" 
+                    <Button
+                      onClick={() => handleSave("draft")}
+                      variant="outline"
                       className="w-full"
                     >
                       <Save className="h-4 w-4 mr-2" />
                       Save Draft
                     </Button>
-                    
+
                     {scheduledDate && (
-                      <Button 
-                        onClick={() => handleSave("scheduled")} 
-                        variant="secondary" 
+                      <Button
+                        onClick={() => handleSave("scheduled")}
+                        variant="secondary"
                         className="w-full"
                       >
                         <Clock className="h-4 w-4 mr-2" />
                         Schedule
                       </Button>
                     )}
-                    
-                    <Button 
-                      onClick={() => handleSave("published")} 
+
+                    <Button
+                      onClick={() => handleSave("published")}
                       className="w-full"
                     >
                       <Send className="h-4 w-4 mr-2" />
