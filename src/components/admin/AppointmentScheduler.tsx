@@ -630,11 +630,12 @@ const AppointmentScheduler = ({
         case "name":
           comparison = a.patientName.localeCompare(b.patientName);
           break;
-        case "date":
+        case "date": {
           const dateA = new Date(`${a.appointmentDate}T${a.appointmentTime}`);
           const dateB = new Date(`${b.appointmentDate}T${b.appointmentTime}`);
           comparison = dateA.getTime() - dateB.getTime();
           break;
+        }
         case "status":
           comparison = a.status.localeCompare(b.status);
           break;

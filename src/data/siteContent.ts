@@ -1,47 +1,14 @@
 // Re-export types from SiteDataContext for consistency
-export type { 
-  Testimonial, 
-  Service, 
-  TeamMember, 
-  FAQ, 
+export type {
+  Testimonial,
+  Service,
+  TeamMember,
+  FAQ,
   PatientResource,
-  FormConfig 
+  FormConfig,
+  VisitRequest,
+  ProviderReferralSubmission
 } from "@/contexts/SiteDataContext";
-
-export interface VisitRequest {
-  id: string;
-  firstName: string;
-  lastName: string;
-  phone: string;
-  email: string;
-  address: string;
-  preferredContact: string;
-  woundType: string;
-  additionalInfo?: string;
-  submittedAt: string;
-  status: "pending" | "contacted" | "scheduled" | "completed";
-  emailSent?: boolean;
-}
-
-export interface ProviderReferralSubmission {
-  id: string;
-  providerName: string;
-  practiceName: string;
-  providerPhone: string;
-  providerEmail: string;
-  providerNPI?: string;
-  patientFirstName: string;
-  patientLastName: string;
-  patientPhone: string;
-  patientAddress: string;
-  patientDOB: string;
-  woundType: string;
-  urgency: string;
-  clinicalNotes?: string;
-  submittedAt: string;
-  status: "pending" | "contacted" | "scheduled" | "completed";
-  emailSent?: boolean;
-}
 
 export interface Appointment {
   id: string;
@@ -101,57 +68,5 @@ export const sampleAppointments: Appointment[] = [
   }
 ];
 
-// Sample form submissions for demo purposes
-export const sampleVisitRequests: VisitRequest[] = [
-  {
-    id: "vr1",
-    firstName: "John",
-    lastName: "Smith",
-    phone: "(555) 123-4567",
-    email: "john.smith@email.com",
-    address: "123 Main St, Houston, TX 77001",
-    preferredContact: "phone",
-    woundType: "diabetic",
-    additionalInfo: "Need morning appointments if possible",
-    submittedAt: "2024-01-15T10:30:00",
-    status: "pending",
-    emailSent: false
-  },
-  {
-    id: "vr2",
-    firstName: "Mary",
-    lastName: "Johnson",
-    phone: "(555) 987-6543",
-    email: "mary.j@email.com",
-    address: "456 Oak Ave, Houston, TX 77002",
-    preferredContact: "email",
-    woundType: "surgical",
-    submittedAt: "2024-01-14T14:15:00",
-    status: "contacted",
-    emailSent: true
-  }
-];
+// Mock data removed in favor of Supabase data
 
-export const sampleReferrals: ProviderReferralSubmission[] = [
-  {
-    id: "ref1",
-    providerName: "Dr. Sarah Wilson",
-    practiceName: "Wilson Family Practice",
-    providerPhone: "(555) 222-3333",
-    providerEmail: "swilson@wilsonfp.com",
-    providerNPI: "1234567890",
-    patientFirstName: "Robert",
-    patientLastName: "Davis",
-    patientPhone: "(555) 444-5555",
-    patientAddress: "789 Elm St, Houston, TX 77003",
-    patientDOB: "1955-03-20",
-    woundType: "pressure",
-    urgency: "soon",
-    clinicalNotes: "Patient is bedridden, stage 2 pressure ulcer on sacrum",
-    submittedAt: "2024-01-15T09:00:00",
-    status: "pending",
-    emailSent: false
-  }
-];
-
-// Default data removed - now fetched from Supabase

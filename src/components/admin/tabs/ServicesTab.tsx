@@ -1,0 +1,150 @@
+import { useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+import { Plus, Pencil, Trash2 } from "lucide-react";
+import IconPicker from "@/components/admin/IconPicker";
+import { Service } from "@/contexts/SiteDataContext";
+
+interface ServicesTabProps {
+    services: Service[];
+    onSave: (e: React.FormEvent<HTMLFormElement>) => void;
+    onDelete: (id: string) => void;
+    editingService: Service | null;
+    setEditingService: (service: Service | null) => void;
+    serviceIcon: string;
+    setServiceIcon: (icon: string) => void;
+}
+
+const ServicesTab = ({
+    services,
+    onSave,
+    onDelete,
+    editingService,
+    setEditingService,
+    serviceIcon,
+    setServiceIcon,
+}: ServicesTabProps) => {
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+    const handleOpenDialog = (service: Service | null) => {
+        setEditingService(service);
+        setServiceIcon(service?.icon || "Heart");
+        setIsDialogOpen(true);
+    };
+
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        onSave(e);
+        setIsDialogOpen(false);
+    };
+
+    return (
+        <>
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
+                <h2 className="text-lg md:text-xl font-semibold">Services ({services.length})</h2>
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                    <DialogTrigger asChild>
+                        <Button onClick={() => handleOpenDialog(null)} className="w-full sm:w-auto">
+                            <Plus className="h-4 w-4 mr-2" /> Add Service
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-h-[90vh] overflow-y-auto">
+                        <DialogHeader>
+                            <DialogTitle>{editingService ? "Edit Service" : "New Service"}</DialogTitle>
+                        </DialogHeader>
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div>
+                                <Label htmlFor="title">Title</Label>
+                                <Input id="title" name="title" defaultValue={editingService?.title} required />
+                            </div>
+                            <div>
+                                <Label htmlFor="description">Description</Label>
+                                <Textarea id="description" name="description" defaultValue={editingService?.description} rows={3} required />
+                            </div>
+                            <div>
+                                <Label>Icon</Label>
+                                <IconPicker value={serviceIcon} onChange={setServiceIcon} name="icon" />
+                            </div>
+                            <Button type="submit" className="w-full">Save Service</Button>
+                        </form>
+                    </DialogContent>
+                </Dialog>
+            </div>
+
+            {/* Mobile Cards */}
+            <div className="md:hidden space-y-3">
+                {services.map(service => (
+                    <Card key={service.id} className="p-4">
+                        <div className="flex justify-between items-start mb-2">
+                            <p className="font-medium">{service.title}</p>
+                            <Badge variant="outline">{service.icon}</Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{service.description}</p>
+                        <div className="flex gap-2">
+                            <Button variant="outline" size="sm" className="flex-1" onClick={() => handleOpenDialog(service)}>
+                                <Pencil className="h-3 w-3 mr-1" /> Edit
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={() => onDelete(service.id)}>
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                        </div>
+                    </Card>
+                ))}
+                {services.length === 0 && (
+                    <p className="text-center text-muted-foreground py-8">No services yet</p>
+                )}
+            </div>
+
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Title</TableHead>
+                            <TableHead>Description</TableHead>
+                            <TableHead>Icon</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {services.map(service => (
+                            <TableRow key={service.id}>
+                                <TableCell className="font-medium">{service.title}</TableCell>
+                                <TableCell className="max-w-xs truncate">{service.description}</TableCell>
+                                <TableCell>{service.icon}</TableCell>
+                                <TableCell className="text-right">
+                                    <Button variant="ghost" size="sm" onClick={() => handleOpenDialog(service)}>
+                                        <Pencil className="h-4 w-4" />
+                                    </Button>
+                                    <Button variant="ghost" size="sm" onClick={() => onDelete(service.id)}>
+                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </div>
+        </>
+    );
+};
+
+export default ServicesTab;
