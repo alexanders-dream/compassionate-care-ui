@@ -92,7 +92,7 @@ const Insurance = () => {
                 Contact our billing team for a free insurance verification. We'll check your benefits
                 and explain your coverage before your first visit.
               </p>
-              <Button asChild className="w-full">
+              <Button asChild className="w-full no-link-style">
                 <a href="tel:+18001234567">
                   <Phone className="w-4 h-4 mr-2" />
                   Call for Verification

@@ -80,7 +80,7 @@ const ProviderReferral = () => {
       urgency: data.urgency,
       clinical_notes: data.clinicalNotes,
     });
-    
+
     if (result.success) {
       setIsSubmitted(true);
     }
@@ -401,8 +401,8 @@ const ProviderReferral = () => {
                 {/* Provider Hotline */}
                 <Card className="bg-secondary text-secondary-foreground border-0">
                   <CardContent className="p-6">
-                    <h3 className="font-semibold mb-4">Provider Hotline</h3>
-                    <p className="text-sm opacity-90 mb-4">
+                    <h3 className="font-semibold mb-4 text-white">Provider Hotline</h3>
+                    <p className="text-sm opacity-90 mb-4 text-white">
                       For urgent referrals or clinical questions, call our dedicated provider line.
                     </p>
                     <a
@@ -411,8 +411,8 @@ const ProviderReferral = () => {
                     >
                       <Phone size={20} className="text-primary" />
                       <div>
-                        <p className="font-medium">(800) 123-4568</p>
-                        <p className="text-xs opacity-80">Mon-Fri 7AM-7PM</p>
+                        <p className="font-medium text-white">(800) 123-4568</p>
+                        <p className="text-xs opacity-80 text-white">Mon-Fri 7AM-7PM</p>
                       </div>
                     </a>
                   </CardContent>

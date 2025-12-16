@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Menu, X, Phone } from "lucide-react";
 
 const Header = () => {
@@ -19,6 +20,13 @@ const Header = () => {
 
   return (
     <>
+      {/* Skip to content link for accessibility */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:bg-primary focus:text-primary-foreground focus:px-4 focus:py-2 focus:rounded-lg focus:outline-none"
+      >
+        Skip to main content
+      </a>
       <header className="sticky top-0 z-50 w-full gradient-navy">
         <div className="container-main">
           <div className="flex h-16 md:h-20 items-center justify-between">
@@ -39,9 +47,8 @@ const Header = () => {
                 <Link
                   key={link.href}
                   to={link.href}
-                  className={`no-link-style text-sm font-medium transition-colors hover:text-white ${
-                    isActive(link.href) ? "text-white" : "text-white/80"
-                  }`}
+                  className={`no-link-style text-sm font-medium transition-colors hover:text-white ${isActive(link.href) ? "text-white" : "text-white/80"
+                    }`}
                 >
                   {link.label}
                 </Link>
@@ -50,6 +57,7 @@ const Header = () => {
 
             {/* CTA Buttons */}
             <div className="hidden md:flex items-center gap-3">
+              <ThemeToggle />
               <Button variant="ghost" asChild className="border-2 border-white/80 text-white hover:bg-white/10 hover:text-white">
                 <Link to="/refer" className="no-link-style">Refer a Patient</Link>
               </Button>
@@ -79,9 +87,8 @@ const Header = () => {
                   key={link.href}
                   to={link.href}
                   onClick={() => setIsMenuOpen(false)}
-                  className={`no-link-style py-3 text-base font-medium transition-colors ${
-                    isActive(link.href) ? "text-white" : "text-white/80"
-                  }`}
+                  className={`no-link-style py-3 text-base font-medium transition-colors ${isActive(link.href) ? "text-white" : "text-white/80"
+                    }`}
                 >
                   {link.label}
                 </Link>

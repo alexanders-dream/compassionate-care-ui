@@ -32,11 +32,14 @@ const BlogPage = () => {
                 published_at: article.publishedAt,
                 scheduled_at: article.scheduledAt,
                 tags: article.tags,
-                slug: article.slug || article.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+                slug: (article as any).slug || article.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')
             };
 
+            // Check if ID is a valid UUID (update) or empty/invalid (insert)
+            const isValidUUID = article.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(article.id);
+
             let error;
-            if (article.id && article.id.length > 10) { // Simple check if it's likely a UUID vs temp ID
+            if (isValidUUID) {
                 const result = await supabase
                     .from("blog_posts")
                     .update(postData)

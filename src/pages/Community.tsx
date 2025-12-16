@@ -123,7 +123,7 @@ const Community = () => {
                 outcomes in your patient population.
               </p>
               <div className="space-y-3">
-                <Button asChild className="w-full">
+                <Button asChild className="w-full no-link-style">
                   <Link to="/refer">Refer a Patient</Link>
                 </Button>
                 <Button variant="outline" asChild className="w-full">

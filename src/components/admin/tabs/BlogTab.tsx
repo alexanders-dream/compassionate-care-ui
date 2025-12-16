@@ -55,8 +55,8 @@ const BlogTab = ({
         }
     };
 
-    const handleSaveArticle = (article: ExtendedBlogPost) => {
-        onSaveArticle(article);
+    const handleSaveArticle = async (article: ExtendedBlogPost) => {
+        await onSaveArticle(article);
         setShowAIGenerator(false);
     };
 
