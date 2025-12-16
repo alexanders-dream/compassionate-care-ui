@@ -121,12 +121,7 @@ export function SubmissionDetailsDialog({
                                         <label className="text-xs text-muted-foreground block mb-1">Wound Type</label>
                                         <p className="font-medium capitalize">{submission.woundType}</p>
                                     </div>
-                                    {isVisit && (
-                                        <div>
-                                            <label className="text-xs text-muted-foreground block mb-1">Insurance</label>
-                                            <p>{visit!.insuranceProvider || "None/Self-pay"}</p>
-                                        </div>
-                                    )}
+
                                 </div>
 
                                 <Separator />
