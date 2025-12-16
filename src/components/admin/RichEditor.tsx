@@ -152,7 +152,7 @@ const RichEditor = ({ content, onChange, placeholder = "Start writing...", class
 
             {/* Bubble Menu for Text Selection */}
             {editor && (
-                <BubbleMenu editor={editor} tippyOptions={{ duration: 100 }} className="flex overflow-hidden border rounded-lg shadow-xl bg-background text-foreground">
+                <BubbleMenu editor={editor} className="flex overflow-hidden border rounded-lg shadow-xl bg-background text-foreground">
                     <Button variant={editor.isActive("bold") ? "secondary" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleBold().run()} className="h-8 w-8 p-0 rounded-none">
                         <Bold className="h-4 w-4" />
                     </Button>
@@ -174,7 +174,7 @@ const RichEditor = ({ content, onChange, placeholder = "Start writing...", class
 
             {/* Floating Menu for Empty Lines */}
             {editor && (
-                <FloatingMenu editor={editor} tippyOptions={{ duration: 100 }} className="flex gap-1 overflow-hidden border rounded-lg shadow-xl bg-background text-foreground p-1">
+                <FloatingMenu editor={editor} className="flex gap-1 overflow-hidden border rounded-lg shadow-xl bg-background text-foreground p-1">
                     <Button variant={editor.isActive("heading", { level: 2 }) ? "secondary" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className="h-8 w-8 p-0">
                         <Heading2 className="h-4 w-4" />
                     </Button>
