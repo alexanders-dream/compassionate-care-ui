@@ -1,12 +1,13 @@
 import {
   ClipboardList, CalendarDays, Settings2, Type, BookOpen,
-  FileText, Star, Briefcase, Users, HelpCircle, ChevronLeft, ChevronRight, Menu, X
+  FileText, Star, Briefcase, Users, HelpCircle, ChevronLeft, ChevronRight, Menu
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { useState, useEffect } from "react";
+import { NavLink, useLocation } from "react-router-dom";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export type AdminSection =
   | "submissions"
@@ -21,49 +22,40 @@ export type AdminSection =
   | "faqs";
 
 interface AdminSidebarProps {
-  activeSection: AdminSection;
-  onSectionChange: (section: AdminSection) => void;
   collapsed: boolean;
   onToggleCollapse: () => void;
 }
 
-const menuItems: { id: AdminSection; label: string; icon: React.ElementType }[] = [
-  { id: "submissions", label: "Submissions", icon: ClipboardList },
-  { id: "appointments", label: "Appointments", icon: CalendarDays },
-  { id: "forms", label: "Forms", icon: Settings2 },
-  { id: "site-copy", label: "Site Copy", icon: Type },
-  { id: "resources", label: "Resources", icon: BookOpen },
-  { id: "blog", label: "Blog", icon: FileText },
-  { id: "testimonials", label: "Testimonials", icon: Star },
-  { id: "services", label: "Services", icon: Briefcase },
-  { id: "team", label: "Team", icon: Users },
-  { id: "faqs", label: "FAQs", icon: HelpCircle },
+const menuItems: { id: AdminSection; label: string; icon: React.ElementType; path: string }[] = [
+  { id: "submissions", label: "Submissions", icon: ClipboardList, path: "/admin/submissions" },
+  { id: "appointments", label: "Appointments", icon: CalendarDays, path: "/admin/appointments" },
+  { id: "forms", label: "Forms", icon: Settings2, path: "/admin/forms" },
+  { id: "site-copy", label: "Site Copy", icon: Type, path: "/admin/site-copy" },
+  { id: "resources", label: "Resources", icon: BookOpen, path: "/admin/resources" },
+  { id: "blog", label: "Blog", icon: FileText, path: "/admin/blog" },
+  { id: "testimonials", label: "Testimonials", icon: Star, path: "/admin/testimonials" },
+  { id: "services", label: "Services", icon: Briefcase, path: "/admin/services" },
+  { id: "team", label: "Team", icon: Users, path: "/admin/team" },
+  { id: "faqs", label: "FAQs", icon: HelpCircle, path: "/admin/faqs" },
 ];
 
 const SidebarContent = ({
-  activeSection,
-  onSectionChange,
   collapsed = false,
   onItemClick
 }: {
-  activeSection: AdminSection;
-  onSectionChange: (section: AdminSection) => void;
   collapsed?: boolean;
   onItemClick?: () => void;
 }) => (
   <nav className="p-2 space-y-1">
     {menuItems.map((item) => {
       const Icon = item.icon;
-      const isActive = activeSection === item.id;
 
       return (
-        <button
+        <NavLink
           key={item.id}
-          onClick={() => {
-            onSectionChange(item.id);
-            onItemClick?.();
-          }}
-          className={cn(
+          to={item.path}
+          onClick={onItemClick}
+          className={({ isActive }) => cn(
             "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
             isActive
               ? "bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 hover:border-primary/30"
@@ -74,15 +66,16 @@ const SidebarContent = ({
         >
           <Icon className="h-4 w-4 shrink-0" />
           {!collapsed && <span>{item.label}</span>}
-        </button>
+        </NavLink>
       );
     })}
   </nav>
 );
 
-const AdminSidebar = ({ activeSection, onSectionChange, collapsed, onToggleCollapse }: AdminSidebarProps) => {
+const AdminSidebar = ({ collapsed, onToggleCollapse }: AdminSidebarProps) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -111,8 +104,6 @@ const AdminSidebar = ({ activeSection, onSectionChange, collapsed, onToggleColla
           </div>
           <ScrollArea className="h-[calc(100vh-60px)]">
             <SidebarContent
-              activeSection={activeSection}
-              onSectionChange={onSectionChange}
               onItemClick={() => setMobileOpen(false)}
             />
           </ScrollArea>
@@ -145,8 +136,6 @@ const AdminSidebar = ({ activeSection, onSectionChange, collapsed, onToggleColla
 
       <ScrollArea className="flex-1">
         <SidebarContent
-          activeSection={activeSection}
-          onSectionChange={onSectionChange}
           collapsed={collapsed}
         />
       </ScrollArea>

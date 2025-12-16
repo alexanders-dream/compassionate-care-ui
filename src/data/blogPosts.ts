@@ -6,8 +6,14 @@ export interface BlogPost {
   category: "prevention" | "treatment" | "lifestyle" | "guides";
   author: string;
   date: string;
-  readTime: string;
+  readTime?: string;
   image?: string;
+  imageUrl?: string; // Supabase uses image_url, context maps to imageUrl
+  slug?: string;
+  tags?: string[];
+  publishedAt?: string;
+  scheduledAt?: string;
+
 }
 
 export const blogPosts: BlogPost[] = [

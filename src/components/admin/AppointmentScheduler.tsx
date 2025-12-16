@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import {
-  Appointment, sampleAppointments,
+  Appointment,
   VisitRequest, ProviderReferralSubmission
 } from "@/data/siteContent";
 
@@ -51,8 +51,8 @@ export interface AppointmentFormData {
   location: Appointment["location"];
   address: string;
   notes: string;
-  linkedSubmissionId: string;
-  linkedSubmissionType: "visit" | "referral" | "";
+  visitRequestId?: string;
+  providerReferralId?: string;
   // Additional submission context
   woundType?: string;
   urgency?: string;
@@ -63,6 +63,7 @@ export interface AppointmentFormData {
   patientDOB?: string;
   clinicalNotes?: string;
   submittedAt?: string;
+  linkedSubmissionType?: "visit" | "referral"; // Keep helper for UI display logic
 }
 
 export const getDefaultFormData = (): AppointmentFormData => ({
@@ -76,8 +77,9 @@ export const getDefaultFormData = (): AppointmentFormData => ({
   location: "in-home",
   address: "",
   notes: "",
-  linkedSubmissionId: "",
-  linkedSubmissionType: ""
+  visitRequestId: undefined,
+  providerReferralId: undefined,
+  linkedSubmissionType: undefined
 });
 
 // Standalone Scheduling Dialog Component
@@ -110,17 +112,18 @@ export const ScheduleDialog = ({
         setFormData({
           ...getDefaultFormData(),
           patientName: editingAppointment.patientName,
-          patientPhone: editingAppointment.patientPhone,
-          patientEmail: editingAppointment.patientEmail,
+          patientPhone: editingAppointment.patientPhone || "",
+          patientEmail: editingAppointment.patientEmail || "",
           appointmentTime: editingAppointment.appointmentTime,
           duration: editingAppointment.duration,
           type: editingAppointment.type,
           clinician: editingAppointment.clinician,
-          location: editingAppointment.location,
+          location: (editingAppointment.location as Appointment["location"]) || "in-home",
           address: editingAppointment.address || "",
           notes: editingAppointment.notes || "",
-          linkedSubmissionId: editingAppointment.linkedSubmissionId || "",
-          linkedSubmissionType: editingAppointment.linkedSubmissionType || ""
+          visitRequestId: editingAppointment.visitRequestId || undefined,
+          providerReferralId: editingAppointment.providerReferralId || undefined,
+          linkedSubmissionType: editingAppointment.visitRequestId ? "visit" : editingAppointment.providerReferralId ? "referral" : undefined
         });
       } else if (initialData) {
         setSelectedDate(new Date());
@@ -248,14 +251,16 @@ export const ScheduleDialog = ({
       appointmentDate: format(selectedDate, "yyyy-MM-dd"),
       appointmentTime: formData.appointmentTime,
       duration: formData.duration,
-      type: formData.type,
+      type: formData.type || "initial",
       clinician: formData.clinician,
-      location: formData.location,
+      // @ts-ignore
+      location: formData.location || "in-home",
       address: formData.location === "in-home" ? formData.address : undefined,
       notes: formData.notes || undefined,
       status: editingAppointment?.status || "scheduled",
-      linkedSubmissionId: formData.linkedSubmissionId || undefined,
-      linkedSubmissionType: formData.linkedSubmissionType as "visit" | "referral" | undefined,
+      visitRequestId: formData.visitRequestId,
+      providerReferralId: formData.providerReferralId,
+      reminderSent: editingAppointment?.reminderSent || false,
       createdAt: editingAppointment?.createdAt || new Date().toISOString()
     };
 
@@ -263,7 +268,7 @@ export const ScheduleDialog = ({
     onOpenChange(false);
   };
 
-  const hasSubmissionData = formData.linkedSubmissionType && formData.linkedSubmissionId;
+  const hasSubmissionData = !!(formData.visitRequestId || formData.providerReferralId);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -568,7 +573,7 @@ const AppointmentScheduler = ({
   onAppointmentsChange
 }: AppointmentSchedulerProps) => {
   const { toast } = useToast();
-  const [internalAppointments, setInternalAppointments] = useState<Appointment[]>(sampleAppointments);
+  const [internalAppointments, setInternalAppointments] = useState<Appointment[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
@@ -591,10 +596,9 @@ const AppointmentScheduler = ({
   const getStatusRowClass = (status: string) => {
     const statusClasses: Record<string, string> = {
       scheduled: "status-scheduled",
-      confirmed: "status-confirmed",
       completed: "status-completed",
       cancelled: "status-cancelled",
-      "no-show": "status-no-show"
+      "no_show": "status-no-show"
     };
     return statusClasses[status] || "";
   };
@@ -664,7 +668,7 @@ const AppointmentScheduler = ({
 
   const handleSubmissionSelect = (value: string) => {
     if (!value) {
-      setFormData(prev => ({ ...prev, linkedSubmissionId: "", linkedSubmissionType: "", patientName: "", patientPhone: "", patientEmail: "" }));
+      setFormData(prev => ({ ...prev, visitRequestId: undefined, providerReferralId: undefined, linkedSubmissionType: undefined, patientName: "", patientPhone: "", patientEmail: "" }));
       return;
     }
 
@@ -674,7 +678,8 @@ const AppointmentScheduler = ({
       if (request) {
         setFormData(prev => ({
           ...prev,
-          linkedSubmissionId: id,
+          visitRequestId: id,
+          providerReferralId: undefined,
           linkedSubmissionType: "visit",
           patientName: `${request.firstName} ${request.lastName}`,
           patientPhone: request.phone,
@@ -686,7 +691,8 @@ const AppointmentScheduler = ({
       if (referral) {
         setFormData(prev => ({
           ...prev,
-          linkedSubmissionId: id,
+          visitRequestId: undefined,
+          providerReferralId: id,
           linkedSubmissionType: "referral",
           patientName: `${referral.patientFirstName} ${referral.patientLastName}`,
           patientPhone: referral.patientPhone,
@@ -701,17 +707,18 @@ const AppointmentScheduler = ({
     setSelectedDate(new Date(apt.appointmentDate));
     setFormData({
       patientName: apt.patientName,
-      patientPhone: apt.patientPhone,
-      patientEmail: apt.patientEmail,
+      patientPhone: apt.patientPhone || "",
+      patientEmail: apt.patientEmail || "",
       appointmentTime: apt.appointmentTime,
       duration: apt.duration,
       type: apt.type,
       clinician: apt.clinician,
-      location: apt.location,
+      location: (apt.location as Appointment["location"]) || "in-home",
       address: apt.address || "",
       notes: apt.notes || "",
-      linkedSubmissionId: apt.linkedSubmissionId || "",
-      linkedSubmissionType: apt.linkedSubmissionType || ""
+      visitRequestId: apt.visitRequestId || undefined,
+      providerReferralId: apt.providerReferralId || undefined,
+      linkedSubmissionType: apt.visitRequestId ? "visit" : apt.providerReferralId ? "referral" : undefined
     });
     setIsDialogOpen(true);
   };
@@ -730,14 +737,15 @@ const AppointmentScheduler = ({
       appointmentDate: format(selectedDate, "yyyy-MM-dd"),
       appointmentTime: formData.appointmentTime,
       duration: formData.duration,
-      type: formData.type,
+      type: formData.type || "initial",
       clinician: formData.clinician,
-      location: formData.location,
+      location: (formData.location as Appointment["location"]) || "in-home",
       address: formData.location === "in-home" ? formData.address : undefined,
       notes: formData.notes || undefined,
       status: editingAppointment?.status || "scheduled",
-      linkedSubmissionId: formData.linkedSubmissionId || undefined,
-      linkedSubmissionType: formData.linkedSubmissionType as "visit" | "referral" | undefined,
+      visitRequestId: formData.visitRequestId,
+      providerReferralId: formData.providerReferralId,
+      reminderSent: editingAppointment?.reminderSent || false,
       createdAt: editingAppointment?.createdAt || new Date().toISOString()
     };
 
@@ -748,12 +756,10 @@ const AppointmentScheduler = ({
       setAppointments([...appointments, appointmentData]);
 
       // Update linked submission status
-      if (formData.linkedSubmissionId && formData.linkedSubmissionType) {
-        if (formData.linkedSubmissionType === "visit") {
-          onUpdateVisitStatus(formData.linkedSubmissionId, "scheduled");
-        } else {
-          onUpdateReferralStatus(formData.linkedSubmissionId, "scheduled");
-        }
+      if (formData.visitRequestId) {
+        onUpdateVisitStatus(formData.visitRequestId, "scheduled");
+      } else if (formData.providerReferralId) {
+        onUpdateReferralStatus(formData.providerReferralId, "scheduled");
       }
 
       toast({ title: "Appointment scheduled" });
@@ -772,11 +778,11 @@ const AppointmentScheduler = ({
     setAppointments(appointments.map(a => a.id === id ? { ...a, status } : a));
 
     const apt = appointments.find(a => a.id === id);
-    if (apt?.linkedSubmissionId && apt?.linkedSubmissionType && status === "completed") {
-      if (apt.linkedSubmissionType === "visit") {
-        onUpdateVisitStatus(apt.linkedSubmissionId, "completed");
-      } else {
-        onUpdateReferralStatus(apt.linkedSubmissionId, "completed");
+    if (apt && status === "completed") {
+      if (apt.visitRequestId) {
+        onUpdateVisitStatus(apt.visitRequestId, "completed");
+      } else if (apt.providerReferralId) {
+        onUpdateReferralStatus(apt.providerReferralId, "completed");
       }
     }
 
@@ -808,10 +814,9 @@ const AppointmentScheduler = ({
   const getStatusBadge = (status: Appointment["status"]) => {
     const styles: Record<Appointment["status"], string> = {
       scheduled: "bg-blue-500",
-      confirmed: "bg-green-500",
       completed: "bg-gray-500",
       cancelled: "bg-red-500",
-      "no-show": "bg-amber-500"
+      "no_show": "bg-amber-500"
     };
     return <Badge className={styles[status]}>{status}</Badge>;
   };
@@ -888,7 +893,7 @@ const AppointmentScheduler = ({
                   <div>
                     <Label>Link to Submission (optional)</Label>
                     <Select
-                      value={formData.linkedSubmissionId ? `${formData.linkedSubmissionType}:${formData.linkedSubmissionId}` : ""}
+                      value={formData.visitRequestId ? `visit:${formData.visitRequestId}` : formData.providerReferralId ? `referral:${formData.providerReferralId}` : ""}
                       onValueChange={handleSubmissionSelect}
                     >
                       <SelectTrigger>
@@ -1118,10 +1123,9 @@ const AppointmentScheduler = ({
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="scheduled">Scheduled</SelectItem>
-              <SelectItem value="confirmed">Confirmed</SelectItem>
               <SelectItem value="completed">Completed</SelectItem>
               <SelectItem value="cancelled">Cancelled</SelectItem>
-              <SelectItem value="no-show">No Show</SelectItem>
+              <SelectItem value="no_show">No Show</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -1172,10 +1176,9 @@ const AppointmentScheduler = ({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="scheduled">Scheduled</SelectItem>
-                  <SelectItem value="confirmed">Confirmed</SelectItem>
                   <SelectItem value="completed">Completed</SelectItem>
                   <SelectItem value="cancelled">Cancelled</SelectItem>
-                  <SelectItem value="no-show">No Show</SelectItem>
+                  <SelectItem value="no_show">No Show</SelectItem>
                 </SelectContent>
               </Select>
               <div className="flex gap-1">

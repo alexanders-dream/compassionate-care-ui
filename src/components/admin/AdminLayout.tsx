@@ -1,0 +1,32 @@
+import { useState } from "react";
+import { Outlet } from "react-router-dom";
+import AdminSidebar from "./AdminSidebar";
+import { cn } from "@/lib/utils";
+
+const AdminLayout = () => {
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+    return (
+        <div className="flex h-screen bg-background w-full overflow-hidden">
+            <AdminSidebar
+                collapsed={sidebarCollapsed}
+                onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+            />
+
+            <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative transition-all duration-300">
+                <div className="flex-1 overflow-auto">
+                    <div className={cn(
+                        "container mx-auto p-4 md:p-8 max-w-7xl animate-in fade-in duration-500",
+                        sidebarCollapsed ? "md:max-w-[calc(100vw-5rem)]" : ""
+                    )}>
+                        <div className="mt-12 md:mt-0">
+                            <Outlet />
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    );
+};
+
+export default AdminLayout;
