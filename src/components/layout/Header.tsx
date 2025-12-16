@@ -19,13 +19,13 @@ const Header = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full bg-gradient-to-r from-[#0B2545] to-[#0F3460]">
+      <header className="sticky top-0 z-50 w-full gradient-navy">
         <div className="container-main">
           <div className="flex h-16 md:h-20 items-center justify-between">
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                <span className="text-white font-bold text-lg">AR</span>
+            <Link to="/" className="no-link-style flex items-center gap-2">
+              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-lg">AR</span>
               </div>
               <div className="hidden sm:block">
                 <span className="font-display font-semibold text-white">AR Advanced</span>
@@ -39,8 +39,9 @@ const Header = () => {
                 <Link
                   key={link.href}
                   to={link.href}
-                  className={`text-sm font-medium transition-colors hover:text-white ${isActive(link.href) ? "text-white" : "text-white/80"
-                    }`}
+                  className={`no-link-style text-sm font-medium transition-colors hover:text-white ${
+                    isActive(link.href) ? "text-white" : "text-white/80"
+                  }`}
                 >
                   {link.label}
                 </Link>
@@ -49,19 +50,20 @@ const Header = () => {
 
             {/* CTA Buttons */}
             <div className="hidden md:flex items-center gap-3">
-              <Button variant="ghost" asChild className="border-2 border-white text-white hover:bg-white/10 hover:text-white">
-                <Link to="/refer">Refer a Patient</Link>
+              <Button variant="ghost" asChild className="border-2 border-white/80 text-white hover:bg-white/10 hover:text-white">
+                <Link to="/refer" className="no-link-style">Refer a Patient</Link>
               </Button>
-              <Button asChild className="bg-white text-primary hover:bg-white/90 hover:text-primary">
-                <Link to="/request-visit">Book a Visit</Link>
+              <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
+                <Link to="/request-visit" className="no-link-style">Book a Visit</Link>
               </Button>
             </div>
 
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="lg:hidden p-2 text-white"
+              className="lg:hidden p-2 text-white focus-ring rounded-md"
               aria-label="Toggle menu"
+              aria-expanded={isMenuOpen}
             >
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -70,25 +72,30 @@ const Header = () => {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="lg:hidden border-t border-white/20 bg-gradient-to-r from-[#0B2545] to-[#0F3460]">
+          <div className="lg:hidden border-t border-white/20 gradient-navy">
             <nav className="container-main py-4 flex flex-col gap-2">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   to={link.href}
                   onClick={() => setIsMenuOpen(false)}
-                  className={`py-2 text-base font-medium transition-colors ${isActive(link.href) ? "text-white" : "text-white/80"
-                    }`}
+                  className={`no-link-style py-3 text-base font-medium transition-colors ${
+                    isActive(link.href) ? "text-white" : "text-white/80"
+                  }`}
                 >
                   {link.label}
                 </Link>
               ))}
-              <div className="flex flex-col gap-2 pt-4 border-t border-white/20 mt-2">
-                <Button variant="ghost" asChild className="w-full border-2 border-white text-white hover:bg-white/10">
-                  <Link to="/refer" onClick={() => setIsMenuOpen(false)}>Refer a Patient</Link>
+              <div className="flex flex-col gap-3 pt-4 border-t border-white/20 mt-2">
+                <Button variant="ghost" asChild className="w-full justify-center border-2 border-white/80 text-white hover:bg-white/10">
+                  <Link to="/refer" onClick={() => setIsMenuOpen(false)} className="no-link-style">
+                    Refer a Patient
+                  </Link>
                 </Button>
-                <Button asChild className="w-full bg-white text-primary hover:bg-white/90 hover:text-primary">
-                  <Link to="/request-visit" onClick={() => setIsMenuOpen(false)}>Book a Visit</Link>
+                <Button asChild className="w-full justify-center bg-primary text-primary-foreground hover:bg-primary/90">
+                  <Link to="/request-visit" onClick={() => setIsMenuOpen(false)} className="no-link-style">
+                    Book a Visit
+                  </Link>
                 </Button>
               </div>
             </nav>
@@ -99,10 +106,10 @@ const Header = () => {
       {/* Mobile Floating Call Button */}
       <a
         href="tel:+18001234567"
-        className="fixed bottom-6 right-6 z-50 md:hidden w-14 h-14 bg-primary rounded-full flex items-center justify-center shadow-lg hover:bg-primary/90 transition-colors"
+        className="fixed bottom-6 right-6 z-50 md:hidden w-14 h-14 bg-primary rounded-full flex items-center justify-center shadow-elevated hover:bg-primary/90 transition-colors focus-ring"
         aria-label="Call now"
       >
-        <Phone size={24} className="text-white" />
+        <Phone size={24} className="text-primary-foreground" />
       </a>
     </>
   );
