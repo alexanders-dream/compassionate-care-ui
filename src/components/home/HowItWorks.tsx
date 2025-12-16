@@ -23,12 +23,12 @@ const steps = [
 
 const HowItWorks = () => {
   return (
-    <section className="section-padding bg-background">
+    <section className="section-padding bg-warm">
       <div className="container-main">
         {/* Section Header */}
         <div className="text-center max-w-2xl mx-auto mb-12">
-          <h2 className="text-foreground mb-4">How It Works</h2>
-          <p className="text-muted-foreground text-lg">
+          <h2 className="mb-4">How It Works</h2>
+          <p className="text-muted-foreground text-lg leading-relaxed">
             Getting started is easy. We've simplified the process so you can
             focus on what matters most—your healing.
           </p>
@@ -43,19 +43,21 @@ const HowItWorks = () => {
             >
               {/* Connector Line (hidden on mobile, last item) */}
               {index < steps.length - 1 && (
-                <div className="hidden md:block absolute top-12 left-[60%] w-[80%] h-0.5 bg-primary/20" />
+                <div className="hidden md:block absolute top-12 left-[60%] w-[80%] h-0.5 bg-secondary/20" />
               )}
 
               {/* Step Number & Icon */}
               <div className="relative inline-flex flex-col items-center mb-6">
-                {/* Number Removed */}
-                <div className="relative z-10 w-20 h-20 rounded-full bg-primary/15 flex items-center justify-center group-hover:bg-primary/25 transition-colors">
-                  <step.icon size={36} className="text-primary" />
+                <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-secondary text-white text-sm font-bold flex items-center justify-center z-10">
+                  {step.number}
+                </div>
+                <div className="relative w-20 h-20 rounded-full bg-accent flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                  <step.icon size={36} className="text-secondary" />
                 </div>
               </div>
 
               {/* Content */}
-              <h3 className="text-xl font-semibold text-foreground mb-3">
+              <h3 className="text-xl font-semibold mb-3">
                 {step.title}
               </h3>
               <p className="text-muted-foreground leading-relaxed max-w-sm mx-auto">

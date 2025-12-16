@@ -3,12 +3,12 @@ import { Quote, ArrowRight, Star } from "lucide-react";
 
 const TestimonialHighlight = () => {
   return (
-    <section className="section-padding bg-white">
+    <section className="section-padding bg-background">
       <div className="container-main">
         <div className="max-w-4xl mx-auto text-center">
           {/* Quote Icon */}
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-6">
-            <Quote size={32} className="text-primary" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent mb-6">
+            <Quote size={32} className="text-secondary" />
           </div>
 
           {/* Stars */}
@@ -27,14 +27,14 @@ const TestimonialHighlight = () => {
 
           {/* Attribution */}
           <div className="mb-8">
-            <p className="font-semibold text-foreground">Margaret S.</p>
+            <p className="font-semibold text-secondary">Margaret S.</p>
             <p className="text-sm text-muted-foreground">Patient since 2023</p>
           </div>
 
           {/* Link to more */}
           <Link
             to="/testimonials"
-            className="inline-flex items-center gap-2 text-primary font-medium hover:gap-3 transition-all"
+            className="inline-flex items-center gap-2 text-primary font-semibold hover:gap-3 transition-all"
           >
             Read more patient stories
             <ArrowRight size={18} />
