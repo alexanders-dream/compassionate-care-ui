@@ -45,7 +45,7 @@ const Services = () => {
                 bringing clinical expertise directly to your home for convenient, compassionate care.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" asChild>
+                <Button size="lg" className="no-link-style" asChild>
                   <Link to="/request-visit">Schedule a Visit</Link>
                 </Button>
                 <Button size="lg" variant="outline" asChild>
@@ -136,7 +136,7 @@ const Services = () => {
             Contact us today to schedule a consultation and learn how our expert wound care team can help you heal.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" asChild>
+            <Button size="lg" className="no-link-style" asChild>
               <Link to="/request-visit">Book a Visit</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>

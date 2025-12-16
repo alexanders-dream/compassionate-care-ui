@@ -2,7 +2,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuditLog } from "@/hooks/useAuditLog";
-import { Appointment } from "@/contexts/SiteDataContext";
+
+import { Appointment, useSiteData } from "@/contexts/SiteDataContext";
 
 interface AppointmentInsert {
     patient_name: string;
@@ -27,6 +28,7 @@ export const useAppointmentMutations = () => {
     const queryClient = useQueryClient();
     const { toast } = useToast();
     const { logAction } = useAuditLog();
+    const { refreshAppointments } = useSiteData();
 
     const createAppointment = useMutation({
         mutationFn: async (data: AppointmentInsert) => {
@@ -41,6 +43,7 @@ export const useAppointmentMutations = () => {
         },
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ["appointments"] });
+            refreshAppointments();
             logAction({
                 action: "create",
                 entityType: "appointment",
@@ -73,6 +76,7 @@ export const useAppointmentMutations = () => {
         },
         onSuccess: (data, variables) => {
             queryClient.invalidateQueries({ queryKey: ["appointments"] });
+            refreshAppointments();
             logAction({
                 action: "update",
                 entityType: "appointment",
@@ -110,6 +114,7 @@ export const useAppointmentMutations = () => {
         },
         onSuccess: ({ id, existing }) => {
             queryClient.invalidateQueries({ queryKey: ["appointments"] });
+            refreshAppointments();
             logAction({
                 action: "delete",
                 entityType: "appointment",
@@ -142,6 +147,7 @@ export const useAppointmentMutations = () => {
         },
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ["appointments"] });
+            refreshAppointments();
             logAction({
                 action: "update",
                 entityType: "appointment",

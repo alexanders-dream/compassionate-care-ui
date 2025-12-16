@@ -10,27 +10,51 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import {
-    Mail, Send, CalendarDays, CheckCircle2, ArrowUpDown, Search, Filter
+    Mail, Send, CalendarDays, CheckCircle2, ArrowUpDown, Search, Filter, Trash2, Calendar, Phone, Eye
 } from "lucide-react";
+import { SubmissionDetailsDialog } from "../SubmissionDetailsDialog";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { format } from "date-fns";
+import { Appointment } from "@/contexts/SiteDataContext";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { VisitRequest } from "@/contexts/SiteDataContext";
 
 interface VisitRequestsTabProps {
     visitRequests: VisitRequest[];
+    appointments: Appointment[];
     onUpdateStatus: (id: string, status: VisitRequest["status"]) => void;
     onSchedule: (request: VisitRequest) => void;
     onEmail: (request: VisitRequest) => void;
+    onDelete: (id: string) => void;
 }
 
 const VisitRequestsTab = ({
     visitRequests,
+    appointments,
     onUpdateStatus,
     onSchedule,
-    onEmail
+    onEmail,
+    onDelete
 }: VisitRequestsTabProps) => {
     const [filterStatus, setFilterStatus] = useState<string>("all");
     const [searchQuery, setSearchQuery] = useState("");
     const [sortField, setSortField] = useState<"name" | "date" | "status">("date");
     const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+    const [itemToDelete, setItemToDelete] = useState<string | null>(null);
 
     const getStatusRowClass = (status: string) => {
         // This logic was in Admin.tsx, defining here or importing common utils
@@ -56,6 +80,15 @@ const VisitRequestsTab = ({
         }
     };
 
+    const [viewSubmission, setViewSubmission] = useState<VisitRequest | null>(null);
+    const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+
+    const handleView = (request: VisitRequest) => {
+        setViewSubmission(request);
+        setIsViewDialogOpen(true);
+    };
+
+    const hasActiveFilters = filterStatus !== "all" || searchQuery !== "";
     const filteredVisitRequests = visitRequests
         .filter(vr => {
             const matchesStatus = filterStatus === "all" || vr.status === filterStatus;
@@ -125,20 +158,38 @@ const VisitRequestsTab = ({
                                 <p className="font-medium">{request.firstName} {request.lastName}</p>
                                 <p className="text-xs text-muted-foreground">{request.email}</p>
                             </div>
-                            <Select
-                                value={request.status}
-                                onValueChange={(value) => onUpdateStatus(request.id, value as VisitRequest["status"])}
-                            >
-                                <SelectTrigger className="w-28 h-8 text-xs">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="pending">Pending</SelectItem>
-                                    <SelectItem value="contacted">Contacted</SelectItem>
-                                    <SelectItem value="scheduled">Scheduled</SelectItem>
-                                    <SelectItem value="completed">Completed</SelectItem>
-                                </SelectContent>
-                            </Select>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <div className="w-full">
+                                            <Select
+                                                value={request.status}
+                                                onValueChange={(value) => onUpdateStatus(request.id, value as VisitRequest["status"])}
+                                            >
+                                                <SelectTrigger className="w-28 h-8 text-xs">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="pending">Pending</SelectItem>
+                                                    <SelectItem value="contacted">Contacted</SelectItem>
+                                                    <SelectItem value="scheduled">Scheduled</SelectItem>
+                                                    <SelectItem value="completed">Completed</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </TooltipTrigger>
+                                    {request.status === "scheduled" && appointments.find(a => a.visitRequestId === request.id) && (
+                                        <TooltipContent>
+                                            <div className="flex items-center gap-2">
+                                                <Calendar className="h-4 w-4" />
+                                                <span>
+                                                    {format(new Date(appointments.find(a => a.visitRequestId === request.id)!.appointmentDate), "MMM d")} @ {appointments.find(a => a.visitRequestId === request.id)!.appointmentTime}
+                                                </span>
+                                            </div>
+                                        </TooltipContent>
+                                    )}
+                                </Tooltip>
+                            </TooltipProvider>
                         </div>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
                             <Badge variant="outline" className="capitalize">{request.woundType}</Badge>
@@ -150,8 +201,31 @@ const VisitRequestsTab = ({
                                     <CalendarDays className="h-3 w-3 mr-1" /> Schedule
                                 </Button>
                             )}
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-9 w-9 shrink-0"
+                                onClick={() => handleView(request)}
+                                title="View Details"
+                            >
+                                <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-9 w-9 shrink-0"
+                                onClick={() => window.location.href = `tel:${request.phone}`}
+                                disabled={!request.phone}
+                            >
+                                <Phone className="h-4 w-4" />
+                            </Button>
                             <Button variant="outline" size="sm" onClick={() => onEmail(request)} className="flex-1 text-xs">
                                 <Send className="h-3 w-3 mr-1" /> {request.emailSent ? "Resend" : "Email"}
+                            </Button>
+                        </div>
+                        <div className="flex gap-2 mt-2">
+                            <Button variant="ghost" size="sm" onClick={() => setItemToDelete(request.id)} className="w-full text-xs text-destructive hover:text-destructive hover:bg-destructive/10">
+                                <Trash2 className="h-3 w-3 mr-1" /> Delete
                             </Button>
                         </div>
                     </Card>
@@ -214,20 +288,38 @@ const VisitRequestsTab = ({
                                 </TableCell>
                                 <TableCell className="capitalize">{request.woundType}</TableCell>
                                 <TableCell>
-                                    <Select
-                                        value={request.status}
-                                        onValueChange={(value) => onUpdateStatus(request.id, value as VisitRequest["status"])}
-                                    >
-                                        <SelectTrigger className="w-32">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="pending">Pending</SelectItem>
-                                            <SelectItem value="contacted">Contacted</SelectItem>
-                                            <SelectItem value="scheduled">Scheduled</SelectItem>
-                                            <SelectItem value="completed">Completed</SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <div>
+                                                    <Select
+                                                        value={request.status}
+                                                        onValueChange={(value) => onUpdateStatus(request.id, value as VisitRequest["status"])}
+                                                    >
+                                                        <SelectTrigger className="w-32">
+                                                            <SelectValue />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="pending">Pending</SelectItem>
+                                                            <SelectItem value="contacted">Contacted</SelectItem>
+                                                            <SelectItem value="scheduled">Scheduled</SelectItem>
+                                                            <SelectItem value="completed">Completed</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                            </TooltipTrigger>
+                                            {request.status === "scheduled" && appointments.find(a => a.visitRequestId === request.id) && (
+                                                <TooltipContent>
+                                                    <div className="flex items-center gap-2">
+                                                        <Calendar className="h-4 w-4" />
+                                                        <span>
+                                                            {format(new Date(appointments.find(a => a.visitRequestId === request.id)!.appointmentDate), "MMM d, yyyy")} at {appointments.find(a => a.visitRequestId === request.id)!.appointmentTime}
+                                                        </span>
+                                                    </div>
+                                                </TooltipContent>
+                                            )}
+                                        </Tooltip>
+                                    </TooltipProvider>
                                 </TableCell>
                                 <TableCell>{new Date(request.submittedAt).toLocaleDateString()}</TableCell>
                                 <TableCell className="text-right space-x-1">
@@ -236,8 +328,30 @@ const VisitRequestsTab = ({
                                             <CalendarDays className="h-3 w-3" /> Schedule
                                         </Button>
                                     )}
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8"
+                                        onClick={() => handleView(request)}
+                                        title="View Details"
+                                    >
+                                        <Eye className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        className="h-8 w-8"
+                                        onClick={() => window.location.href = `tel:${request.phone}`}
+                                        disabled={!request.phone}
+                                        title="Call Patient"
+                                    >
+                                        <Phone className="h-4 w-4" />
+                                    </Button>
                                     <Button variant="outline" size="sm" onClick={() => onEmail(request)} className="gap-1">
                                         <Send className="h-3 w-3" /> {request.emailSent ? "Resend" : "Email"}
+                                    </Button>
+                                    <Button variant="ghost" size="sm" onClick={() => setItemToDelete(request.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                                        <Trash2 className="h-4 w-4" />
                                     </Button>
                                     {request.emailSent && <CheckCircle2 className="h-4 w-4 text-green-500 inline ml-1" />}
                                 </TableCell>
@@ -253,7 +367,41 @@ const VisitRequestsTab = ({
                     </TableBody>
                 </Table>
             </div>
-        </div>
+
+            <SubmissionDetailsDialog
+                open={isViewDialogOpen}
+                onOpenChange={setIsViewDialogOpen}
+                submission={viewSubmission}
+                type="visit"
+                onEmail={onEmail}
+                onSchedule={onSchedule}
+            />
+
+            <AlertDialog open={!!itemToDelete} onOpenChange={(open) => !open && setItemToDelete(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the visit request.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => {
+                                if (itemToDelete) {
+                                    onDelete(itemToDelete);
+                                    setItemToDelete(null);
+                                }
+                            }}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </div >
     );
 };
 

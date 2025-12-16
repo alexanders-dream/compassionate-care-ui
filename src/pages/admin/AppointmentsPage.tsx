@@ -17,6 +17,8 @@ const AppointmentsPage = () => {
     // but AppointmentsTab expects it. We can just provide a no-op or a local update if needed for optimistic UI before refetch.
     // Actually, useAppointmentMutations handles invalidation.
 
+    const { deleteAppointment } = useAppointmentMutations();
+
     const handleUpdateVisitStatus = async (id: string, status: "scheduled" | "completed" | "cancelled" | "pending" | "contacted") => {
         const { error } = await supabase
             .from("visit_requests")
@@ -59,6 +61,7 @@ const AppointmentsPage = () => {
                 onUpdateVisitStatus={handleUpdateVisitStatus}
                 onUpdateReferralStatus={handleUpdateReferralStatus}
                 onAppointmentsChange={() => { }} // Handled by mutations
+                onDelete={(id) => deleteAppointment.mutate(id)}
             />
         </div>
     );

@@ -24,15 +24,15 @@ const Footer = () => {
               Compassionate, expert wound care delivered with trust and clinical excellence.
             </p>
             <div className="space-y-3">
-              <a 
-                href="tel:+18001234567" 
+              <a
+                href="tel:+18001234567"
                 className="no-link-style flex items-center gap-3 text-sm text-white/90 hover:text-white transition-colors"
               >
                 <Phone size={18} className="text-accent" />
                 <span>(800) 123-4567</span>
               </a>
-              <a 
-                href="mailto:info@arwoundcare.com" 
+              <a
+                href="mailto:info@arwoundcare.com"
                 className="no-link-style flex items-center gap-3 text-sm text-white/90 hover:text-white transition-colors"
               >
                 <Mail size={18} className="text-accent" />
@@ -53,8 +53,8 @@ const Footer = () => {
                 { href: "/resources", label: "Patient Resources" },
               ].map((link) => (
                 <li key={link.href}>
-                  <Link 
-                    to={link.href} 
+                  <Link
+                    to={link.href}
                     className="no-link-style text-sm text-white/80 hover:text-white transition-colors"
                   >
                     {link.label}
@@ -75,8 +75,8 @@ const Footer = () => {
                 { href: "/contact", label: "Contact Us" },
               ].map((link) => (
                 <li key={link.href}>
-                  <Link 
-                    to={link.href} 
+                  <Link
+                    to={link.href}
                     className="no-link-style text-sm text-white/80 hover:text-white transition-colors"
                   >
                     {link.label}
@@ -93,16 +93,16 @@ const Footer = () => {
               <div className="flex items-start gap-3">
                 <Clock size={18} className="text-accent mt-0.5 shrink-0" />
                 <div className="text-sm text-white/80 leading-relaxed">
-                  <p>Mon - Fri: 8:00 AM - 6:00 PM</p>
-                  <p>Sat: 9:00 AM - 2:00 PM</p>
-                  <p>Sun: Closed</p>
+                  <p className="text-sm text-white/80 leading-relaxed">Mon - Fri: 8:00 AM - 6:00 PM</p>
+                  <p className="text-sm text-white/80 leading-relaxed">Sat: 9:00 AM - 2:00 PM</p>
+                  <p className="text-sm text-white/80 leading-relaxed">Sun: Closed</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <MapPin size={18} className="text-accent mt-0.5 shrink-0" />
                 <div className="text-sm text-white/80 leading-relaxed">
-                  <p>123 Healthcare Blvd, Suite 100</p>
-                  <p>Medical City, ST 12345</p>
+                  <p className="text-sm text-white/80 leading-relaxed">123 Healthcare Blvd, Suite 100</p>
+                  <p className="text-sm text-white/80 leading-relaxed">Medical City, ST 12345</p>
                 </div>
               </div>
             </div>

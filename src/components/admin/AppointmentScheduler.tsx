@@ -5,11 +5,28 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { AppointmentDetailsDialog } from "./AppointmentDetailsDialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Plus, Pencil, Trash2, CalendarIcon, Clock, MapPin, User, Phone, Mail, FileText, AlertCircle, Send, CheckCircle2, ArrowUpDown, Filter, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, CalendarIcon, Clock, MapPin, User, Phone, Mail, FileText, AlertCircle, Send, CheckCircle2, ArrowUpDown, Filter, Search, Eye } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -90,6 +107,8 @@ interface ScheduleDialogProps {
   onSchedule: (appointment: Appointment) => void;
   editingAppointment?: Appointment | null;
   existingAppointments?: Appointment[];
+  visitRequests: VisitRequest[];
+  referrals: ProviderReferralSubmission[];
 }
 
 export const ScheduleDialog = ({
@@ -98,7 +117,9 @@ export const ScheduleDialog = ({
   initialData,
   onSchedule,
   editingAppointment,
-  existingAppointments = []
+  existingAppointments = [],
+  visitRequests,
+  referrals
 }: ScheduleDialogProps) => {
   const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
@@ -125,6 +146,34 @@ export const ScheduleDialog = ({
           providerReferralId: editingAppointment.providerReferralId || undefined,
           linkedSubmissionType: editingAppointment.visitRequestId ? "visit" : editingAppointment.providerReferralId ? "referral" : undefined
         });
+
+        // If editing, we also need to hydrate the display fields (providerName, woundType, etc.) from the source list
+        // because these aren't stored on the Appointment itself, but we want to show the Summary Card
+        if (editingAppointment.visitRequestId) {
+          const req = visitRequests.find(v => v.id === editingAppointment.visitRequestId);
+          if (req) {
+            setFormData(prev => ({
+              ...prev,
+              woundType: req.woundType,
+              additionalInfo: req.additionalInfo,
+              submittedAt: req.submittedAt
+            }));
+          }
+        } else if (editingAppointment.providerReferralId) {
+          const ref = referrals.find(r => r.id === editingAppointment.providerReferralId);
+          if (ref) {
+            setFormData(prev => ({
+              ...prev,
+              woundType: ref.woundType,
+              urgency: ref.urgency,
+              clinicalNotes: ref.clinicalNotes,
+              submittedAt: ref.submittedAt,
+              providerName: ref.providerName,
+              practiceName: ref.practiceName,
+              patientDOB: ref.patientDOB
+            }));
+          }
+        }
       } else if (initialData) {
         setSelectedDate(new Date());
         setFormData({
@@ -278,7 +327,7 @@ export const ScheduleDialog = ({
         </DialogHeader>
         <div className="space-y-4">
           {/* Submission Summary Card */}
-          {hasSubmissionData && !editingAppointment && (
+          {hasSubmissionData && (
             <Card className="bg-muted/50 border-primary/20">
               <CardContent className="pt-4">
                 <div className="flex items-start gap-3">
@@ -562,6 +611,7 @@ interface AppointmentSchedulerProps {
   onUpdateReferralStatus: (id: string, status: ProviderReferralSubmission["status"]) => void;
   externalAppointments?: Appointment[];
   onAppointmentsChange?: (appointments: Appointment[]) => void;
+  onDelete?: (id: string) => void;
 }
 
 const AppointmentScheduler = ({
@@ -570,7 +620,8 @@ const AppointmentScheduler = ({
   onUpdateVisitStatus,
   onUpdateReferralStatus,
   externalAppointments = [],
-  onAppointmentsChange
+  onAppointmentsChange,
+  onDelete
 }: AppointmentSchedulerProps) => {
   const { toast } = useToast();
   const [internalAppointments, setInternalAppointments] = useState<Appointment[]>([]);
@@ -578,6 +629,11 @@ const AppointmentScheduler = ({
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [formData, setFormData] = useState<AppointmentFormData>(getDefaultFormData());
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+
+  // View Details State
+  const [viewAppointment, setViewAppointment] = useState<Appointment | null>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
 
   // Email dialog state
   const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
@@ -770,8 +826,20 @@ const AppointmentScheduler = ({
   };
 
   const handleDeleteAppointment = (id: string) => {
-    setAppointments(appointments.filter(a => a.id !== id));
-    toast({ title: "Appointment deleted" });
+    setItemToDelete(id);
+  };
+
+  const confirmDelete = () => {
+    if (itemToDelete) {
+      if (onDelete) {
+        onDelete(itemToDelete);
+      } else {
+        // Fallback for local deletion if no handler provided (legacy behavior)
+        setAppointments(appointments.filter(a => a.id !== itemToDelete));
+        toast({ title: "Appointment deleted" });
+      }
+      setItemToDelete(null);
+    }
   };
 
   const handleUpdateStatus = (id: string, status: Appointment["status"]) => {
@@ -1167,21 +1235,63 @@ const AppointmentScheduler = ({
             <p className="text-xs text-muted-foreground mb-3">{apt.clinician}</p>
 
             <div className="flex items-center justify-between">
-              <Select
-                value={apt.status}
-                onValueChange={(value) => handleUpdateStatus(apt.id, value as Appointment["status"])}
-              >
-                <SelectTrigger className="w-28 h-8 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="scheduled">Scheduled</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                  <SelectItem value="no_show">No Show</SelectItem>
-                </SelectContent>
-              </Select>
+
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div>
+                      <Select
+                        value={apt.status}
+                        onValueChange={(value) => handleUpdateStatus(apt.id, value as Appointment["status"])}
+                      >
+                        <SelectTrigger className="w-28 h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="scheduled">Scheduled</SelectItem>
+                          <SelectItem value="confirmed">Confirmed</SelectItem>
+                          <SelectItem value="completed">Completed</SelectItem>
+                          <SelectItem value="cancelled">Cancelled</SelectItem>
+                          <SelectItem value="no_show">No Show</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </TooltipTrigger>
+                  {apt.status === "scheduled" && (
+                    <TooltipContent>
+                      <div className="flex items-center gap-2">
+                        <CalendarIcon className="h-4 w-4" />
+                        <span>
+                          {format(new Date(apt.appointmentDate), "MMM d, yyyy")} @ {apt.appointmentTime}
+                        </span>
+                      </div>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
               <div className="flex gap-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  onClick={() => {
+                    setViewAppointment(apt);
+                    setIsViewDialogOpen(true);
+                  }}
+                  title="View Details"
+                >
+                  <Eye className="h-3 w-3" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  onClick={() => window.location.href = `tel:${apt.patientPhone}`}
+                  disabled={!apt.patientPhone}
+                  title="Call Patient"
+                >
+                  <Phone className="h-3 w-3" />
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"
@@ -1281,23 +1391,63 @@ const AppointmentScheduler = ({
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Select
-                    value={apt.status}
-                    onValueChange={(value) => handleUpdateStatus(apt.id, value as Appointment["status"])}
-                  >
-                    <SelectTrigger className="w-28">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="scheduled">Scheduled</SelectItem>
-                      <SelectItem value="confirmed">Confirmed</SelectItem>
-                      <SelectItem value="completed">Completed</SelectItem>
-                      <SelectItem value="cancelled">Cancelled</SelectItem>
-                      <SelectItem value="no-show">No Show</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div>
+                          <Select
+                            value={apt.status}
+                            onValueChange={(value) => handleUpdateStatus(apt.id, value as Appointment["status"])}
+                          >
+                            <SelectTrigger className="w-28">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="scheduled">Scheduled</SelectItem>
+                              <SelectItem value="confirmed">Confirmed</SelectItem>
+                              <SelectItem value="completed">Completed</SelectItem>
+                              <SelectItem value="cancelled">Cancelled</SelectItem>
+                              <SelectItem value="no-show">No Show</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </TooltipTrigger>
+                      {apt.status === "scheduled" && (
+                        <TooltipContent>
+                          <div className="flex items-center gap-2">
+                            <CalendarIcon className="h-4 w-4" />
+                            <span>
+                              {format(new Date(apt.appointmentDate), "MMM d, yyyy")} @ {apt.appointmentTime}
+                            </span>
+                          </div>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </TooltipProvider>
                 </TableCell>
                 <TableCell className="text-right space-x-1">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => {
+                      setViewAppointment(apt);
+                      setIsViewDialogOpen(true);
+                    }}
+                    title="View Details"
+                  >
+                    <Eye className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => window.location.href = `tel:${apt.patientPhone}`}
+                    disabled={!apt.patientPhone}
+                    title="Call Patient"
+                  >
+                    <Phone className="h-3 w-3" />
+                  </Button>
                   <Button
                     variant="outline"
                     size="sm"
@@ -1384,6 +1534,36 @@ const AppointmentScheduler = ({
           </div>
         </DialogContent>
       </Dialog>
+
+      <AppointmentDetailsDialog
+        open={isViewDialogOpen}
+        onOpenChange={setIsViewDialogOpen}
+        appointment={viewAppointment}
+        onEmail={(apt) => openEmailDialog(apt)}
+        onEdit={(apt) => handleEditAppointment(apt)}
+        visitRequest={viewAppointment?.visitRequestId ? visitRequests.find(v => v.id === viewAppointment.visitRequestId) : undefined}
+        referral={viewAppointment?.providerReferralId ? referrals.find(r => r.id === viewAppointment.providerReferralId) : undefined}
+      />
+
+      <AlertDialog open={!!itemToDelete} onOpenChange={(open) => !open && setItemToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the appointment.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

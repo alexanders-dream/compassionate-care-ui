@@ -10,28 +10,60 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import {
-    User, Send, CalendarDays, CheckCircle2, ArrowUpDown, Search, Filter
+    User, Send, CalendarDays, CheckCircle2, ArrowUpDown, Search, Filter, Trash2, Calendar, Phone, Eye
 } from "lucide-react";
+import { SubmissionDetailsDialog } from "../SubmissionDetailsDialog";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { format } from "date-fns";
+import { Appointment } from "@/contexts/SiteDataContext";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ProviderReferralSubmission } from "@/contexts/SiteDataContext";
 
 interface ReferralsTabProps {
     referrals: ProviderReferralSubmission[];
+    appointments: Appointment[];
     onUpdateStatus: (id: string, status: ProviderReferralSubmission["status"]) => void;
     onSchedule: (referral: ProviderReferralSubmission) => void;
     onEmail: (referral: ProviderReferralSubmission) => void;
+    onDelete: (id: string) => void;
 }
 
 const ReferralsTab = ({
     referrals,
+    appointments,
     onUpdateStatus,
     onSchedule,
-    onEmail
+    onEmail,
+    onDelete
 }: ReferralsTabProps) => {
     const [filterStatus, setFilterStatus] = useState<string>("all");
     const [filterUrgency, setFilterUrgency] = useState<string>("all");
     const [searchQuery, setSearchQuery] = useState("");
     const [sortField, setSortField] = useState<"name" | "date" | "status">("date");
     const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+    const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+
+    const [viewSubmission, setViewSubmission] = useState<ProviderReferralSubmission | null>(null);
+    const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+
+    const handleView = (referral: ProviderReferralSubmission) => {
+        setViewSubmission(referral);
+        setIsViewDialogOpen(true);
+    };
 
     const getStatusRowClass = (status: string) => {
         const statusClasses: Record<string, string> = {
@@ -140,20 +172,38 @@ const ReferralsTab = ({
                         </div>
                         <div className="flex items-center justify-between mb-3">
                             <Badge variant="outline" className="capitalize text-xs">{referral.woundType}</Badge>
-                            <Select
-                                value={referral.status}
-                                onValueChange={(value) => onUpdateStatus(referral.id, value as ProviderReferralSubmission["status"])}
-                            >
-                                <SelectTrigger className="w-28 h-8 text-xs">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="pending">Pending</SelectItem>
-                                    <SelectItem value="contacted">Contacted</SelectItem>
-                                    <SelectItem value="scheduled">Scheduled</SelectItem>
-                                    <SelectItem value="completed">Completed</SelectItem>
-                                </SelectContent>
-                            </Select>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <div className="w-28">
+                                            <Select
+                                                value={referral.status}
+                                                onValueChange={(value) => onUpdateStatus(referral.id, value as ProviderReferralSubmission["status"])}
+                                            >
+                                                <SelectTrigger className="w-28 h-8 text-xs">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="pending">Pending</SelectItem>
+                                                    <SelectItem value="contacted">Contacted</SelectItem>
+                                                    <SelectItem value="scheduled">Scheduled</SelectItem>
+                                                    <SelectItem value="completed">Completed</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </TooltipTrigger>
+                                    {referral.status === "scheduled" && appointments.find(a => a.providerReferralId === referral.id) && (
+                                        <TooltipContent>
+                                            <div className="flex items-center gap-2">
+                                                <Calendar className="h-4 w-4" />
+                                                <span>
+                                                    {format(new Date(appointments.find(a => a.providerReferralId === referral.id)!.appointmentDate), "MMM d")} @ {appointments.find(a => a.providerReferralId === referral.id)!.appointmentTime}
+                                                </span>
+                                            </div>
+                                        </TooltipContent>
+                                    )}
+                                </Tooltip>
+                            </TooltipProvider>
                         </div>
                         <div className="flex gap-2">
                             {referral.status !== "scheduled" && referral.status !== "completed" && (
@@ -161,8 +211,31 @@ const ReferralsTab = ({
                                     <CalendarDays className="h-3 w-3 mr-1" /> Schedule
                                 </Button>
                             )}
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-9 w-9 shrink-0"
+                                onClick={() => handleView(referral)}
+                                title="View Details"
+                            >
+                                <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-9 w-9 shrink-0"
+                                onClick={() => window.location.href = `tel:${referral.patientPhone}`}
+                                disabled={!referral.patientPhone}
+                            >
+                                <Phone className="h-4 w-4" />
+                            </Button>
                             <Button variant="outline" size="sm" onClick={() => onEmail(referral)} className="flex-1 text-xs">
                                 <Send className="h-3 w-3 mr-1" /> {referral.emailSent ? "Resend" : "Email"}
+                            </Button>
+                        </div>
+                        <div className="flex gap-2 mt-2">
+                            <Button variant="ghost" size="sm" onClick={() => setItemToDelete(referral.id)} className="w-full text-xs text-destructive hover:text-destructive hover:bg-destructive/10">
+                                <Trash2 className="h-3 w-3 mr-1" /> Delete
                             </Button>
                         </div>
                     </Card>
@@ -215,20 +288,38 @@ const ReferralsTab = ({
                                 </TableCell>
                                 <TableCell className="capitalize">{referral.woundType}</TableCell>
                                 <TableCell>
-                                    <Select
-                                        value={referral.status}
-                                        onValueChange={(value) => onUpdateStatus(referral.id, value as ProviderReferralSubmission["status"])}
-                                    >
-                                        <SelectTrigger className="w-32">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="pending">Pending</SelectItem>
-                                            <SelectItem value="contacted">Contacted</SelectItem>
-                                            <SelectItem value="scheduled">Scheduled</SelectItem>
-                                            <SelectItem value="completed">Completed</SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <div>
+                                                    <Select
+                                                        value={referral.status}
+                                                        onValueChange={(value) => onUpdateStatus(referral.id, value as ProviderReferralSubmission["status"])}
+                                                    >
+                                                        <SelectTrigger className="w-32">
+                                                            <SelectValue />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="pending">Pending</SelectItem>
+                                                            <SelectItem value="contacted">Contacted</SelectItem>
+                                                            <SelectItem value="scheduled">Scheduled</SelectItem>
+                                                            <SelectItem value="completed">Completed</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                            </TooltipTrigger>
+                                            {referral.status === "scheduled" && appointments.find(a => a.providerReferralId === referral.id) && (
+                                                <TooltipContent>
+                                                    <div className="flex items-center gap-2">
+                                                        <Calendar className="h-4 w-4" />
+                                                        <span>
+                                                            {format(new Date(appointments.find(a => a.providerReferralId === referral.id)!.appointmentDate), "MMM d, yyyy")} at {appointments.find(a => a.providerReferralId === referral.id)!.appointmentTime}
+                                                        </span>
+                                                    </div>
+                                                </TooltipContent>
+                                            )}
+                                        </Tooltip>
+                                    </TooltipProvider>
                                 </TableCell>
                                 <TableCell>
                                     <Badge variant={referral.urgency === "urgent" ? "destructive" : "secondary"}>
@@ -241,8 +332,30 @@ const ReferralsTab = ({
                                             <CalendarDays className="h-3 w-3" /> Schedule
                                         </Button>
                                     )}
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8"
+                                        onClick={() => handleView(referral)}
+                                        title="View Details"
+                                    >
+                                        <Eye className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        className="h-8 w-8"
+                                        onClick={() => window.location.href = `tel:${referral.patientPhone}`}
+                                        disabled={!referral.patientPhone}
+                                        title="Call Patient"
+                                    >
+                                        <Phone className="h-4 w-4" />
+                                    </Button>
                                     <Button variant="outline" size="sm" onClick={() => onEmail(referral)} className="gap-1">
                                         <Send className="h-3 w-3" /> {referral.emailSent ? "Resend" : "Email"}
+                                    </Button>
+                                    <Button variant="ghost" size="sm" onClick={() => setItemToDelete(referral.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                                        <Trash2 className="h-4 w-4" />
                                     </Button>
                                     {referral.emailSent && <CheckCircle2 className="h-4 w-4 text-green-500 inline ml-1" />}
                                 </TableCell>
@@ -258,7 +371,41 @@ const ReferralsTab = ({
                     </TableBody>
                 </Table>
             </div>
-        </div>
+
+            <SubmissionDetailsDialog
+                open={isViewDialogOpen}
+                onOpenChange={setIsViewDialogOpen}
+                submission={viewSubmission}
+                type="referral"
+                onEmail={onEmail}
+                onSchedule={onSchedule}
+            />
+
+            <AlertDialog open={!!itemToDelete} onOpenChange={(open) => !open && setItemToDelete(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the referral.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => {
+                                if (itemToDelete) {
+                                    onDelete(itemToDelete);
+                                    setItemToDelete(null);
+                                }
+                            }}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </div >
     );
 };
 

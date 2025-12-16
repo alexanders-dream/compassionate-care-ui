@@ -123,7 +123,7 @@ const Blog = () => {
                         {featuredPost.readTime}
                       </span>
                     </div>
-                    <Button asChild size="lg" className="group/btn">
+                    <Button asChild size="lg" className="no-link-style group/btn">
                       <Link to={`/blog/${featuredPost.id}`}>
                         Read Article
                         <ArrowRight className="ml-2 w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />

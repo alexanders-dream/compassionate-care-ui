@@ -70,7 +70,7 @@ const Contact = () => {
       subject: data.subject,
       message: data.message,
     });
-    
+
     if (result.success) {
       form.reset();
     }
@@ -237,7 +237,7 @@ const Contact = () => {
             Use these quick links to get started.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" asChild>
+            <Button size="lg" className="no-link-style" asChild>
               <a href="/request-visit">Schedule a Visit</a>
             </Button>
             <Button size="lg" variant="outline" asChild>

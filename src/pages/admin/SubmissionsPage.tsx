@@ -20,6 +20,7 @@ const SubmissionsPage = () => {
     const {
         visitRequests,
         referrals,
+        appointments,
         refreshVisitRequests,
         refreshReferrals
     } = useSiteData();
@@ -47,6 +48,26 @@ const SubmissionsPage = () => {
         if (error) toast({ title: "Failed to update status", variant: "destructive" });
         else {
             toast({ title: "Status updated" });
+            refreshReferrals();
+        }
+    };
+
+    const deleteVisitRequest = async (id: string) => {
+        const { error } = await supabase.from("visit_requests").delete().eq("id", id);
+        if (error) {
+            toast({ title: "Failed to delete request", variant: "destructive" });
+        } else {
+            toast({ title: "Visit request deleted" });
+            refreshVisitRequests();
+        }
+    };
+
+    const deleteReferral = async (id: string) => {
+        const { error } = await supabase.from("provider_referrals").delete().eq("id", id);
+        if (error) {
+            toast({ title: "Failed to delete referral", variant: "destructive" });
+        } else {
+            toast({ title: "Referral deleted" });
             refreshReferrals();
         }
     };
@@ -124,18 +145,22 @@ const SubmissionsPage = () => {
             <div className="space-y-8">
                 <VisitRequestsTab
                     visitRequests={visitRequests}
+                    appointments={appointments}
                     onUpdateStatus={updateVisitStatus}
                     onSchedule={(req) => openScheduleDialog("visit", req)}
                     onEmail={(req) => openEmailDialog("visit", req)}
+                    onDelete={deleteVisitRequest}
                 />
 
                 <div className="border-t border-border" />
 
                 <ReferralsTab
                     referrals={referrals}
+                    appointments={appointments}
                     onUpdateStatus={updateReferralStatus}
                     onSchedule={(ref) => openScheduleDialog("referral", ref)}
                     onEmail={(ref) => openEmailDialog("referral", ref)}
+                    onDelete={deleteReferral}
                 />
             </div>
 
@@ -162,8 +187,11 @@ const SubmissionsPage = () => {
                     if (apt.providerReferralId) updateReferralStatus(apt.providerReferralId, "scheduled");
                     setIsScheduleDialogOpen(false);
                 }}
-                existingAppointments={[]} // We could pass appointments if needed for conflict checking
+                existingAppointments={appointments} // We could pass appointments if needed for conflict checking
+                visitRequests={visitRequests}
+                referrals={referrals}
             />
+
 
             <Dialog open={emailOpen} onOpenChange={setEmailOpen}>
                 <DialogContent>

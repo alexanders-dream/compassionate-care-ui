@@ -9,6 +9,7 @@ interface AppointmentsTabProps {
     onUpdateReferralStatus: (id: string, status: ProviderReferralSubmission["status"]) => void;
     externalAppointments: Appointment[];
     onAppointmentsChange: (appointments: Appointment[]) => void;
+    onDelete: (id: string) => void;
 }
 
 const AppointmentsTab = ({
@@ -18,6 +19,7 @@ const AppointmentsTab = ({
     onUpdateReferralStatus,
     externalAppointments,
     onAppointmentsChange,
+    onDelete
 }: AppointmentsTabProps) => {
     return (
         <AppointmentScheduler
@@ -27,6 +29,7 @@ const AppointmentsTab = ({
             onUpdateReferralStatus={onUpdateReferralStatus}
             externalAppointments={externalAppointments}
             onAppointmentsChange={onAppointmentsChange}
+            onDelete={onDelete}
         />
     );
 };
