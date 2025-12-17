@@ -92,7 +92,7 @@ const Insurance = () => {
                 Contact our billing team for a free insurance verification. We'll check your benefits
                 and explain your coverage before your first visit.
               </p>
-              <Button asChild className="w-full">
+              <Button asChild className="w-full text-white">
                 <a href="tel:+18001234567">
                   <Phone className="w-4 h-4 mr-2" />
                   Call for Verification
@@ -196,7 +196,7 @@ const Insurance = () => {
             understand your coverage options.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" asChild className="bg-white text-primary hover:bg-white/90">
+            <Button size="lg" asChild className="bg-white !text-primary hover:bg-white/90">
               <Link to="/request-visit">Request a Visit</Link>
             </Button>
             <Button size="lg" variant="ghost" asChild className="border border-white text-white hover:bg-white/10 hover:text-white">

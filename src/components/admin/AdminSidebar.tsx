@@ -8,6 +8,12 @@ import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/s
 import { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export type AdminSection =
   | "submissions"
@@ -39,6 +45,54 @@ const menuItems: { id: AdminSection; label: string; icon: React.ElementType; pat
   { id: "faqs", label: "FAQs", icon: HelpCircle, path: "/admin/faqs" },
 ];
 
+const SidebarNavItem = ({
+  item,
+  collapsed,
+  onItemClick
+}: {
+  item: typeof menuItems[0];
+  collapsed: boolean;
+  onItemClick?: () => void;
+}) => {
+  const Icon = item.icon;
+
+  const navLink = (
+    <NavLink
+      to={item.path}
+      onClick={onItemClick}
+      className={({ isActive }) => cn(
+        "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
+        isActive
+          ? "bg-blue-100 dark:bg-blue-900/40 text-foreground"
+          : "text-muted-foreground hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-foreground",
+        collapsed && "justify-center px-2"
+      )}
+    >
+      <Icon className="h-4 w-4 shrink-0" />
+      {!collapsed && <span>{item.label}</span>}
+    </NavLink>
+  );
+
+  if (collapsed) {
+    return (
+      <Tooltip delayDuration={0}>
+        <TooltipTrigger asChild>
+          {navLink}
+        </TooltipTrigger>
+        <TooltipContent
+          side="right"
+          className="bg-slate-900 text-white font-medium px-3 py-1.5 rounded-full shadow-lg border-0"
+          sideOffset={8}
+        >
+          {item.label}
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  return navLink;
+};
+
 const SidebarContent = ({
   collapsed = false,
   onItemClick
@@ -46,30 +100,18 @@ const SidebarContent = ({
   collapsed?: boolean;
   onItemClick?: () => void;
 }) => (
-  <nav className="p-2 space-y-1">
-    {menuItems.map((item) => {
-      const Icon = item.icon;
-
-      return (
-        <NavLink
+  <TooltipProvider>
+    <nav className="p-2 space-y-1">
+      {menuItems.map((item) => (
+        <SidebarNavItem
           key={item.id}
-          to={item.path}
-          onClick={onItemClick}
-          className={({ isActive }) => cn(
-            "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
-            isActive
-              ? "bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 hover:border-primary/30"
-              : "text-muted-foreground hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-foreground",
-            collapsed && "justify-center px-2"
-          )}
-          title={collapsed ? item.label : undefined}
-        >
-          <Icon className="h-4 w-4 shrink-0" />
-          {!collapsed && <span>{item.label}</span>}
-        </NavLink>
-      );
-    })}
-  </nav>
+          item={item}
+          collapsed={collapsed}
+          onItemClick={onItemClick}
+        />
+      ))}
+    </nav>
+  </TooltipProvider>
 );
 
 const AdminSidebar = ({ collapsed, onToggleCollapse }: AdminSidebarProps) => {

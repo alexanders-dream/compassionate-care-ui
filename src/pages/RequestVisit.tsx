@@ -56,7 +56,7 @@ const RequestVisit = () => {
       wound_type: data.woundType,
       additional_notes: data.additionalInfo,
     });
-    
+
     if (result.success) {
       setIsSubmitted(true);
     }
@@ -295,22 +295,28 @@ const RequestVisit = () => {
                 <Card className="bg-primary/10 border-0">
                   <CardContent className="p-6">
                     <h3 className="font-semibold text-foreground mb-4">Need Immediate Help?</h3>
-                    <div className="space-y-4">
-                      <a href="tel:+18001234567" className="flex items-center gap-3 text-foreground hover:text-primary transition-colors">
+                    <div className="space-y-3">
+                      <a
+                        href="tel:+18001234567"
+                        className="no-link-style flex items-center gap-3 p-3 bg-primary/20 rounded-lg hover:bg-primary/30 transition-colors"
+                      >
                         <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
                           <Phone size={18} className="text-primary" />
                         </div>
                         <div>
-                          <p className="font-medium">(800) 123-4567</p>
+                          <p className="font-medium text-foreground">(800) 123-4567</p>
                           <p className="text-xs text-muted-foreground">Call us directly</p>
                         </div>
                       </a>
-                      <a href="mailto:info@arwoundcare.com" className="flex items-center gap-3 text-foreground hover:text-primary transition-colors">
+                      <a
+                        href="mailto:info@arwoundcare.com"
+                        className="no-link-style flex items-center gap-3 p-3 bg-primary/20 rounded-lg hover:bg-primary/30 transition-colors"
+                      >
                         <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
                           <Mail size={18} className="text-primary" />
                         </div>
                         <div>
-                          <p className="font-medium">info@arwoundcare.com</p>
+                          <p className="font-medium text-foreground">info@arwoundcare.com</p>
                           <p className="text-xs text-muted-foreground">Email us</p>
                         </div>
                       </a>

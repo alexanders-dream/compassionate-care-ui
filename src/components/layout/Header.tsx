@@ -19,7 +19,7 @@ const Header = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full gradient-navy">
+      <header className="sticky top-0 z-50 w-full bg-primary shadow-lg">
         <div className="container-main">
           <div className="flex h-16 md:h-20 items-center justify-between">
             {/* Logo */}
@@ -39,9 +39,8 @@ const Header = () => {
                 <Link
                   key={link.href}
                   to={link.href}
-                  className={`no-link-style text-sm font-medium transition-colors hover:text-white ${
-                    isActive(link.href) ? "text-white" : "text-white/80"
-                  }`}
+                  className={`no-link-style text-base font-medium transition-colors hover:text-white ${isActive(link.href) ? "text-white font-semibold" : "text-white/90"
+                    }`}
                 >
                   {link.label}
                 </Link>
@@ -53,7 +52,7 @@ const Header = () => {
               <Button variant="ghost" asChild className="border-2 border-white/80 text-white hover:bg-white/10 hover:text-white">
                 <Link to="/refer" className="no-link-style">Refer a Patient</Link>
               </Button>
-              <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
+              <Button asChild className="bg-white !text-primary hover:bg-white/90 font-semibold">
                 <Link to="/request-visit" className="no-link-style">Book a Visit</Link>
               </Button>
             </div>
@@ -72,16 +71,15 @@ const Header = () => {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="lg:hidden border-t border-white/20 gradient-navy">
+          <div className="lg:hidden border-t border-white/20 bg-primary">
             <nav className="container-main py-4 flex flex-col gap-2">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   to={link.href}
                   onClick={() => setIsMenuOpen(false)}
-                  className={`no-link-style py-3 text-base font-medium transition-colors ${
-                    isActive(link.href) ? "text-white" : "text-white/80"
-                  }`}
+                  className={`no-link-style py-3 text-base font-medium transition-colors ${isActive(link.href) ? "text-white font-semibold" : "text-white/90"
+                    }`}
                 >
                   {link.label}
                 </Link>
@@ -92,7 +90,7 @@ const Header = () => {
                     Refer a Patient
                   </Link>
                 </Button>
-                <Button asChild className="w-full justify-center bg-primary text-primary-foreground hover:bg-primary/90">
+                <Button asChild className="w-full justify-center bg-white !text-primary hover:bg-white/90 font-semibold">
                   <Link to="/request-visit" onClick={() => setIsMenuOpen(false)} className="no-link-style">
                     Book a Visit
                   </Link>

@@ -124,8 +124,8 @@ const TeamTab = ({
                             <Button variant="outline" size="sm" className="flex-1" onClick={() => handleOpenDialog(member)}>
                                 <Pencil className="h-3 w-3 mr-1" /> Edit
                             </Button>
-                            <Button variant="ghost" size="sm" onClick={() => onDelete(member.id)}>
-                                <Trash2 className="h-4 w-4 text-destructive" />
+                            <Button variant="ghost" size="sm" onClick={() => onDelete(member.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                                <Trash2 className="h-4 w-4" />
                             </Button>
                         </div>
                     </Card>
@@ -156,8 +156,8 @@ const TeamTab = ({
                                     <Button variant="ghost" size="sm" onClick={() => handleOpenDialog(member)}>
                                         <Pencil className="h-4 w-4" />
                                     </Button>
-                                    <Button variant="ghost" size="sm" onClick={() => onDelete(member.id)}>
-                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                    <Button variant="ghost" size="sm" onClick={() => onDelete(member.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                                        <Trash2 className="h-4 w-4" />
                                     </Button>
                                 </TableCell>
                             </TableRow>

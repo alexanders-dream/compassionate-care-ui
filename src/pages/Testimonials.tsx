@@ -89,7 +89,7 @@ const Testimonials = () => {
             with their healing journey.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" asChild>
+            <Button size="lg" asChild className="text-white">
               <Link to="/request-visit">Book a Visit</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>

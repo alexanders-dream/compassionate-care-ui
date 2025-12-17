@@ -107,7 +107,7 @@ const Conditions = () => {
             Contact us for a consultation.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" asChild>
+            <Button size="lg" asChild className="text-white">
               <Link to="/request-visit">Request a Visit</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>

@@ -208,7 +208,7 @@ const Blog = () => {
           <p className="text-primary-foreground/85 mb-8 max-w-2xl mx-auto text-lg">
             Our expert team is here to help. Schedule a consultation to discuss your specific needs.
           </p>
-          <Button asChild size="lg" className="bg-white text-primary hover:bg-white/90 shadow-xl">
+          <Button asChild size="lg" className="bg-white !text-primary hover:bg-white/90 shadow-xl">
             <Link to="/request-visit">
               Request a Visit
               <ArrowRight className="ml-2 w-4 h-4" />

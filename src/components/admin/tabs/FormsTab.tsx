@@ -215,8 +215,9 @@ const FormsTab = () => {
                                         variant="ghost"
                                         size="sm"
                                         onClick={() => handleDeleteField(field.id)}
+                                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
                                     >
-                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                        <Trash2 className="h-4 w-4" />
                                     </Button>
                                 </div>
                             </Card>
@@ -272,8 +273,9 @@ const FormsTab = () => {
                                                 variant="ghost"
                                                 size="sm"
                                                 onClick={() => handleDeleteField(field.id)}
+                                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
                                             >
-                                                <Trash2 className="h-4 w-4 text-destructive" />
+                                                <Trash2 className="h-4 w-4" />
                                             </Button>
                                         </TableCell>
                                     </TableRow>
@@ -381,8 +383,9 @@ const FormsTab = () => {
                                                             variant="ghost"
                                                             size="sm"
                                                             onClick={() => handleRemoveFieldOption(index)}
+                                                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
                                                         >
-                                                            <Trash2 className="h-3 w-3 text-destructive" />
+                                                            <Trash2 className="h-3 w-3" />
                                                         </Button>
                                                     </div>
                                                 ))}

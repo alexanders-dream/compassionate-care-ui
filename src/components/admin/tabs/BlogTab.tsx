@@ -122,8 +122,8 @@ const BlogTab = ({
                                             <DropdownMenuItem onClick={() => onSharePost(post, "copy")}>Copy Link</DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
-                                    <Button variant="ghost" size="sm" onClick={() => onDeletePost(post.id)}>
-                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                    <Button variant="ghost" size="sm" onClick={() => onDeletePost(post.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                                        <Trash2 className="h-4 w-4" />
                                     </Button>
                                 </div>
                             </Card>
@@ -201,8 +201,8 @@ const BlogTab = ({
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
-                                            <Button variant="ghost" size="sm" onClick={() => onDeletePost(post.id)}>
-                                                <Trash2 className="h-4 w-4 text-destructive" />
+                                            <Button variant="ghost" size="sm" onClick={() => onDeletePost(post.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                                                <Trash2 className="h-4 w-4" />
                                             </Button>
                                         </TableCell>
                                     </TableRow>

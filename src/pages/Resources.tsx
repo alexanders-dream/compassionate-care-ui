@@ -43,20 +43,20 @@ const Resources = () => {
             {patientResources.map((resource, index) => {
               const IconComponent = iconMap[resource.icon] || FileText;
               return (
-                <div key={resource.id || index} className="bg-card rounded-2xl p-6 shadow-soft hover:shadow-elegant transition-shadow">
-                  <div className="flex items-start gap-4">
+                <div key={resource.id || index} className="bg-card rounded-2xl p-6 shadow-soft hover:shadow-elegant transition-shadow h-full flex flex-col">
+                  <div className="flex items-start gap-4 flex-1">
                     <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
                       <IconComponent className="w-6 h-6 text-primary" />
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 flex flex-col h-full">
                       <span className="text-xs text-primary font-medium">Resource</span>
                       <h3 className="font-display text-lg font-semibold text-foreground mt-1 mb-2">
                         {resource.title}
                       </h3>
-                      <p className="text-sm text-muted-foreground mb-4">
+                      <p className="text-sm text-muted-foreground mb-4 flex-1">
                         {resource.description}
                       </p>
-                      <Button variant="outline" size="sm" className="gap-2">
+                      <Button variant="outline" size="sm" className="gap-2 mt-auto self-start">
                         <Download className="w-4 h-4" />
                         Access Resource
                       </Button>
@@ -105,7 +105,7 @@ const Resources = () => {
               and answers to your specific questions.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" asChild>
+              <Button size="lg" asChild className="text-white">
                 <Link to="/contact">Contact Us</Link>
               </Button>
               <Button size="lg" variant="outline" asChild>
