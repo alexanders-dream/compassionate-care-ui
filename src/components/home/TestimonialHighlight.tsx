@@ -7,7 +7,7 @@ const TestimonialHighlight = () => {
       <div className="container-main">
         <div className="max-w-4xl mx-auto text-center">
           {/* Quote Icon */}
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent mb-6">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/40 mb-6">
             <Quote size={32} className="text-secondary" />
           </div>
 

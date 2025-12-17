@@ -85,7 +85,7 @@ const Contact = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="bg-white py-16 md:py-24">
+      <section className="bg-[#EBF4FA] dark:bg-background py-16 md:py-24">
         <div className="container-main text-center">
           <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-6">
             Get in <span className="text-primary">Touch</span>
@@ -132,7 +132,7 @@ const Contact = () => {
       </section>
 
       {/* Contact Form Section */}
-      <section className="py-12 md:py-16 bg-warm">
+      <section className="py-12 md:py-16 bg-warm dark:bg-background">
         <div className="container-main">
           <div className="max-w-2xl mx-auto">
             <div className="bg-card rounded-2xl p-8 shadow-elegant">

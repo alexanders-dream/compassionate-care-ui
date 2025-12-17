@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import {
-    Mail, Send, CalendarDays, CheckCircle2, ArrowUpDown, Search, Filter, Trash2, Calendar, Phone, Eye
+    Mail, Send, CalendarDays, CheckCircle2, ArrowUpDown, Search, Filter, Trash2, Calendar, Phone, Eye, ChevronDown, ArrowDown, ArrowUp
 } from "lucide-react";
 import { SubmissionDetailsDialog } from "../SubmissionDetailsDialog";
 import {
@@ -56,19 +56,20 @@ const VisitRequestsTab = ({
     const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
     const [itemToDelete, setItemToDelete] = useState<string | null>(null);
 
-    const getStatusRowClass = (status: string) => {
-        // This logic was in Admin.tsx, defining here or importing common utils
-        // Assuming simple mapping or CSS classes are global/tailwind
-        const statusClasses: Record<string, string> = {
-            pending: "bg-yellow-50 dark:bg-yellow-900/10",
-            contacted: "bg-blue-50 dark:bg-blue-900/10",
-            scheduled: "bg-amber-50 dark:bg-amber-900/10",
-            completed: "bg-green-50 dark:bg-green-900/10",
-            confirmed: "bg-purple-50 dark:bg-purple-900/10",
-            cancelled: "bg-red-50 dark:bg-red-900/10",
-            "no-show": "bg-gray-100 dark:bg-gray-800"
+    const getStatusBadge = (status: string, showIcon: boolean = false) => {
+        const styles: Record<string, { bg: string; text: string; label: string }> = {
+            pending: { bg: "bg-amber-100", text: "text-amber-700", label: "Pending" },
+            contacted: { bg: "bg-blue-100", text: "text-blue-700", label: "Contacted" },
+            scheduled: { bg: "bg-indigo-100", text: "text-indigo-700", label: "Scheduled" },
+            completed: { bg: "bg-blue-100", text: "text-blue-700", label: "Completed" }
         };
-        return statusClasses[status] || "";
+        const style = styles[status] || { bg: "bg-gray-100", text: "text-gray-700", label: status };
+        return (
+            <Badge className={`${style.bg} ${style.text} hover:${style.bg} border-0 px-3 py-1.5 text-sm font-semibold ${showIcon ? 'flex items-center gap-1.5' : ''}`}>
+                {style.label}
+                {showIcon && <ChevronDown className="h-3.5 w-3.5" />}
+            </Badge>
+        );
     };
 
     const toggleSort = (field: "name" | "date" | "status") => {
@@ -122,110 +123,230 @@ const VisitRequestsTab = ({
                     Visit Requests ({visitRequests.length})
                 </h2>
 
-                {/* Added Search/Filter Controls that were missing in original layout */}
-                <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-                    <div className="relative w-full sm:w-64">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                {/* Search/Filter/Sort Controls matching appointments styling */}
+                <div className="flex flex-col gap-2 w-full md:w-auto">
+                    <div className="relative w-full">
+                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
-                            placeholder="Search requests..."
-                            className="pl-8"
+                            placeholder="Search..."
+                            className="pl-8 h-9"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
-                    <Select value={filterStatus} onValueChange={setFilterStatus}>
-                        <SelectTrigger className="w-full sm:w-[150px]">
-                            <Filter className="h-4 w-4 mr-2" />
-                            <SelectValue placeholder="Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All Statuses</SelectItem>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="contacted">Contacted</SelectItem>
-                            <SelectItem value="scheduled">Scheduled</SelectItem>
-                            <SelectItem value="completed">Completed</SelectItem>
-                        </SelectContent>
-                    </Select>
+                    <div className="flex flex-wrap items-center gap-2">
+                        <Select value={filterStatus} onValueChange={setFilterStatus}>
+                            <SelectTrigger className="w-32 h-9">
+                                <Filter className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+                                <SelectValue placeholder="Status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Status</SelectItem>
+                                <SelectItem value="pending">Pending</SelectItem>
+                                <SelectItem value="contacted">Contacted</SelectItem>
+                                <SelectItem value="scheduled">Scheduled</SelectItem>
+                                <SelectItem value="completed">Completed</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Select
+                            value={`${sortField}-${sortDirection}`}
+                            onValueChange={(value) => {
+                                const [field, direction] = value.split('-') as ["name" | "date" | "status", "asc" | "desc"];
+                                setSortField(field);
+                                setSortDirection(direction);
+                            }}
+                        >
+                            <SelectTrigger className="w-40 h-9">
+                                {sortDirection === "asc" ? <ArrowUp className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" /> : <ArrowDown className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />}
+                                <SelectValue placeholder="Sort" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="name-asc">Name (A-Z)</SelectItem>
+                                <SelectItem value="name-desc">Name (Z-A)</SelectItem>
+                                <SelectItem value="date-asc">Date (Old-New)</SelectItem>
+                                <SelectItem value="date-desc">Date (New-Old)</SelectItem>
+                                <SelectItem value="status-asc">Status (A-Z)</SelectItem>
+                                <SelectItem value="status-desc">Status (Z-A)</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </div>
             </div>
 
             {/* Mobile Cards */}
-            <div className="md:hidden space-y-3">
+            <div className="md:hidden space-y-4">
                 {filteredVisitRequests.map(request => (
-                    <Card key={request.id} className={`p-4 ${getStatusRowClass(request.status)}`}>
-                        <div className="flex justify-between items-start mb-2">
-                            <div>
-                                <p className="font-medium">{request.firstName} {request.lastName}</p>
-                                <p className="text-xs text-muted-foreground">{request.email}</p>
-                            </div>
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <div className="w-full">
-                                            <Select
-                                                value={request.status}
-                                                onValueChange={(value) => onUpdateStatus(request.id, value as VisitRequest["status"])}
-                                            >
-                                                <SelectTrigger className="w-28 h-8 text-xs">
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="pending">Pending</SelectItem>
-                                                    <SelectItem value="contacted">Contacted</SelectItem>
-                                                    <SelectItem value="scheduled">Scheduled</SelectItem>
-                                                    <SelectItem value="completed">Completed</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                    </TooltipTrigger>
-                                    {request.status === "scheduled" && appointments.find(a => a.visitRequestId === request.id) && (
-                                        <TooltipContent>
-                                            <div className="flex items-center gap-2">
-                                                <Calendar className="h-4 w-4" />
-                                                <span>
-                                                    {format(new Date(appointments.find(a => a.visitRequestId === request.id)!.appointmentDate), "MMM d")} @ {appointments.find(a => a.visitRequestId === request.id)!.appointmentTime}
-                                                </span>
+                    <Card key={request.id} className="overflow-hidden">
+                        {/* Header with Name and Status */}
+                        <div className="bg-muted/30 px-4 py-3 border-b">
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="font-semibold text-base truncate">
+                                        {request.firstName} {request.lastName}
+                                    </h3>
+                                </div>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <div className="shrink-0">
+                                                <Select
+                                                    value={request.status}
+                                                    onValueChange={(value) => onUpdateStatus(request.id, value as VisitRequest["status"])}
+                                                >
+                                                    <SelectTrigger className="w-auto h-auto border-0 bg-transparent hover:bg-muted/50 p-0 [&>svg]:hidden">
+                                                        {getStatusBadge(request.status, false)}
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="pending" className="text-sm font-medium">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+                                                                <span className="text-amber-700">Pending</span>
+                                                            </div>
+                                                        </SelectItem>
+                                                        <SelectItem value="contacted" className="text-sm font-medium">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                                                                <span className="text-blue-700">Contacted</span>
+                                                            </div>
+                                                        </SelectItem>
+                                                        <SelectItem value="scheduled" className="text-sm font-medium">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
+                                                                <span className="text-indigo-700">Scheduled</span>
+                                                            </div>
+                                                        </SelectItem>
+                                                        <SelectItem value="completed" className="text-sm font-medium">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                                                                <span className="text-blue-700">Completed</span>
+                                                            </div>
+                                                        </SelectItem>
+                                                    </SelectContent>
+                                                </Select>
                                             </div>
-                                        </TooltipContent>
-                                    )}
-                                </Tooltip>
-                            </TooltipProvider>
+                                        </TooltipTrigger>
+                                        {request.status === "scheduled" && appointments.find(a => a.visitRequestId === request.id) && (
+                                            <TooltipContent>
+                                                <div className="flex items-center gap-2">
+                                                    <Calendar className="h-4 w-4" />
+                                                    <span>
+                                                        {format(new Date(appointments.find(a => a.visitRequestId === request.id)!.appointmentDate), "MMM d")} @ {appointments.find(a => a.visitRequestId === request.id)!.appointmentTime}
+                                                    </span>
+                                                </div>
+                                            </TooltipContent>
+                                        )}
+                                    </Tooltip>
+                                </TooltipProvider>
+                            </div>
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
-                            <Badge variant="outline" className="capitalize">{request.woundType}</Badge>
-                            <span>{new Date(request.submittedAt).toLocaleDateString()}</span>
+
+                        {/* Contact Info Section */}
+                        <div className="px-4 py-3 space-y-2 text-sm border-b bg-background">
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                                <Mail className="h-4 w-4 shrink-0" />
+                                <span className="truncate">{request.email}</span>
+                            </div>
+                            {request.phone && (
+                                <div className="flex items-center gap-2 text-muted-foreground">
+                                    <Phone className="h-4 w-4 shrink-0" />
+                                    <span>{request.phone}</span>
+                                </div>
+                            )}
                         </div>
-                        <div className="flex gap-2">
+
+                        {/* Details Section */}
+                        <div className="px-4 py-3 space-y-2 border-b bg-muted/20">
+                            <div className="flex items-center justify-between text-sm">
+                                <span className="text-muted-foreground">Wound Type</span>
+                                <Badge variant="outline" className="capitalize font-medium">
+                                    {request.woundType}
+                                </Badge>
+                            </div>
+                            <div className="flex items-center justify-between text-sm">
+                                <span className="text-muted-foreground">Submitted</span>
+                                <span className="font-medium">
+                                    {new Date(request.submittedAt).toLocaleDateString()}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Actions Section */}
+                        <div className="px-4 py-3 space-y-2">
+                            {/* Primary Action */}
                             {request.status !== "scheduled" && request.status !== "completed" && (
-                                <Button variant="default" size="sm" onClick={() => onSchedule(request)} className="flex-1 text-xs">
-                                    <CalendarDays className="h-3 w-3 mr-1" /> Schedule
+                                <Button
+                                    size="lg"
+                                    onClick={() => onSchedule(request)}
+                                    className="w-full font-semibold bg-blue-600 text-white hover:bg-blue-700 border-transparent shadow-sm"
+                                >
+                                    <CalendarDays className="h-4 w-4 mr-2" />
+                                    Schedule Appointment
                                 </Button>
                             )}
+
+                            {/* Secondary Actions */}
+                            <div className="grid grid-cols-3 gap-2">
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                size="lg"
+                                                onClick={() => handleView(request)}
+                                                className="w-full border-slate-400 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                                            >
+                                                <Eye className="h-4 w-4" />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>View Details</TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                size="lg"
+                                                onClick={() => window.location.href = `tel:${request.phone}`}
+                                                disabled={!request.phone}
+                                                className="w-full border-slate-400 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                                            >
+                                                <Phone className="h-4 w-4" />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>Call Patient</TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                size="lg"
+                                                onClick={() => onEmail(request)}
+                                                className="w-full border-slate-400 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                                            >
+                                                <Send className="h-4 w-4" />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            {request.emailSent ? "Resend Email" : "Send Email"}
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            </div>
+
+                            {/* Delete Action */}
                             <Button
                                 variant="ghost"
-                                size="icon"
-                                className="h-9 w-9 shrink-0"
-                                onClick={() => handleView(request)}
-                                title="View Details"
+                                size="sm"
+                                onClick={() => setItemToDelete(request.id)}
+                                className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
                             >
-                                <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                className="h-9 w-9 shrink-0"
-                                onClick={() => window.location.href = `tel:${request.phone}`}
-                                disabled={!request.phone}
-                            >
-                                <Phone className="h-4 w-4" />
-                            </Button>
-                            <Button variant="outline" size="sm" onClick={() => onEmail(request)} className="flex-1 text-xs">
-                                <Send className="h-3 w-3 mr-1" /> {request.emailSent ? "Resend" : "Email"}
-                            </Button>
-                        </div>
-                        <div className="flex gap-2 mt-2">
-                            <Button variant="ghost" size="sm" onClick={() => setItemToDelete(request.id)} className="w-full text-xs text-destructive hover:text-destructive hover:bg-destructive/10">
-                                <Trash2 className="h-3 w-3 mr-1" /> Delete
+                                <Trash2 className="h-3.5 w-3.5 mr-2" />
+                                Delete Request
                             </Button>
                         </div>
                     </Card>
@@ -241,7 +362,7 @@ const VisitRequestsTab = ({
             <div className="hidden md:block overflow-x-auto rounded-md border">
                 <Table>
                     <TableHeader>
-                        <TableRow className="bg-white dark:bg-white border-b">
+                        <TableRow className="bg-slate-200 hover:bg-slate-200">
                             <TableHead
                                 className="cursor-pointer hover:bg-muted/50 select-none"
                                 onClick={() => toggleSort("name")}
@@ -275,8 +396,8 @@ const VisitRequestsTab = ({
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {filteredVisitRequests.map(request => (
-                            <TableRow key={request.id} className={getStatusRowClass(request.status)}>
+                        {filteredVisitRequests.map((request, index) => (
+                            <TableRow key={request.id} className={index % 2 === 1 ? "bg-muted/50" : ""}>
                                 <TableCell className="font-medium">
                                     {request.firstName} {request.lastName}
                                 </TableCell>
@@ -291,19 +412,39 @@ const VisitRequestsTab = ({
                                     <TooltipProvider>
                                         <Tooltip>
                                             <TooltipTrigger asChild>
-                                                <div>
+                                                <div className="cursor-pointer">
                                                     <Select
                                                         value={request.status}
                                                         onValueChange={(value) => onUpdateStatus(request.id, value as VisitRequest["status"])}
                                                     >
-                                                        <SelectTrigger className="w-32">
-                                                            <SelectValue />
+                                                        <SelectTrigger className="w-auto min-w-[130px] border-0 bg-transparent hover:bg-muted/50 h-auto p-0 [&>svg]:hidden">
+                                                            {getStatusBadge(request.status, true)}
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            <SelectItem value="pending">Pending</SelectItem>
-                                                            <SelectItem value="contacted">Contacted</SelectItem>
-                                                            <SelectItem value="scheduled">Scheduled</SelectItem>
-                                                            <SelectItem value="completed">Completed</SelectItem>
+                                                            <SelectItem value="pending" className="text-sm font-medium">
+                                                                <div className="flex items-center gap-2">
+                                                                    <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+                                                                    <span className="text-amber-700">Pending</span>
+                                                                </div>
+                                                            </SelectItem>
+                                                            <SelectItem value="contacted" className="text-sm font-medium">
+                                                                <div className="flex items-center gap-2">
+                                                                    <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                                                                    <span className="text-blue-700">Contacted</span>
+                                                                </div>
+                                                            </SelectItem>
+                                                            <SelectItem value="scheduled" className="text-sm font-medium">
+                                                                <div className="flex items-center gap-2">
+                                                                    <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
+                                                                    <span className="text-indigo-700">Scheduled</span>
+                                                                </div>
+                                                            </SelectItem>
+                                                            <SelectItem value="completed" className="text-sm font-medium">
+                                                                <div className="flex items-center gap-2">
+                                                                    <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                                                                    <span className="text-blue-700">Completed</span>
+                                                                </div>
+                                                            </SelectItem>
                                                         </SelectContent>
                                                     </Select>
                                                 </div>
@@ -324,14 +465,14 @@ const VisitRequestsTab = ({
                                 <TableCell>{new Date(request.submittedAt).toLocaleDateString()}</TableCell>
                                 <TableCell className="text-right space-x-1">
                                     {request.status !== "scheduled" && request.status !== "completed" && (
-                                        <Button variant="default" size="sm" onClick={() => onSchedule(request)} className="gap-1">
+                                        <Button size="sm" onClick={() => onSchedule(request)} className="gap-1 bg-blue-600 text-white hover:bg-blue-700 border-transparent shadow-sm">
                                             <CalendarDays className="h-3 w-3" /> Schedule
                                         </Button>
                                     )}
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="h-8 w-8"
+                                        className="h-8 w-8 border-slate-400 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                                         onClick={() => handleView(request)}
                                         title="View Details"
                                     >
@@ -340,20 +481,20 @@ const VisitRequestsTab = ({
                                     <Button
                                         variant="outline"
                                         size="icon"
-                                        className="h-8 w-8"
+                                        className="h-8 w-8 border-slate-400 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                                         onClick={() => window.location.href = `tel:${request.phone}`}
                                         disabled={!request.phone}
                                         title="Call Patient"
                                     >
                                         <Phone className="h-4 w-4" />
                                     </Button>
-                                    <Button variant="outline" size="sm" onClick={() => onEmail(request)} className="gap-1">
+                                    <Button variant="outline" size="sm" onClick={() => onEmail(request)} className="gap-1 border-slate-400 text-slate-700 hover:bg-slate-100 hover:text-slate-900">
                                         <Send className="h-3 w-3" /> {request.emailSent ? "Resend" : "Email"}
                                     </Button>
                                     <Button variant="ghost" size="sm" onClick={() => setItemToDelete(request.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
                                         <Trash2 className="h-4 w-4" />
                                     </Button>
-                                    {request.emailSent && <CheckCircle2 className="h-4 w-4 text-green-500 inline ml-1" />}
+                                    {request.emailSent && <CheckCircle2 className="h-4 w-4 text-blue-500 inline ml-1" />}
                                 </TableCell>
                             </TableRow>
                         ))}

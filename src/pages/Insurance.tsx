@@ -48,7 +48,7 @@ const Insurance = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="bg-[#EBF4FA] py-16 md:py-24">
+      <section className="bg-background py-16 md:py-24">
         <div className="container-main text-center">
           <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-6">
             Insurance & <span className="text-primary">Payment</span>
@@ -61,7 +61,7 @@ const Insurance = () => {
       </section>
 
       {/* Accepted Insurance */}
-      <section className="py-16 md:py-24">
+      <section className="py-16 md:py-24 bg-muted">
         <div className="container-main">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
@@ -104,7 +104,7 @@ const Insurance = () => {
       </section>
 
       {/* Billing Process */}
-      <section className="py-16 md:py-24 bg-warm">
+      <section className="py-16 md:py-24 bg-warm dark:bg-muted/30">
         <div className="container-main">
           <div className="text-center mb-12">
             <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-4">
@@ -186,20 +186,20 @@ const Insurance = () => {
       </section>
 
       {/* CTA */}
-      <section className="py-16 md:py-24 bg-[#0B2545]">
+      <section className="py-16 md:py-24 bg-muted dark:bg-[#0B2545]">
         <div className="container-main text-center">
-          <h2 className="font-display text-2xl md:text-3xl font-bold text-primary-foreground mb-4">
+          <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground dark:text-primary-foreground mb-4">
             Ready to Get Started?
           </h2>
-          <p className="text-primary-foreground/80 max-w-2xl mx-auto mb-8">
+          <p className="text-muted-foreground dark:text-primary-foreground/80 max-w-2xl mx-auto mb-8">
             Don't let insurance concerns delay your care. Contact us today and we'll help you
             understand your coverage options.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" asChild className="bg-white !text-primary hover:bg-white/90">
+            <Button size="lg" asChild className="bg-primary text-white hover:bg-primary/90 dark:bg-white dark:!text-primary dark:hover:bg-white/90">
               <Link to="/request-visit">Request a Visit</Link>
             </Button>
-            <Button size="lg" variant="ghost" asChild className="border border-white text-white hover:bg-white/10 hover:text-white">
+            <Button size="lg" variant="ghost" asChild className="border border-foreground text-foreground hover:bg-foreground/10 dark:border-white dark:text-white dark:hover:bg-white/10 dark:hover:text-white">
               <Link to="/contact">Contact Us</Link>
             </Button>
           </div>

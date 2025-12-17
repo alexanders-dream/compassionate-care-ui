@@ -118,7 +118,7 @@ const RequestVisit = () => {
       </Helmet>
       <Layout>
         {/* Hero */}
-        <section className="bg-[#EBF4FA] py-12 md:py-16">
+        <section className="bg-muted py-12 md:py-16">
           <div className="container-main text-center">
             <h1 className="text-foreground mb-4">Request a Visit</h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">

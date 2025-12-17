@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,20 +18,8 @@ import {
     DropdownMenuTrigger,
     DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Plus, Pencil, Trash2, Sparkles, Share2, Mail, Calendar as CalendarIcon, Star } from "lucide-react";
+import { Plus, Pencil, Trash2, Sparkles, Share2, Mail, ArrowLeft } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import AIArticleGenerator, { ArticleMedia } from "@/components/admin/AIArticleGenerator";
 import { ScheduleDialog } from "@/components/admin/ScheduleDialog";
 import { BlogPost, categories } from "@/data/blogPosts";
@@ -59,10 +47,18 @@ const BlogTab = ({
     onSetFeatured,
 }: BlogTabProps) => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [showAIGenerator, setShowAIGenerator] = useState(false);
 
-    const getStatusBadge = (post: ExtendedBlogPost) => {
-        switch (post.status) {
+    // Reset AI generator view when navigating to the blog tab
+    useEffect(() => {
+        if (location.pathname === "/admin/blog") {
+            setShowAIGenerator(false);
+        }
+    }, [location.pathname, location.key]);
+
+    const getStatusBadge = (status?: string) => {
+        switch (status) {
             case "draft":
                 return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-0">Draft</Badge>;
             case "scheduled":
@@ -82,7 +78,7 @@ const BlogTab = ({
                 }
                 return badge;
             default:
-                return <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-0">Published</Badge>;
+                return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-0">Published</Badge>;
         }
     };
 
@@ -104,9 +100,31 @@ const BlogTab = ({
         <>
             {showAIGenerator ? (
                 <div className="space-y-4">
-                    <Button variant="outline" onClick={() => setShowAIGenerator(false)}>
-                        ← Back to Posts
-                    </Button>
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+                        <div className="flex-1">
+                            <h2 className="text-lg md:text-xl font-semibold mb-2">AI Article Generator</h2>
+                            <p className="text-sm text-muted-foreground">
+                                Use AI to generate high-quality blog content. Configure your AI provider, select a topic, and let the AI create SEO-optimized articles for your blog. <span className="font-medium text-amber-600">AI can make mistakes—check responses before publishing.</span>
+                            </p>
+                        </div>
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={() => setShowAIGenerator(false)}
+                                        className="shrink-0"
+                                    >
+                                        <ArrowLeft className="h-4 w-4" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    Back to Posts
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </div>
                     <AIArticleGenerator
                         onSaveArticle={handleSaveArticle}
                         editingArticle={null}

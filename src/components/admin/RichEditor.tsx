@@ -15,8 +15,7 @@ import { Label } from "@/components/ui/label";
 // import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"; // Removing Popover
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { ImageInsertionDialog } from "./ImageInsertionDialog";
-import { VideoInsertionDialog } from "./VideoInsertionDialog";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
     Bold, Italic, List, ListOrdered, Heading2, Heading3, Quote, Link2, Image as ImageIcon,
     Youtube as YoutubeIcon, Undo, Redo, Loader2
@@ -126,77 +125,235 @@ const RichEditor = ({ content, onChange, placeholder = "Start writing...", class
     return (
         <div className="flex flex-col border rounded-md overflow-hidden bg-background relative">
 
-            {/* Shared Bubble and Floating Menus */}
-            <RichEditorMenus
-                editor={editor}
-                onAddLink={addLink}
-                onAddImage={() => setIsImageDialogOpen(true)}
-                onAddYoutube={() => setIsVideoDialogOpen(true)}
-            />
+            {/* Bubble Menu for Text Selection */}
+            {editor && (
+                <BubbleMenu editor={editor} className="flex overflow-hidden border rounded-lg shadow-xl bg-background text-foreground">
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button variant={editor.isActive("bold") ? "secondary" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleBold().run()} className="h-8 w-8 p-0 rounded-none">
+                                <Bold className="h-4 w-4" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Bold</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button variant={editor.isActive("italic") ? "secondary" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleItalic().run()} className="h-8 w-8 p-0 rounded-none">
+                                <Italic className="h-4 w-4" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Italic</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button variant={editor.isActive("link") ? "secondary" : "ghost"} size="sm" onClick={addLink} className="h-8 w-8 p-0 rounded-none">
+                                <Link2 className="h-4 w-4" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Add Link</TooltipContent>
+                    </Tooltip>
+                    <Separator orientation="vertical" className="h-8" />
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button variant={editor.isActive("heading", { level: 2 }) ? "secondary" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className="h-8 w-8 p-0 rounded-none">
+                                <Heading2 className="h-4 w-4" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Heading 2</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button variant={editor.isActive("heading", { level: 3 }) ? "secondary" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} className="h-8 w-8 p-0 rounded-none">
+                                <Heading3 className="h-4 w-4" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Heading 3</TooltipContent>
+                    </Tooltip>
+                </BubbleMenu>
+            )}
 
-            <ImageInsertionDialog
-                open={isImageDialogOpen}
-                onOpenChange={setIsImageDialogOpen}
-                onImageSelected={handleImageSelected}
-            />
-
-            <VideoInsertionDialog
-                open={isVideoDialogOpen}
-                onOpenChange={setIsVideoDialogOpen}
-                onVideoSelected={handleVideoSelected}
-            />
+            {/* Floating Menu for Empty Lines */}
+            {editor && (
+                <FloatingMenu editor={editor} className="flex gap-1 overflow-hidden border rounded-lg shadow-xl bg-background text-foreground p-1">
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button variant={editor.isActive("heading", { level: 2 }) ? "secondary" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className="h-8 w-8 p-0">
+                                <Heading2 className="h-4 w-4" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Heading 2</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button variant={editor.isActive("bulletList") ? "secondary" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleBulletList().run()} className="h-8 w-8 p-0">
+                                <List className="h-4 w-4" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Bullet List</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button variant={editor.isActive("orderedList") ? "secondary" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleOrderedList().run()} className="h-8 w-8 p-0">
+                                <ListOrdered className="h-4 w-4" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Numbered List</TooltipContent>
+                    </Tooltip>
+                </FloatingMenu>
+            )}
 
             {/* Main Toolbar */}
             <div className="flex items-center gap-1 p-2 bg-muted/50 border-b flex-wrap sticky top-0 z-10">
                 {/* Undo/Redo */}
                 <div className="flex items-center gap-1 mr-2">
-                    <Button variant="ghost" size="sm" onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()} className="h-8 w-8 p-0">
-                        <Undo className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => editor.chain().focus().redo().run()} disabled={!editor.can().redo()} className="h-8 w-8 p-0">
-                        <Redo className="h-4 w-4" />
-                    </Button>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button variant="ghost" size="sm" onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()} className="h-8 w-8 p-0">
+                                <Undo className="h-4 w-4" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Undo</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button variant="ghost" size="sm" onClick={() => editor.chain().focus().redo().run()} disabled={!editor.can().redo()} className="h-8 w-8 p-0">
+                                <Redo className="h-4 w-4" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Redo</TooltipContent>
+                    </Tooltip>
                 </div>
 
                 <Separator orientation="vertical" className="h-6 mx-1" />
 
                 {/* Text Formatting */}
-                <Button variant={editor.isActive("bold") ? "secondary" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleBold().run()} className="h-8 w-8 p-0">
-                    <Bold className="h-4 w-4" />
-                </Button>
-                <Button variant={editor.isActive("italic") ? "secondary" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleItalic().run()} className="h-8 w-8 p-0">
-                    <Italic className="h-4 w-4" />
-                </Button>
-                <Button variant={editor.isActive("heading", { level: 2 }) ? "secondary" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className="h-8 w-8 p-0">
-                    <Heading2 className="h-4 w-4" />
-                </Button>
-                <Button variant={editor.isActive("heading", { level: 3 }) ? "secondary" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} className="h-8 w-8 p-0">
-                    <Heading3 className="h-4 w-4" />
-                </Button>
-                <Button variant={editor.isActive("bulletList") ? "secondary" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleBulletList().run()} className="h-8 w-8 p-0">
-                    <List className="h-4 w-4" />
-                </Button>
-                <Button variant={editor.isActive("orderedList") ? "secondary" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleOrderedList().run()} className="h-8 w-8 p-0">
-                    <ListOrdered className="h-4 w-4" />
-                </Button>
-                <Button variant={editor.isActive("blockquote") ? "secondary" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleBlockquote().run()} className="h-8 w-8 p-0">
-                    <Quote className="h-4 w-4" />
-                </Button>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant={editor.isActive("bold") ? "secondary" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleBold().run()} className="h-8 w-8 p-0">
+                            <Bold className="h-4 w-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Bold</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant={editor.isActive("italic") ? "secondary" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleItalic().run()} className="h-8 w-8 p-0">
+                            <Italic className="h-4 w-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Italic</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant={editor.isActive("heading", { level: 2 }) ? "secondary" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className="h-8 w-8 p-0">
+                            <Heading2 className="h-4 w-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Heading 2</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant={editor.isActive("heading", { level: 3 }) ? "secondary" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} className="h-8 w-8 p-0">
+                            <Heading3 className="h-4 w-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Heading 3</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant={editor.isActive("bulletList") ? "secondary" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleBulletList().run()} className="h-8 w-8 p-0">
+                            <List className="h-4 w-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Bullet List</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant={editor.isActive("orderedList") ? "secondary" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleOrderedList().run()} className="h-8 w-8 p-0">
+                            <ListOrdered className="h-4 w-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Numbered List</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant={editor.isActive("blockquote") ? "secondary" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleBlockquote().run()} className="h-8 w-8 p-0">
+                            <Quote className="h-4 w-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Quote</TooltipContent>
+                </Tooltip>
 
                 <Separator orientation="vertical" className="h-6 mx-1" />
 
                 {/* Media */}
-                <Button variant={editor.isActive("link") ? "secondary" : "ghost"} size="sm" onClick={addLink} className="h-8 w-8 p-0">
-                    <Link2 className="h-4 w-4" />
-                </Button>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant={editor.isActive("link") ? "secondary" : "ghost"} size="sm" onClick={addLink} className="h-8 w-8 p-0">
+                            <Link2 className="h-4 w-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Add Link</TooltipContent>
+                </Tooltip>
 
-                <Button variant="ghost" size="sm" onClick={() => setIsImageDialogOpen(true)} className="h-8 w-8 p-0">
-                    <ImageIcon className="h-4 w-4" />
-                </Button>
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                    <ImageIcon className="h-4 w-4" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Add Image</TooltipContent>
+                        </Tooltip>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80 p-0" align="start">
+                        <Tabs defaultValue="upload" className="w-full">
+                            <TabsList className="w-full justify-start rounded-none border-b bg-muted/50 p-0 h-9">
+                                <TabsTrigger value="upload" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary h-9 px-4 text-xs">Upload</TabsTrigger>
+                                <TabsTrigger value="url" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary h-9 px-4 text-xs">URL</TabsTrigger>
+                            </TabsList>
+                            <TabsContent value="upload" className="p-4">
+                                <div className="grid w-full items-center gap-3">
+                                    <Label htmlFor="image-upload" className="text-xs">Upload Image</Label>
+                                    <Input id="image-upload" type="file" accept="image/*" onChange={handleImageUpload} disabled={isUploading} className="h-8 text-xs file:text-xs" />
+                                    {isUploading && <div className="flex items-center gap-2 text-xs text-muted-foreground"><Loader2 className="h-3 w-3 animate-spin" /> Uploading...</div>}
+                                </div>
+                            </TabsContent>
+                            <TabsContent value="url" className="p-4">
+                                <form onSubmit={handleImageUrl} className="grid w-full items-center gap-3">
+                                    <Label htmlFor="image-url" className="text-xs">Image URL</Label>
+                                    <div className="flex gap-2">
+                                        <Input id="image-url" name="url" placeholder="https://..." className="h-8 text-xs" />
+                                        <Button type="submit" size="sm" className="h-8 text-xs">Add</Button>
+                                    </div>
+                                </form>
+                            </TabsContent>
+                        </Tabs>
+                    </PopoverContent>
+                </Popover>
 
-                <Button variant="ghost" size="sm" onClick={() => setIsVideoDialogOpen(true)} className="h-8 w-8 p-0">
-                    <YoutubeIcon className="h-4 w-4" />
-                </Button>
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                    <YoutubeIcon className="h-4 w-4" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Embed YouTube Video</TooltipContent>
+                        </Tooltip>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80 p-4" align="start">
+                        <form onSubmit={handleYoutubeUrl} className="grid w-full items-center gap-3">
+                            <Label htmlFor="youtube-url" className="text-xs">YouTube URL</Label>
+                            <div className="flex gap-2">
+                                <Input id="youtube-url" name="url" placeholder="https://youtube.com/..." className="h-8 text-xs" />
+                                <Button type="submit" size="sm" className="h-8 text-xs">Embed</Button>
+                            </div>
+                        </form>
+                    </PopoverContent>
+                </Popover>
 
             </div>
 

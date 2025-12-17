@@ -20,7 +20,7 @@ const Header = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full bg-primary dark:bg-background">
+      <header className="sticky top-0 z-50 w-full bg-primary dark:bg-background shadow-md dark:shadow-[0_4px_20px_rgba(55,119,255,0.15)]">
         <div className="container-main">
           <div className="flex h-16 md:h-20 items-center justify-between">
             {/* Logo */}
@@ -40,7 +40,7 @@ const Header = () => {
                 <Link
                   key={link.href}
                   to={link.href}
-                  className={`no-link-style text-base font-medium transition-colors hover:text-white ${isActive(link.href) ? "text-white" : "text-white/90"
+                  className={`no-link-style text-base font-medium transition-colors hover:text-white ${isActive(link.href) ? "text-white font-semibold" : "text-white"
                     }`}
                 >
                   {link.label}
@@ -54,7 +54,7 @@ const Header = () => {
               <Button variant="ghost" asChild className="border-2 border-white/80 text-white hover:bg-white/10 hover:text-white">
                 <Link to="/refer" className="no-link-style">Refer a Patient</Link>
               </Button>
-              <Button asChild className="bg-white !text-primary hover:bg-white/90 font-semibold">
+              <Button asChild className="bg-white text-primary dark:!text-[#00243a] hover:bg-white/90 font-semibold">
                 <Link to="/request-visit" className="no-link-style">Book a Visit</Link>
               </Button>
             </div>
@@ -80,7 +80,7 @@ const Header = () => {
                   key={link.href}
                   to={link.href}
                   onClick={() => setIsMenuOpen(false)}
-                  className={`no-link-style py-3 text-base font-medium transition-colors ${isActive(link.href) ? "text-white" : "text-white/90"
+                  className={`no-link-style py-3 text-base font-medium transition-colors ${isActive(link.href) ? "text-white font-semibold" : "text-white"
                     }`}
                 >
                   {link.label}
@@ -92,7 +92,7 @@ const Header = () => {
                     Refer a Patient
                   </Link>
                 </Button>
-                <Button asChild className="w-full justify-center bg-white !text-primary hover:bg-white/90 font-semibold">
+                <Button asChild className="w-full justify-center bg-white text-primary dark:!text-[#00243a] hover:bg-white/90 font-semibold">
                   <Link to="/request-visit" onClick={() => setIsMenuOpen(false)} className="no-link-style">
                     Book a Visit
                   </Link>

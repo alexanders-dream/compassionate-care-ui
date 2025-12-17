@@ -339,38 +339,6 @@
   background-color: hsl(var(--accent) / 0.5) !important;
 }
 
-.dark .status-contacted {
-  background-color: hsl(var(--accent) / 0.3) !important;
-}
-
-.status-scheduled {
-  background-color: hsl(var(--primary) / 0.15) !important;
-}
-
-.dark .status-scheduled {
-  background-color: hsl(var(--primary) / 0.3) !important;
-}
-
-.status-completed {
-  background-color: hsl(142 76% 90%) !important;
-}
-
-.dark .status-completed {
-  background-color: hsl(142 70% 20% / 0.4) !important;
-}
-
-.status-confirmed {
-  background-color: hsl(var(--accent) / 0.7) !important;
-}
-
-.dark .status-confirmed {
-  background-color: hsl(var(--accent) / 0.4) !important;
-}
-
-.status-cancelled {
-  background-color: hsl(var(--warm)) !important;
-}
-
 .dark .status-cancelled {
   background-color: hsl(0 60% 25% / 0.4) !important;
 }

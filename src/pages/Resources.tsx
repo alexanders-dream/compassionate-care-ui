@@ -21,7 +21,7 @@ const Resources = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="bg-[#EBF4FA] py-16 md:py-24">
+      <section className="bg-[#EBF4FA] dark:bg-background py-16 md:py-24">
         <div className="container-main text-center">
           <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-6">
             Patient <span className="text-primary">Resources</span>
@@ -70,7 +70,7 @@ const Resources = () => {
       </section>
 
       {/* FAQs Section */}
-      <section className="py-16 md:py-24 bg-warm">
+      <section className="py-16 md:py-24 bg-warm dark:bg-background">
         <div className="container-main">
           <div className="text-center mb-12">
             <HelpCircle className="w-12 h-12 text-primary mx-auto mb-4" />
@@ -95,7 +95,7 @@ const Resources = () => {
       {/* Contact CTA */}
       <section className="py-16 md:py-24">
         <div className="container-main">
-          <div className="bg-card rounded-2xl p-8 md:p-12 shadow-soft text-center">
+          <div className="bg-[#EBF4FA] dark:bg-card rounded-2xl p-8 md:p-12 shadow-soft text-center">
             <Phone className="w-12 h-12 text-primary mx-auto mb-4" />
             <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-4">
               Have More Questions?
