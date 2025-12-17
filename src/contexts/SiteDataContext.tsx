@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { supabase } from "@/integrations/supabase/client";
 
 import { defaultSiteCopy, SiteCopySection } from "@/data/siteCopy";
-import { defaultFormConfigs } from "@/data/formConfig";
+
 
 // Types based on Supabase schema
 export interface Testimonial {
@@ -50,15 +50,6 @@ export interface PatientResource {
   download_count: number;
 }
 
-
-export interface FormConfig {
-  id: string;
-  form_name: string;
-  config: any; // eslint-disable-line @typescript-eslint/no-explicit-any
-  // Legacy support for admin UI
-  name?: string;
-  fields?: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
-}
 
 export interface VisitRequest {
   id: string;
@@ -191,7 +182,7 @@ interface SiteDataContextType {
   patientResources: PatientResource[];
   visitRequests: VisitRequest[];
   referrals: ProviderReferralSubmission[];
-  formConfigs: FormConfig[];
+
   appointments: Appointment[];
   blogPosts: BlogPost[];
   siteCopy: SiteCopySection[];
@@ -205,7 +196,7 @@ interface SiteDataContextType {
   refreshPatientResources: () => Promise<void>;
   refreshVisitRequests: () => Promise<void>;
   refreshReferrals: () => Promise<void>;
-  refreshFormConfigs: () => Promise<void>;
+
   refreshAppointments: () => Promise<void>;
   refreshBlogPosts: () => Promise<void>;
   refreshSiteCopy: () => Promise<void>;
@@ -218,7 +209,7 @@ interface SiteDataContextType {
   setPatientResources: React.Dispatch<React.SetStateAction<PatientResource[]>>;
   setVisitRequests: React.Dispatch<React.SetStateAction<VisitRequest[]>>;
   setReferrals: React.Dispatch<React.SetStateAction<ProviderReferralSubmission[]>>;
-  setFormConfigs: React.Dispatch<React.SetStateAction<FormConfig[]>>;
+
   setAppointments: React.Dispatch<React.SetStateAction<Appointment[]>>;
   setBlogPosts: React.Dispatch<React.SetStateAction<BlogPost[]>>;
   setSiteCopy: React.Dispatch<React.SetStateAction<SiteCopySection[]>>;
@@ -246,7 +237,7 @@ export const SiteDataProvider = ({ children }: SiteDataProviderProps) => {
   const [patientResources, setPatientResources] = useState<PatientResource[]>([]);
   const [visitRequests, setVisitRequests] = useState<VisitRequest[]>([]);
   const [referrals, setReferrals] = useState<ProviderReferralSubmission[]>([]);
-  const [formConfigs, setFormConfigs] = useState<FormConfig[]>([]);
+
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [siteCopy, setSiteCopy] = useState<SiteCopySection[]>([]);
@@ -429,33 +420,7 @@ export const SiteDataProvider = ({ children }: SiteDataProviderProps) => {
     }
   };
 
-  const refreshFormConfigs = async () => {
-    const { data, error } = await supabase
-      .from("form_configs")
-      .select("*");
 
-    if (!error && data && data.length > 0) {
-      setFormConfigs(data.map(item => {
-        const config = item.config as any;
-        return {
-          id: item.id,
-          form_name: item.form_name,
-          config: item.config,
-          name: item.form_name,
-          fields: config?.fields || []
-        };
-      }));
-    } else {
-      // Fallback to defaults if DB is empty
-      setFormConfigs(defaultFormConfigs.map(c => ({
-        id: c.id,
-        form_name: c.name,
-        config: { description: c.description, fields: c.fields },
-        name: c.name,
-        fields: c.fields
-      })));
-    }
-  };
 
   const refreshAppointments = async () => {
     const { data, error } = await supabase
@@ -499,7 +464,7 @@ export const SiteDataProvider = ({ children }: SiteDataProviderProps) => {
         refreshPatientResources(),
         refreshVisitRequests(),
         refreshReferrals(),
-        refreshFormConfigs(),
+
         refreshAppointments(),
         refreshBlogPosts(),
         refreshSiteCopy()
@@ -520,7 +485,7 @@ export const SiteDataProvider = ({ children }: SiteDataProviderProps) => {
         patientResources,
         visitRequests,
         referrals,
-        formConfigs,
+
         appointments,
         blogPosts,
         siteCopy,
@@ -532,7 +497,7 @@ export const SiteDataProvider = ({ children }: SiteDataProviderProps) => {
         refreshPatientResources,
         refreshVisitRequests,
         refreshReferrals,
-        refreshFormConfigs,
+
         refreshAppointments,
         refreshBlogPosts,
         refreshSiteCopy,
@@ -543,7 +508,7 @@ export const SiteDataProvider = ({ children }: SiteDataProviderProps) => {
         setPatientResources,
         setVisitRequests,
         setReferrals,
-        setFormConfigs,
+
         setAppointments,
         setBlogPosts,
         setSiteCopy,

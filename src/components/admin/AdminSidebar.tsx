@@ -18,7 +18,7 @@ import {
 export type AdminSection =
   | "submissions"
   | "appointments"
-  | "forms"
+
   | "site-copy"
   | "resources"
   | "blog"
@@ -35,7 +35,7 @@ interface AdminSidebarProps {
 const menuItems: { id: AdminSection; label: string; icon: React.ElementType; path: string }[] = [
   { id: "submissions", label: "Submissions", icon: ClipboardList, path: "/admin/submissions" },
   { id: "appointments", label: "Appointments", icon: CalendarDays, path: "/admin/appointments" },
-  { id: "forms", label: "Forms", icon: Settings2, path: "/admin/forms" },
+
   { id: "site-copy", label: "Site Copy", icon: Type, path: "/admin/site-copy" },
   { id: "resources", label: "Resources", icon: BookOpen, path: "/admin/resources" },
   { id: "blog", label: "Blog", icon: FileText, path: "/admin/blog" },

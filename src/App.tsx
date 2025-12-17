@@ -35,7 +35,7 @@ import NotFound from "./pages/NotFound";
 const AdminLayout = lazy(() => import("./components/admin/AdminLayout"));
 const SubmissionsPage = lazy(() => import("./pages/admin/SubmissionsPage"));
 const AppointmentsPage = lazy(() => import("./pages/admin/AppointmentsPage"));
-const FormsPage = lazy(() => import("./pages/admin/FormsPage"));
+
 const ResourcesPage = lazy(() => import("./pages/admin/ResourcesPage"));
 const SiteCopyPage = lazy(() => import("./pages/admin/SiteCopyPage"));
 const BlogPage = lazy(() => import("./pages/admin/BlogPage"));
@@ -95,7 +95,7 @@ const App = () => (
                     <Route index element={<Navigate to="submissions" replace />} />
                     <Route path="submissions" element={<SubmissionsPage />} />
                     <Route path="appointments" element={<AppointmentsPage />} />
-                    <Route path="forms" element={<FormsPage />} />
+
                     <Route path="resources" element={<ResourcesPage />} />
                     <Route path="site-copy" element={<SiteCopyPage />} />
                     <Route path="blog" element={<BlogPage />} />
