@@ -241,7 +241,7 @@ const VisitRequestsTab = ({
             <div className="hidden md:block overflow-x-auto rounded-md border">
                 <Table>
                     <TableHeader>
-                        <TableRow className="bg-white dark:bg-white border-b-2">
+                        <TableRow className="bg-white dark:bg-white border-b">
                             <TableHead
                                 className="cursor-pointer hover:bg-muted/50 select-none"
                                 onClick={() => toggleSort("name")}

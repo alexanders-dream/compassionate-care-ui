@@ -1324,7 +1324,7 @@ const AppointmentScheduler = ({
       <div className="hidden md:block overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow className="bg-white dark:bg-white border-b-2">
+            <TableRow className="bg-white dark:bg-white border">
               <TableHead
                 className="cursor-pointer hover:bg-muted/50 select-none"
                 onClick={() => toggleSort("name")}
