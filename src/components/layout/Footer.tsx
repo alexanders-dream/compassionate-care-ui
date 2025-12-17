@@ -17,23 +17,23 @@ const Footer = () => {
               </div>
               <div>
                 <span className="font-display font-semibold text-white">AR Advanced</span>
-                <span className="block text-xs text-white/70 dark:text-white/90 -mt-1">Woundcare Solutions</span>
+                <span className="block text-xs text-white/90 dark:text-white/95 -mt-1">Woundcare Solutions</span>
               </div>
             </div>
-            <p className="text-sm text-white/80 dark:text-white mb-6 leading-relaxed">
+            <p className="text-sm text-white/95 dark:text-white mb-6 leading-relaxed">
               Compassionate, expert wound care delivered with trust and clinical excellence.
             </p>
             <div className="space-y-3">
               <a
                 href="tel:+18001234567"
-                className="no-link-style flex items-center gap-3 text-sm text-white hover:text-white/80 transition-colors"
+                className="no-link-style flex items-center gap-3 text-sm text-white hover:text-white/90 transition-colors"
               >
                 <Phone size={18} className="text-white dark:text-accent" />
                 <span>(800) 123-4567</span>
               </a>
               <a
                 href="mailto:info@arwoundcare.com"
-                className="no-link-style flex items-center gap-3 text-sm text-white hover:text-white/80 transition-colors"
+                className="no-link-style flex items-center gap-3 text-sm text-white hover:text-white/90 transition-colors"
               >
                 <Mail size={18} className="text-white dark:text-accent" />
                 <span>info@arwoundcare.com</span>
@@ -55,7 +55,7 @@ const Footer = () => {
                 <li key={link.href}>
                   <Link
                     to={link.href}
-                    className="no-link-style text-sm text-white/80 hover:text-white transition-colors"
+                    className="no-link-style text-sm text-white/95 hover:text-white transition-colors"
                   >
                     {link.label}
                   </Link>
@@ -77,7 +77,7 @@ const Footer = () => {
                 <li key={link.href}>
                   <Link
                     to={link.href}
-                    className="no-link-style text-sm text-white/80 hover:text-white transition-colors"
+                    className="no-link-style text-sm text-white/95 hover:text-white transition-colors"
                   >
                     {link.label}
                   </Link>
@@ -113,10 +113,10 @@ const Footer = () => {
       {/* Bottom Bar */}
       <div className="border-t border-white/20 dark:border-white/10">
         <div className="container-main py-6 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm text-white/80 dark:text-white/90">
+          <p className="text-sm text-white/95 dark:text-white/95">
             © {currentYear} AR Advanced Woundcare Solutions. All rights reserved.
           </p>
-          <div className="flex flex-wrap justify-center gap-6 text-sm text-white/80 dark:text-white/90">
+          <div className="flex flex-wrap justify-center gap-6 text-sm text-white/95 dark:text-white/95">
             <Link to="/privacy" className="no-link-style hover:text-white transition-colors">
               Privacy Policy
             </Link>

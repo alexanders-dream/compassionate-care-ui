@@ -26,7 +26,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Plus, Pencil, Trash2, CalendarIcon, Clock, MapPin, User, Phone, Mail, FileText, AlertCircle, Send, CheckCircle2, ArrowUpDown, Filter, Search, Eye, ChevronDown } from "lucide-react";
+import { Plus, Pencil, Trash2, CalendarIcon, Clock, MapPin, User, Phone, Mail, FileText, AlertCircle, Send, CheckCircle2, ArrowUpDown, Filter, Search, Eye, ChevronDown, ArrowDown, ArrowUp } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -1170,8 +1170,8 @@ const AppointmentScheduler = ({
         </div>
 
         {/* Filter Controls */}
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative flex-1 md:flex-none md:w-48">
+        <div className="flex flex-col gap-2">
+          <div className="relative w-full">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search..."
@@ -1180,19 +1180,42 @@ const AppointmentScheduler = ({
               className="pl-8 h-9"
             />
           </div>
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-32 h-9">
-              <Filter className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="scheduled">Scheduled</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
-              <SelectItem value="no_show">No Show</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex flex-wrap items-center gap-2">
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="w-32 h-9">
+                <Filter className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="scheduled">Scheduled</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="cancelled">Cancelled</SelectItem>
+                <SelectItem value="no_show">No Show</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select
+              value={`${sortField}-${sortDirection}`}
+              onValueChange={(value) => {
+                const [field, direction] = value.split('-') as ["name" | "date" | "status", "asc" | "desc"];
+                setSortField(field);
+                setSortDirection(direction);
+              }}
+            >
+              <SelectTrigger className="w-40 h-9">
+                {sortDirection === "asc" ? <ArrowUp className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" /> : <ArrowDown className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />}
+                <SelectValue placeholder="Sort" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="name-asc">Name (A-Z)</SelectItem>
+                <SelectItem value="name-desc">Name (Z-A)</SelectItem>
+                <SelectItem value="date-asc">Date (Old-New)</SelectItem>
+                <SelectItem value="date-desc">Date (New-Old)</SelectItem>
+                <SelectItem value="status-asc">Status (A-Z)</SelectItem>
+                <SelectItem value="status-desc">Status (Z-A)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
@@ -1231,98 +1254,87 @@ const AppointmentScheduler = ({
 
             <p className="text-xs text-muted-foreground mb-3">{apt.clinician}</p>
 
-            <div className="flex items-center justify-between">
-
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div>
-                      <Select
-                        value={apt.status}
-                        onValueChange={(value) => handleUpdateStatus(apt.id, value as Appointment["status"])}
+            {/* Action Buttons - Organized in rows */}
+            <div className="space-y-2 pt-2 border-t">
+              {/* Primary Actions Row */}
+              <div className="grid grid-cols-3 gap-2">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-9 w-full border-slate-300 text-slate-700 hover:bg-slate-100 hover:text-slate-900 flex items-center justify-center gap-1.5"
+                        onClick={() => {
+                          setViewAppointment(apt);
+                          setIsViewDialogOpen(true);
+                        }}
                       >
-                        <SelectTrigger className="w-auto min-w-[130px] h-8 border-0 bg-transparent hover:bg-muted/50 px-0 [&>svg]:hidden">
-                          {getStatusBadge(apt.status, true)}
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="scheduled" className="text-sm font-medium">
-                            <div className="flex items-center gap-2">
-                              <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
-                              <span className="text-indigo-700">Scheduled</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="completed" className="text-sm font-medium">
-                            <div className="flex items-center gap-2">
-                              <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                              <span className="text-blue-700">Completed</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="cancelled" className="text-sm font-medium">
-                            <div className="flex items-center gap-2">
-                              <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                              <span className="text-red-700">Cancelled</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="no_show" className="text-sm font-medium">
-                            <div className="flex items-center gap-2">
-                              <div className="w-3 h-3 rounded-full bg-gray-500"></div>
-                              <span className="text-gray-700">No Show</span>
-                            </div>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </TooltipTrigger>
-                  {apt.status === "scheduled" && (
-                    <TooltipContent>
-                      <div className="flex items-center gap-2">
-                        <CalendarIcon className="h-4 w-4" />
-                        <span>
-                          {format(new Date(apt.appointmentDate), "MMM d, yyyy")} @ {apt.appointmentTime}
-                        </span>
-                      </div>
-                    </TooltipContent>
-                  )}
-                </Tooltip>
-              </TooltipProvider>
-              <div className="flex gap-1">
+                        <Eye className="h-3.5 w-3.5" />
+                        <span className="text-xs">View</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>View appointment details</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-9 w-full border-slate-300 text-slate-700 hover:bg-slate-100 hover:text-slate-900 disabled:opacity-50 flex items-center justify-center gap-1.5"
+                        onClick={() => window.location.href = `tel:${apt.patientPhone}`}
+                        disabled={!apt.patientPhone}
+                      >
+                        <Phone className="h-3.5 w-3.5" />
+                        <span className="text-xs">Call</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Call patient</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openEmailDialog(apt)}
+                        disabled={!apt.patientEmail}
+                        className="h-9 w-full border-slate-300 text-slate-700 hover:bg-slate-100 hover:text-slate-900 disabled:opacity-50 flex items-center justify-center gap-1.5"
+                      >
+                        <Send className="h-3.5 w-3.5" />
+                        <span className="text-xs">Email</span>
+                        {emailsSent[apt.id] && <CheckCircle2 className="h-3 w-3 text-blue-500" />}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Send email to patient</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+
+              {/* Secondary Actions Row */}
+              <div className="grid grid-cols-2 gap-2">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-8 w-8 p-0 border-slate-400 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
-                  onClick={() => {
-                    setViewAppointment(apt);
-                    setIsViewDialogOpen(true);
-                  }}
-                  title="View Details"
+                  className="h-9 w-full border-slate-300 text-slate-700 hover:bg-slate-100 hover:text-slate-900 flex items-center justify-center gap-1.5"
+                  onClick={() => handleEditAppointment(apt)}
                 >
-                  <Eye className="h-3 w-3" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 w-8 p-0 border-slate-400 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
-                  onClick={() => window.location.href = `tel:${apt.patientPhone}`}
-                  disabled={!apt.patientPhone}
-                  title="Call Patient"
-                >
-                  <Phone className="h-3 w-3" />
+                  <Pencil className="h-3.5 w-3.5" />
+                  <span className="text-xs">Edit</span>
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => openEmailDialog(apt)}
-                  disabled={!apt.patientEmail}
-                  className="h-8 px-2 border-slate-400 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                  className="h-9 w-full border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700 flex items-center justify-center gap-1.5"
+                  onClick={() => handleDeleteAppointment(apt.id)}
                 >
-                  <Send className="h-3 w-3" />
-                  {emailsSent[apt.id] && <CheckCircle2 className="h-3 w-3 text-blue-500 ml-1" />}
-                </Button>
-                <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => handleEditAppointment(apt)}>
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="sm" className="h-8 px-2 hover:bg-destructive/10" onClick={() => handleDeleteAppointment(apt.id)}>
-                  <Trash2 className="h-4 w-4 text-destructive" />
+                  <Trash2 className="h-3.5 w-3.5" />
+                  <span className="text-xs">Delete</span>
                 </Button>
               </div>
             </div>

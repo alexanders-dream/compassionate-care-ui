@@ -54,7 +54,7 @@ const ServicesPreview = () => {
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
                 <CardContent className="p-6">
-                  <div className="w-14 h-14 rounded-xl bg-accent flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                  <div className="w-14 h-14 rounded-xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center mb-4 group-hover:bg-blue-200 dark:group-hover:bg-blue-800/50 transition-colors">
                     <service.icon size={28} className="text-primary" />
                   </div>
                   <h3 className="text-xl font-semibold mb-2">

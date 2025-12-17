@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import {
-    Mail, Send, CalendarDays, CheckCircle2, ArrowUpDown, Search, Filter, Trash2, Calendar, Phone, Eye, ChevronDown
+    Mail, Send, CalendarDays, CheckCircle2, ArrowUpDown, Search, Filter, Trash2, Calendar, Phone, Eye, ChevronDown, ArrowDown, ArrowUp
 } from "lucide-react";
 import { SubmissionDetailsDialog } from "../SubmissionDetailsDialog";
 import {
@@ -123,30 +123,53 @@ const VisitRequestsTab = ({
                     Visit Requests ({visitRequests.length})
                 </h2>
 
-                {/* Added Search/Filter Controls that were missing in original layout */}
-                <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-                    <div className="relative w-full sm:w-64">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                {/* Search/Filter/Sort Controls matching appointments styling */}
+                <div className="flex flex-col gap-2 w-full md:w-auto">
+                    <div className="relative w-full">
+                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
-                            placeholder="Search requests..."
-                            className="pl-8"
+                            placeholder="Search..."
+                            className="pl-8 h-9"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
-                    <Select value={filterStatus} onValueChange={setFilterStatus}>
-                        <SelectTrigger className="w-full sm:w-[150px]">
-                            <Filter className="h-4 w-4 mr-2" />
-                            <SelectValue placeholder="Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All Statuses</SelectItem>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="contacted">Contacted</SelectItem>
-                            <SelectItem value="scheduled">Scheduled</SelectItem>
-                            <SelectItem value="completed">Completed</SelectItem>
-                        </SelectContent>
-                    </Select>
+                    <div className="flex flex-wrap items-center gap-2">
+                        <Select value={filterStatus} onValueChange={setFilterStatus}>
+                            <SelectTrigger className="w-32 h-9">
+                                <Filter className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+                                <SelectValue placeholder="Status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Status</SelectItem>
+                                <SelectItem value="pending">Pending</SelectItem>
+                                <SelectItem value="contacted">Contacted</SelectItem>
+                                <SelectItem value="scheduled">Scheduled</SelectItem>
+                                <SelectItem value="completed">Completed</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Select
+                            value={`${sortField}-${sortDirection}`}
+                            onValueChange={(value) => {
+                                const [field, direction] = value.split('-') as ["name" | "date" | "status", "asc" | "desc"];
+                                setSortField(field);
+                                setSortDirection(direction);
+                            }}
+                        >
+                            <SelectTrigger className="w-40 h-9">
+                                {sortDirection === "asc" ? <ArrowUp className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" /> : <ArrowDown className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />}
+                                <SelectValue placeholder="Sort" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="name-asc">Name (A-Z)</SelectItem>
+                                <SelectItem value="name-desc">Name (Z-A)</SelectItem>
+                                <SelectItem value="date-asc">Date (Old-New)</SelectItem>
+                                <SelectItem value="date-desc">Date (New-Old)</SelectItem>
+                                <SelectItem value="status-asc">Status (A-Z)</SelectItem>
+                                <SelectItem value="status-desc">Status (Z-A)</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </div>
             </div>
 
