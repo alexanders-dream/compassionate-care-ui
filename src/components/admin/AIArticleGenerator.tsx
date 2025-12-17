@@ -12,9 +12,10 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
   Sparkles, Search, Loader2, Plus, X, Image, Youtube, Save, Send, Settings,
-  Lightbulb, RefreshCw, Wand2, Eye, EyeOff, Check
+  Lightbulb, RefreshCw, Wand2, Eye, EyeOff, Check, ChevronDown
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { aiProviders, getProviderById, AIModel } from "@/data/aiProviders";
 import { BlogPost, categories, blogPosts } from "@/data/blogPosts";
 import { supabase } from "@/integrations/supabase/client";
@@ -238,11 +239,25 @@ const AIArticleGenerator = ({ onSaveArticle, editingArticle }: AIArticleGenerato
       {/* AI Config Card */}
       <Card>
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between cursor-pointer" onClick={() => setIsConfigExpanded(!isConfigExpanded)}>
+          <div className="flex items-center justify-between">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Settings className="h-4 w-4" /> AI Configuration
             </CardTitle>
-            {isConfigExpanded ? <X className="h-4 w-4 text-muted-foreground" /> : <Settings className="h-4 w-4 text-muted-foreground" />}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => setIsConfigExpanded(!isConfigExpanded)}
+                    className="p-1 rounded hover:bg-blue-100 transition-colors"
+                  >
+                    <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${isConfigExpanded ? 'rotate-180' : ''}`} />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {isConfigExpanded ? 'Collapse settings' : 'Expand settings'}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </CardHeader>
         {isConfigExpanded && (

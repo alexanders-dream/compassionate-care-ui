@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Sparkles, Wand2, RotateCcw, RotateCw, Save, X, Bold, Italic,
   List, ListOrdered, Heading2, Quote, Link2, Image as ImageIcon,
@@ -400,62 +401,102 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
 
                 {/* Formatting Toolbar */}
                 <div className="flex items-center gap-1 p-2 bg-muted/50 rounded-lg flex-wrap">
-                  <Button
-                    variant={editor.isActive("bold") ? "secondary" : "ghost"}
-                    size="sm"
-                    onClick={() => editor.chain().focus().toggleBold().run()}
-                  >
-                    <Bold className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={editor.isActive("italic") ? "secondary" : "ghost"}
-                    size="sm"
-                    onClick={() => editor.chain().focus().toggleItalic().run()}
-                  >
-                    <Italic className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={editor.isActive("heading", { level: 2 }) ? "secondary" : "ghost"}
-                    size="sm"
-                    onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-                  >
-                    <Heading2 className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={editor.isActive("bulletList") ? "secondary" : "ghost"}
-                    size="sm"
-                    onClick={() => editor.chain().focus().toggleBulletList().run()}
-                  >
-                    <List className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={editor.isActive("orderedList") ? "secondary" : "ghost"}
-                    size="sm"
-                    onClick={() => editor.chain().focus().toggleOrderedList().run()}
-                  >
-                    <ListOrdered className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={editor.isActive("blockquote") ? "secondary" : "ghost"}
-                    size="sm"
-                    onClick={() => editor.chain().focus().toggleBlockquote().run()}
-                  >
-                    <Quote className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={editor.isActive("link") ? "secondary" : "ghost"}
-                    size="sm"
-                    onClick={addLink}
-                  >
-                    <Link2 className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={addImage}
-                  >
-                    <ImageIcon className="h-4 w-4" />
-                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant={editor.isActive("bold") ? "secondary" : "ghost"}
+                        size="sm"
+                        onClick={() => editor.chain().focus().toggleBold().run()}
+                      >
+                        <Bold className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Bold</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant={editor.isActive("italic") ? "secondary" : "ghost"}
+                        size="sm"
+                        onClick={() => editor.chain().focus().toggleItalic().run()}
+                      >
+                        <Italic className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Italic</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant={editor.isActive("heading", { level: 2 }) ? "secondary" : "ghost"}
+                        size="sm"
+                        onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+                      >
+                        <Heading2 className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Heading</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant={editor.isActive("bulletList") ? "secondary" : "ghost"}
+                        size="sm"
+                        onClick={() => editor.chain().focus().toggleBulletList().run()}
+                      >
+                        <List className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Bullet List</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant={editor.isActive("orderedList") ? "secondary" : "ghost"}
+                        size="sm"
+                        onClick={() => editor.chain().focus().toggleOrderedList().run()}
+                      >
+                        <ListOrdered className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Numbered List</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant={editor.isActive("blockquote") ? "secondary" : "ghost"}
+                        size="sm"
+                        onClick={() => editor.chain().focus().toggleBlockquote().run()}
+                      >
+                        <Quote className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Quote</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant={editor.isActive("link") ? "secondary" : "ghost"}
+                        size="sm"
+                        onClick={addLink}
+                      >
+                        <Link2 className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Add Link</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={addImage}
+                      >
+                        <ImageIcon className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Add Image</TooltipContent>
+                  </Tooltip>
 
                   <div className="h-6 w-px bg-border mx-2" />
 

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +18,8 @@ import {
     DropdownMenuTrigger,
     DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { Plus, Pencil, Trash2, Sparkles, Share2, Mail } from "lucide-react";
+import { Plus, Pencil, Trash2, Sparkles, Share2, Mail, ArrowLeft } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import AIArticleGenerator, { ArticleMedia } from "@/components/admin/AIArticleGenerator";
 import { BlogPost, categories } from "@/data/blogPosts";
 
@@ -42,7 +43,15 @@ const BlogTab = ({
     onSharePost,
 }: BlogTabProps) => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [showAIGenerator, setShowAIGenerator] = useState(false);
+
+    // Reset AI generator view when navigating to the blog tab
+    useEffect(() => {
+        if (location.pathname === "/admin/blog") {
+            setShowAIGenerator(false);
+        }
+    }, [location.pathname, location.key]);
 
     const getStatusBadge = (status?: string) => {
         switch (status) {
@@ -64,9 +73,31 @@ const BlogTab = ({
         <>
             {showAIGenerator ? (
                 <div className="space-y-4">
-                    <Button variant="outline" onClick={() => setShowAIGenerator(false)}>
-                        ← Back to Posts
-                    </Button>
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+                        <div className="flex-1">
+                            <h2 className="text-lg md:text-xl font-semibold mb-2">AI Article Generator</h2>
+                            <p className="text-sm text-muted-foreground">
+                                Use AI to generate high-quality blog content. Configure your AI provider, select a topic, and let the AI create SEO-optimized articles for your blog. <span className="font-medium text-amber-600">AI can make mistakes—check responses before publishing.</span>
+                            </p>
+                        </div>
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={() => setShowAIGenerator(false)}
+                                        className="shrink-0"
+                                    >
+                                        <ArrowLeft className="h-4 w-4" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    Back to Posts
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </div>
                     <AIArticleGenerator
                         onSaveArticle={handleSaveArticle}
                         editingArticle={null}

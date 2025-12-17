@@ -61,7 +61,7 @@ const SidebarNavItem = ({
       to={item.path}
       onClick={onItemClick}
       className={({ isActive }) => cn(
-        "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
+        "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium",
         isActive
           ? "bg-blue-100 dark:bg-blue-900/40 text-foreground"
           : "text-muted-foreground hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-foreground",
