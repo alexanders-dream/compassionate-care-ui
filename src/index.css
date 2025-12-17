@@ -99,16 +99,11 @@
     --secondary: 199 60% 70%;
     --secondary-foreground: 205 100% 7%;
 
-    --muted: 205 70% 15%;
-    --muted-foreground: 199 50% 75%;
+    --muted: 211 40% 20%;
+    --muted-foreground: 170 30% 70%;
 
-    /* Icy Blue muted for dark mode */
-    --accent: 199 60% 25%;
-    --accent-foreground: 199 80% 90%;
-
-    /* Honey Bronze adjusted for dark mode */
-    --cta: 37 85% 55%;
-    --cta-foreground: 205 100% 7%;
+    --accent: 170 40% 30%;
+    --accent-foreground: 170 64% 85%;
 
     --warm: 37 60% 18%;
     --warm-foreground: 37 80% 85%;

@@ -13,15 +13,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { 
-  Sparkles, Wand2, RotateCcw, RotateCw, Save, X, Bold, Italic, 
+import {
+  Sparkles, Wand2, RotateCcw, RotateCw, Save, X, Bold, Italic,
   List, ListOrdered, Heading2, Quote, Link2, Image as ImageIcon,
   Loader2, CheckCircle2, Eye, EyeOff,
   FileText, Settings2, MessageSquare, Zap, PenLine, RefreshCw
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { BlogPost, categories } from "@/data/blogPosts";
-import { aiProviders, getProviderById } from "@/data/aiProviders";
+import { aiProviders, getProviderById, AIModel } from "@/data/aiProviders";
+import { supabase } from "@/integrations/supabase/client";
+import { getAIConfig, AIConfig } from "@/lib/ai/config";
+import { fetchModels, clearModelCache } from "@/lib/ai/service";
 
 interface AITextEditorProps {
   post: BlogPost;
@@ -44,7 +47,7 @@ const aiActions: { id: AIAction; label: string; icon: React.ReactNode; descripti
 
 const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
   const { toast } = useToast();
-  
+
   // Content state
   const [title, setTitle] = useState(post.title);
   const [excerpt, setExcerpt] = useState(post.excerpt);
@@ -52,17 +55,68 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
   const [author, setAuthor] = useState(post.author);
   const [readTime, setReadTime] = useState(post.readTime);
   const [featuredImage, setFeaturedImage] = useState(post.image || "");
-  
-  // AI state
-  const [selectedProvider, setSelectedProvider] = useState<string>("");
-  const [selectedModel, setSelectedModel] = useState<string>("");
-  const [apiKey, setApiKey] = useState<string>("");
+
+  // AI state - now using AIConfig structure
+  const [config, setConfig] = useState<AIConfig>({ provider: "", apiKey: "", model: "" });
   const [showApiKey, setShowApiKey] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [customPrompt, setCustomPrompt] = useState("");
   const [selectedText, setSelectedText] = useState("");
   const [scrollProgress, setScrollProgress] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null);
+
+  // Dynamic models state
+  const [availableModels, setAvailableModels] = useState<AIModel[]>([]);
+  const [isLoadingModels, setIsLoadingModels] = useState(false);
+
+  // Load saved AI config on mount
+  useEffect(() => {
+    const loadConfig = async () => {
+      const savedConfig = await getAIConfig(supabase);
+      if (savedConfig) {
+        setConfig(savedConfig);
+      }
+    };
+    loadConfig();
+  }, []);
+
+  // Fetch models when provider or API key changes
+  useEffect(() => {
+    const loadModels = async () => {
+      if (!config.provider) {
+        setAvailableModels([]);
+        return;
+      }
+
+      setIsLoadingModels(true);
+      try {
+        const models = await fetchModels(config.provider, config.apiKey);
+        setAvailableModels(models);
+      } catch (error) {
+        console.error('Failed to load models:', error);
+        setAvailableModels([]);
+      } finally {
+        setIsLoadingModels(false);
+      }
+    };
+    loadModels();
+  }, [config.provider, config.apiKey]);
+
+  // Refresh models function
+  const handleRefreshModels = async () => {
+    if (!config.provider) return;
+    clearModelCache(config.provider);
+    setIsLoadingModels(true);
+    try {
+      const models = await fetchModels(config.provider, config.apiKey);
+      setAvailableModels(models);
+      toast({ title: "Models refreshed", description: `Loaded ${models.length} models` });
+    } catch (error) {
+      toast({ title: "Failed to refresh models", variant: "destructive" });
+    } finally {
+      setIsLoadingModels(false);
+    }
+  };
 
   // Handle scroll progress
   useEffect(() => {
@@ -71,8 +125,8 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
 
     const handleScroll = () => {
       const { scrollTop, scrollHeight, clientHeight } = contentEl;
-      const progress = scrollHeight > clientHeight 
-        ? (scrollTop / (scrollHeight - clientHeight)) * 100 
+      const progress = scrollHeight > clientHeight
+        ? (scrollTop / (scrollHeight - clientHeight)) * 100
         : 0;
       setScrollProgress(progress);
     };
@@ -82,8 +136,8 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
   }, []);
 
   const categoryOptions = categories.filter(c => c.id !== "all");
-  const provider = getProviderById(selectedProvider);
-  const isAIConfigured = selectedProvider && selectedModel && apiKey;
+  const provider = getProviderById(config.provider);
+  const isAIConfigured = config.provider && config.model && config.apiKey;
 
   // TipTap Editor
   const editor = useEditor({
@@ -137,48 +191,48 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
     setIsProcessing(true);
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Build prompt based on action
+      const actionPrompts: Record<AIAction, string> = {
+        rewrite: "Rewrite the following text while preserving its meaning. Return only the rewritten text, no explanations.",
+        expand: "Expand the following text with more detail and depth. Maintain a professional tone. Return only the expanded text.",
+        summarize: "Summarize the following text concisely. Return only the summary, no explanations.",
+        improve: "Improve the quality, flow, and clarity of the following text. Return only the improved text.",
+        fix_grammar: "Fix any grammar, spelling, and punctuation errors in the following text. Return only the corrected text.",
+        make_formal: "Rewrite the following text in a more formal, professional, and medical-appropriate tone. Return only the formal version.",
+        make_casual: "Rewrite the following text in a more casual, empathetic, and patient-friendly tone. Return only the casual version.",
+        add_examples: "Add practical, relevant examples to illustrate the points in the following text. Return the text with examples added."
+      };
 
-      let processedText = textToProcess;
+      const systemPrompt = "You are an expert medical content assistant. Output properly formatted HTML content (using <p>, <ul>, <li>, <strong> tags where appropriate) but do NOT wrap the entire response in markdown code blocks. Just return the raw HTML.";
 
-      switch (action) {
-        case "rewrite":
-          processedText = `${textToProcess.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ")}`;
-          break;
-        case "expand":
-          processedText = `${textToProcess} Additionally, this encompasses various aspects that deserve careful consideration. Understanding these nuances can significantly impact outcomes.`;
-          break;
-        case "summarize":
-          processedText = textToProcess.split(".").slice(0, 2).join(".") + ".";
-          break;
-        case "improve":
-          processedText = textToProcess.replace(/very/gi, "exceptionally").replace(/good/gi, "excellent");
-          break;
-        case "fix_grammar":
-          processedText = textToProcess.charAt(0).toUpperCase() + textToProcess.slice(1);
-          break;
-        case "make_formal":
-          processedText = textToProcess.replace(/can't/gi, "cannot").replace(/won't/gi, "will not");
-          break;
-        case "make_casual":
-          processedText = textToProcess.replace(/cannot/gi, "can't").replace(/will not/gi, "won't");
-          break;
-        case "add_examples":
-          processedText = `${textToProcess}\n\nFor example:\n• A practical demonstration\n• A real-world application\n• How this applies to common scenarios`;
-          break;
-      }
+      // Import callAI dynamically to avoid cycle if it was static
+      const { callAI } = await import("@/lib/ai/service");
 
+      const processedText = await callAI({
+        config,
+        systemPrompt: systemPrompt,
+        userPrompt: `${actionPrompts[action]}:\n\n"${textToProcess}"`
+      });
+
+      // Apply to editor
       if (selectedText) {
         const { from, to } = editor.state.selection;
-        editor.chain().focus().deleteRange({ from, to }).insertContent(processedText).run();
+        // If the returned text doesn't look like HTML, wrap it
+        const contentToInsert = processedText.trim().startsWith("<") ? processedText : `<p>${processedText}</p>`;
+        editor.chain().focus().deleteRange({ from, to }).insertContent(contentToInsert).run();
       } else {
-        editor.commands.setContent(`<p>${processedText}</p>`);
+        // Replacing full content
+        // Ensure no markdown code blocks wrapping
+        const cleanContent = processedText.replace(/^```html/, '').replace(/```$/, '').trim();
+        const contentToSet = cleanContent.startsWith("<") ? cleanContent : `<p>${cleanContent}</p>`;
+        editor.commands.setContent(contentToSet);
       }
 
       setSelectedText("");
       toast({ title: `AI ${action.replace("_", " ")} completed` });
-    } catch (error) {
-      toast({ title: "AI processing failed", variant: "destructive" });
+    } catch (error: any) {
+      console.error("AI Action failed:", error);
+      toast({ title: "AI processing failed", description: error.message, variant: "destructive" });
     } finally {
       setIsProcessing(false);
     }
@@ -197,23 +251,35 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
     setIsProcessing(true);
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
       const textToProcess = selectedText || editor.getText();
-      const processedText = `[AI Edit: "${customPrompt.slice(0, 30)}..."]\n\n${textToProcess}`;
+      const systemPrompt = "You are an expert medical content assistant. Output properly formatted HTML content (using <p>, <ul>, <li>, <strong> tags where appropriate) but do NOT wrap the entire response in markdown code blocks. Just return the raw HTML.";
 
+      // Import callAI dynamically
+      const { callAI } = await import("@/lib/ai/service");
+
+      const processedText = await callAI({
+        config,
+        systemPrompt: systemPrompt,
+        userPrompt: `Instruction: ${customPrompt}\n\nContent to process:\n"${textToProcess}"`
+      });
+
+      // Apply to editor
       if (selectedText) {
         const { from, to } = editor.state.selection;
-        editor.chain().focus().deleteRange({ from, to }).insertContent(processedText).run();
+        const contentToInsert = processedText.trim().startsWith("<") ? processedText : `<p>${processedText}</p>`;
+        editor.chain().focus().deleteRange({ from, to }).insertContent(contentToInsert).run();
       } else {
-        editor.commands.setContent(`<p>${processedText}</p>`);
+        const cleanContent = processedText.replace(/^```html/, '').replace(/```$/, '').trim();
+        const contentToSet = cleanContent.startsWith("<") ? cleanContent : `<p>${cleanContent}</p>`;
+        editor.commands.setContent(contentToSet);
       }
 
       setSelectedText("");
       setCustomPrompt("");
       toast({ title: "Custom AI edit applied" });
-    } catch (error) {
-      toast({ title: "AI processing failed", variant: "destructive" });
+    } catch (error: any) {
+      console.error("AI Action failed:", error);
+      toast({ title: "AI processing failed", description: error.message, variant: "destructive" });
     } finally {
       setIsProcessing(false);
     }
@@ -271,18 +337,18 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
           )}
         </div>
         <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => editor.chain().focus().undo().run()}
             disabled={!editor.can().undo()}
           >
             <RotateCcw className="h-4 w-4 mr-1" />
             Undo
           </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => editor.chain().focus().redo().run()}
             disabled={!editor.can().redo()}
           >
@@ -314,7 +380,7 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
               </TabsList>
               {/* Scroll Progress Indicator */}
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-muted">
-                <div 
+                <div
                   className="h-full bg-primary transition-all duration-150 ease-out"
                   style={{ width: `${scrollProgress}%` }}
                 />
@@ -334,65 +400,65 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
 
                 {/* Formatting Toolbar */}
                 <div className="flex items-center gap-1 p-2 bg-muted/50 rounded-lg flex-wrap">
-                  <Button 
-                    variant={editor.isActive("bold") ? "secondary" : "ghost"} 
-                    size="sm" 
+                  <Button
+                    variant={editor.isActive("bold") ? "secondary" : "ghost"}
+                    size="sm"
                     onClick={() => editor.chain().focus().toggleBold().run()}
                   >
                     <Bold className="h-4 w-4" />
                   </Button>
-                  <Button 
-                    variant={editor.isActive("italic") ? "secondary" : "ghost"} 
-                    size="sm" 
+                  <Button
+                    variant={editor.isActive("italic") ? "secondary" : "ghost"}
+                    size="sm"
                     onClick={() => editor.chain().focus().toggleItalic().run()}
                   >
                     <Italic className="h-4 w-4" />
                   </Button>
-                  <Button 
-                    variant={editor.isActive("heading", { level: 2 }) ? "secondary" : "ghost"} 
-                    size="sm" 
+                  <Button
+                    variant={editor.isActive("heading", { level: 2 }) ? "secondary" : "ghost"}
+                    size="sm"
                     onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
                   >
                     <Heading2 className="h-4 w-4" />
                   </Button>
-                  <Button 
-                    variant={editor.isActive("bulletList") ? "secondary" : "ghost"} 
-                    size="sm" 
+                  <Button
+                    variant={editor.isActive("bulletList") ? "secondary" : "ghost"}
+                    size="sm"
                     onClick={() => editor.chain().focus().toggleBulletList().run()}
                   >
                     <List className="h-4 w-4" />
                   </Button>
-                  <Button 
-                    variant={editor.isActive("orderedList") ? "secondary" : "ghost"} 
-                    size="sm" 
+                  <Button
+                    variant={editor.isActive("orderedList") ? "secondary" : "ghost"}
+                    size="sm"
                     onClick={() => editor.chain().focus().toggleOrderedList().run()}
                   >
                     <ListOrdered className="h-4 w-4" />
                   </Button>
-                  <Button 
-                    variant={editor.isActive("blockquote") ? "secondary" : "ghost"} 
-                    size="sm" 
+                  <Button
+                    variant={editor.isActive("blockquote") ? "secondary" : "ghost"}
+                    size="sm"
                     onClick={() => editor.chain().focus().toggleBlockquote().run()}
                   >
                     <Quote className="h-4 w-4" />
                   </Button>
-                  <Button 
-                    variant={editor.isActive("link") ? "secondary" : "ghost"} 
-                    size="sm" 
+                  <Button
+                    variant={editor.isActive("link") ? "secondary" : "ghost"}
+                    size="sm"
                     onClick={addLink}
                   >
                     <Link2 className="h-4 w-4" />
                   </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={addImage}
                   >
                     <ImageIcon className="h-4 w-4" />
                   </Button>
-                  
+
                   <div className="h-6 w-px bg-border mx-2" />
-                  
+
                   {selectedText && (
                     <Badge variant="outline" className="text-xs">
                       {selectedText.length} chars selected
@@ -479,7 +545,7 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="px-4 pb-4 space-y-3">
-                  <Select value={selectedProvider} onValueChange={(v) => { setSelectedProvider(v); setSelectedModel(""); }}>
+                  <Select value={config.provider} onValueChange={(v) => setConfig(prev => ({ ...prev, provider: v, model: "" }))}>
                     <SelectTrigger className="h-9 text-sm">
                       <SelectValue placeholder="Select provider..." />
                     </SelectTrigger>
@@ -490,22 +556,50 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
                     </SelectContent>
                   </Select>
 
-                  <Select value={selectedModel} onValueChange={setSelectedModel} disabled={!selectedProvider}>
-                    <SelectTrigger className="h-9 text-sm">
-                      <SelectValue placeholder="Select model..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {provider?.models.map(m => (
-                        <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {config.provider && (
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">Model</span>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-5 w-5"
+                          onClick={handleRefreshModels}
+                          disabled={isLoadingModels || !config.apiKey}
+                          title="Refresh models"
+                        >
+                          <RefreshCw className={`h-3 w-3 ${isLoadingModels ? 'animate-spin' : ''}`} />
+                        </Button>
+                      </div>
+                      {isLoadingModels ? (
+                        <div className="flex items-center justify-center h-9 bg-muted/50 rounded border text-xs text-muted-foreground">
+                          <Loader2 className="h-3 w-3 animate-spin mr-2" />
+                          Loading...
+                        </div>
+                      ) : availableModels.length > 0 ? (
+                        <Select value={config.model} onValueChange={(v) => setConfig(prev => ({ ...prev, model: v }))}>
+                          <SelectTrigger className="h-9 text-sm">
+                            <SelectValue placeholder="Select model..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableModels.map(m => (
+                              <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="flex items-center justify-center h-9 bg-muted/30 rounded border border-dashed text-xs text-muted-foreground">
+                          {config.apiKey ? "Click refresh" : "Enter API key"}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   <div className="flex gap-2">
                     <Input
                       type={showApiKey ? "text" : "password"}
-                      value={apiKey}
-                      onChange={(e) => setApiKey(e.target.value)}
+                      value={config.apiKey}
+                      onChange={(e) => setConfig(prev => ({ ...prev, apiKey: e.target.value }))}
                       placeholder="API Key"
                       className="h-9 text-sm"
                     />

@@ -9,6 +9,7 @@ import { SiteDataProvider } from "@/contexts/SiteDataContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ScrollToTop from "@/components/ScrollToTop";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import Index from "./pages/Index";
 import Services from "./pages/Services";
@@ -62,54 +63,56 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
-              <ScrollToTop />
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/services" element={<Services />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/request-visit" element={<RequestVisit />} />
-                <Route path="/refer" element={<ProviderReferral />} />
-                <Route path="/conditions" element={<Conditions />} />
-                <Route path="/testimonials" element={<Testimonials />} />
-                <Route path="/resources" element={<Resources />} />
-                <Route path="/insurance" element={<Insurance />} />
-                <Route path="/community" element={<Community />} />
-                <Route path="/privacy" element={<Privacy />} />
-                <Route path="/terms" element={<Terms />} />
-                <Route path="/accessibility" element={<Accessibility />} />
-                <Route path="/blog" element={<Blog />} />
-                <Route path="/blog/:slug" element={<BlogPost />} />
-                <Route path="/auth" element={<Auth />} />
+              <ErrorBoundary>
+                <ScrollToTop />
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/services" element={<Services />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/contact" element={<Contact />} />
+                  <Route path="/request-visit" element={<RequestVisit />} />
+                  <Route path="/refer" element={<ProviderReferral />} />
+                  <Route path="/conditions" element={<Conditions />} />
+                  <Route path="/testimonials" element={<Testimonials />} />
+                  <Route path="/resources" element={<Resources />} />
+                  <Route path="/insurance" element={<Insurance />} />
+                  <Route path="/community" element={<Community />} />
+                  <Route path="/privacy" element={<Privacy />} />
+                  <Route path="/terms" element={<Terms />} />
+                  <Route path="/accessibility" element={<Accessibility />} />
+                  <Route path="/blog" element={<Blog />} />
+                  <Route path="/blog/:slug" element={<BlogPost />} />
+                  <Route path="/auth" element={<Auth />} />
 
-                {/* Admin Routes */}
-                <Route path="/admin" element={
-                  <ProtectedRoute requireAdmin>
-                    <Suspense fallback={<AdminLoadingFallback />}>
-                      <AdminLayout />
-                    </Suspense>
-                  </ProtectedRoute>
-                }>
-                  <Route index element={<Navigate to="submissions" replace />} />
-                  <Route path="submissions" element={<SubmissionsPage />} />
-                  <Route path="appointments" element={<AppointmentsPage />} />
-                  <Route path="forms" element={<FormsPage />} />
-                  <Route path="resources" element={<ResourcesPage />} />
-                  <Route path="site-copy" element={<SiteCopyPage />} />
-                  <Route path="blog" element={<BlogPage />} />
-                  <Route path="testimonials" element={<TestimonialsPage />} />
-                  <Route path="services" element={<ServicesPage />} />
-                  <Route path="team" element={<TeamPage />} />
-                  <Route path="faqs" element={<FaqsPage />} />
+                  {/* Admin Routes */}
+                  <Route path="/admin" element={
+                    <ProtectedRoute requireAdmin>
+                      <Suspense fallback={<AdminLoadingFallback />}>
+                        <AdminLayout />
+                      </Suspense>
+                    </ProtectedRoute>
+                  }>
+                    <Route index element={<Navigate to="submissions" replace />} />
+                    <Route path="submissions" element={<SubmissionsPage />} />
+                    <Route path="appointments" element={<AppointmentsPage />} />
+                    <Route path="forms" element={<FormsPage />} />
+                    <Route path="resources" element={<ResourcesPage />} />
+                    <Route path="site-copy" element={<SiteCopyPage />} />
+                    <Route path="blog" element={<BlogPage />} />
+                    <Route path="testimonials" element={<TestimonialsPage />} />
+                    <Route path="services" element={<ServicesPage />} />
+                    <Route path="team" element={<TeamPage />} />
+                    <Route path="faqs" element={<FaqsPage />} />
 
-                  {/* Blog Editor Routes */}
-                  <Route path="blog/new" element={<BlogEditor />} />
-                  <Route path="blog/:postId" element={<BlogEditor />} />
-                </Route>
+                    {/* Blog Editor Routes */}
+                    <Route path="blog/new" element={<BlogEditor />} />
+                    <Route path="blog/:postId" element={<BlogEditor />} />
+                  </Route>
 
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </ErrorBoundary>
             </BrowserRouter>
           </TooltipProvider>
         </SiteDataProvider>

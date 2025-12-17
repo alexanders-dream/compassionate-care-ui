@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -217,8 +218,8 @@ const Contact = () => {
                     )}
                   />
 
-                  <Button type="submit" size="lg" className="w-full">
-                    Send Message
+                  <Button type="submit" size="lg" className="w-full" disabled={form.formState.isSubmitting}>
+                    {form.formState.isSubmitting ? "Sending..." : "Send Message"}
                   </Button>
                 </form>
               </Form>
@@ -238,10 +239,10 @@ const Contact = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="no-link-style" asChild>
-              <a href="/request-visit">Schedule a Visit</a>
+              <Link to="/request-visit">Schedule a Visit</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <a href="/refer">Refer a Patient</a>
+              <Link to="/refer">Refer a Patient</Link>
             </Button>
           </div>
         </div>

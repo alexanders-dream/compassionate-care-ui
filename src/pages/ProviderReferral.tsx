@@ -401,8 +401,8 @@ const ProviderReferral = () => {
                 {/* Provider Hotline */}
                 <Card className="bg-primary/10 border-0">
                   <CardContent className="p-6">
-                    <h3 className="font-semibold text-foreground mb-4">Provider Hotline</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
+                    <h3 className="font-semibold mb-4">Provider Hotline</h3>
+                    <p className="text-sm opacity-90 mb-4">
                       For urgent referrals or clinical questions, call our dedicated provider line.
                     </p>
                     <a
@@ -413,8 +413,8 @@ const ProviderReferral = () => {
                         <Phone size={18} className="text-primary" />
                       </div>
                       <div>
-                        <p className="font-medium text-foreground">(800) 123-4568</p>
-                        <p className="text-xs text-muted-foreground">Mon-Fri 7AM-7PM</p>
+                        <p className="font-medium">(800) 123-4568</p>
+                        <p className="text-xs opacity-80">Mon-Fri 7AM-7PM</p>
                       </div>
                     </a>
                   </CardContent>

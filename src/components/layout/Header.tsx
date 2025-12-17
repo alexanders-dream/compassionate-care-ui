@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Menu, X, Phone } from "lucide-react";
 
 const Header = () => {
@@ -19,7 +20,7 @@ const Header = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full bg-primary shadow-lg">
+      <header className="sticky top-0 z-50 w-full gradient-navy">
         <div className="container-main">
           <div className="flex h-16 md:h-20 items-center justify-between">
             {/* Logo */}
@@ -39,7 +40,7 @@ const Header = () => {
                 <Link
                   key={link.href}
                   to={link.href}
-                  className={`no-link-style text-base font-medium transition-colors hover:text-white ${isActive(link.href) ? "text-white font-semibold" : "text-white/90"
+                  className={`no-link-style text-sm font-medium transition-colors hover:text-white ${isActive(link.href) ? "text-white" : "text-white/80"
                     }`}
                 >
                   {link.label}
@@ -49,6 +50,7 @@ const Header = () => {
 
             {/* CTA Buttons */}
             <div className="hidden md:flex items-center gap-3">
+              <ThemeToggle />
               <Button variant="ghost" asChild className="border-2 border-white/80 text-white hover:bg-white/10 hover:text-white">
                 <Link to="/refer" className="no-link-style">Refer a Patient</Link>
               </Button>
@@ -78,7 +80,7 @@ const Header = () => {
                   key={link.href}
                   to={link.href}
                   onClick={() => setIsMenuOpen(false)}
-                  className={`no-link-style py-3 text-base font-medium transition-colors ${isActive(link.href) ? "text-white font-semibold" : "text-white/90"
+                  className={`no-link-style py-3 text-base font-medium transition-colors ${isActive(link.href) ? "text-white" : "text-white/80"
                     }`}
                 >
                   {link.label}
