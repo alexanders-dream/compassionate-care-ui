@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import {
-    User, Send, CalendarDays, CheckCircle2, ArrowUpDown, Search, Filter, Trash2, Calendar, Phone, Eye
+    User, Send, CalendarDays, CheckCircle2, ArrowUpDown, Search, Filter, Trash2, Calendar, Phone, Eye, ChevronDown
 } from "lucide-react";
 import { SubmissionDetailsDialog } from "../SubmissionDetailsDialog";
 import {
@@ -65,17 +65,20 @@ const ReferralsTab = ({
         setIsViewDialogOpen(true);
     };
 
-    const getStatusRowClass = (status: string) => {
-        const statusClasses: Record<string, string> = {
-            pending: "bg-yellow-50 dark:bg-yellow-900/10",
-            contacted: "bg-blue-50 dark:bg-blue-900/10",
-            scheduled: "bg-amber-50 dark:bg-amber-900/10",
-            completed: "bg-green-50 dark:bg-green-900/10",
-            confirmed: "bg-purple-50 dark:bg-purple-900/10",
-            cancelled: "bg-red-50 dark:bg-red-900/10",
-            "no-show": "bg-gray-100 dark:bg-gray-800"
+    const getStatusBadge = (status: string, showIcon: boolean = false) => {
+        const styles: Record<string, { bg: string; text: string; label: string }> = {
+            pending: { bg: "bg-amber-100", text: "text-amber-700", label: "Pending" },
+            contacted: { bg: "bg-blue-100", text: "text-blue-700", label: "Contacted" },
+            scheduled: { bg: "bg-indigo-100", text: "text-indigo-700", label: "Scheduled" },
+            completed: { bg: "bg-blue-100", text: "text-blue-700", label: "Completed" }
         };
-        return statusClasses[status] || "";
+        const style = styles[status] || { bg: "bg-gray-100", text: "text-gray-700", label: status };
+        return (
+            <Badge className={`${style.bg} ${style.text} hover:${style.bg} border-0 px-3 py-1.5 text-sm font-semibold ${showIcon ? 'flex items-center gap-1.5' : ''}`}>
+                {style.label}
+                {showIcon && <ChevronDown className="h-3.5 w-3.5" />}
+            </Badge>
+        );
     };
 
     const toggleSort = (field: "name" | "date" | "status") => {
@@ -158,84 +161,190 @@ const ReferralsTab = ({
             </div>
 
             {/* Mobile Cards */}
-            <div className="md:hidden space-y-3">
+            <div className="md:hidden space-y-4">
                 {filteredReferrals.map(referral => (
-                    <Card key={referral.id} className={`p-4 ${getStatusRowClass(referral.status)} ${referral.urgency === "urgent" ? "border-l-4 border-l-red-500" : ""}`}>
-                        <div className="flex justify-between items-start mb-2">
-                            <div>
-                                <p className="font-medium">{referral.patientFirstName} {referral.patientLastName}</p>
-                                <p className="text-xs text-muted-foreground">{referral.providerName} • {referral.practiceName}</p>
+                    <Card key={referral.id} className={`overflow-hidden ${referral.urgency === "urgent" ? "border-l-4 border-l-red-500" : ""}`}>
+                        {/* Header with Patient Name, Status, and Urgency */}
+                        <div className="bg-muted/30 px-4 py-3 border-b">
+                            <div className="flex items-start justify-between gap-3 mb-2">
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="font-semibold text-base truncate">
+                                        {referral.patientFirstName} {referral.patientLastName}
+                                    </h3>
+                                </div>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <div className="shrink-0">
+                                                <Select
+                                                    value={referral.status}
+                                                    onValueChange={(value) => onUpdateStatus(referral.id, value as ProviderReferralSubmission["status"])}
+                                                >
+                                                    <SelectTrigger className="w-auto h-auto border-0 bg-transparent hover:bg-muted/50 p-0 [&>svg]:hidden">
+                                                        {getStatusBadge(referral.status, false)}
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="pending" className="text-sm font-medium">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+                                                                <span className="text-amber-700">Pending</span>
+                                                            </div>
+                                                        </SelectItem>
+                                                        <SelectItem value="contacted" className="text-sm font-medium">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                                                                <span className="text-blue-700">Contacted</span>
+                                                            </div>
+                                                        </SelectItem>
+                                                        <SelectItem value="scheduled" className="text-sm font-medium">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
+                                                                <span className="text-indigo-700">Scheduled</span>
+                                                            </div>
+                                                        </SelectItem>
+                                                        <SelectItem value="completed" className="text-sm font-medium">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                                                                <span className="text-blue-700">Completed</span>
+                                                            </div>
+                                                        </SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                        </TooltipTrigger>
+                                        {referral.status === "scheduled" && appointments.find(a => a.providerReferralId === referral.id) && (
+                                            <TooltipContent>
+                                                <div className="flex items-center gap-2">
+                                                    <Calendar className="h-4 w-4" />
+                                                    <span>
+                                                        {format(new Date(appointments.find(a => a.providerReferralId === referral.id)!.appointmentDate), "MMM d")} @ {appointments.find(a => a.providerReferralId === referral.id)!.appointmentTime}
+                                                    </span>
+                                                </div>
+                                            </TooltipContent>
+                                        )}
+                                    </Tooltip>
+                                </TooltipProvider>
                             </div>
-                            <Badge variant={referral.urgency === "urgent" ? "destructive" : "secondary"} className="text-xs">
+                            <Badge
+                                variant={referral.urgency === "urgent" ? "destructive" : "secondary"}
+                                className={referral.urgency === "urgent" ? "text-xs font-semibold uppercase" : "text-xs font-semibold uppercase bg-gray-100 text-gray-600 hover:bg-gray-100"}
+                            >
                                 {referral.urgency}
                             </Badge>
                         </div>
-                        <div className="flex items-center justify-between mb-3">
-                            <Badge variant="outline" className="capitalize text-xs">{referral.woundType}</Badge>
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <div className="w-28">
-                                            <Select
-                                                value={referral.status}
-                                                onValueChange={(value) => onUpdateStatus(referral.id, value as ProviderReferralSubmission["status"])}
-                                            >
-                                                <SelectTrigger className="w-28 h-8 text-xs">
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="pending">Pending</SelectItem>
-                                                    <SelectItem value="contacted">Contacted</SelectItem>
-                                                    <SelectItem value="scheduled">Scheduled</SelectItem>
-                                                    <SelectItem value="completed">Completed</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                    </TooltipTrigger>
-                                    {referral.status === "scheduled" && appointments.find(a => a.providerReferralId === referral.id) && (
-                                        <TooltipContent>
-                                            <div className="flex items-center gap-2">
-                                                <Calendar className="h-4 w-4" />
-                                                <span>
-                                                    {format(new Date(appointments.find(a => a.providerReferralId === referral.id)!.appointmentDate), "MMM d")} @ {appointments.find(a => a.providerReferralId === referral.id)!.appointmentTime}
-                                                </span>
-                                            </div>
-                                        </TooltipContent>
-                                    )}
-                                </Tooltip>
-                            </TooltipProvider>
+
+                        {/* Provider Info Section */}
+                        <div className="px-4 py-3 border-b bg-background">
+                            <div className="flex items-center gap-2 mb-1">
+                                <User className="h-4 w-4 text-muted-foreground shrink-0" />
+                                <span className="text-sm font-medium">{referral.providerName}</span>
+                            </div>
+                            <p className="text-xs text-muted-foreground ml-6">{referral.practiceName}</p>
                         </div>
-                        <div className="flex gap-2">
+
+                        {/* Contact Info Section */}
+                        {referral.patientPhone && (
+                            <div className="px-4 py-3 border-b bg-background">
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    <Phone className="h-4 w-4 shrink-0" />
+                                    <span>{referral.patientPhone}</span>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Details Section */}
+                        <div className="px-4 py-3 space-y-2 border-b bg-muted/20">
+                            <div className="flex items-center justify-between text-sm">
+                                <span className="text-muted-foreground">Wound Type</span>
+                                <Badge variant="outline" className="capitalize font-medium">
+                                    {referral.woundType}
+                                </Badge>
+                            </div>
+                            <div className="flex items-center justify-between text-sm">
+                                <span className="text-muted-foreground">Submitted</span>
+                                <span className="font-medium">
+                                    {new Date(referral.submittedAt).toLocaleDateString()}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Actions Section */}
+                        <div className="px-4 py-3 space-y-2">
+                            {/* Primary Action */}
                             {referral.status !== "scheduled" && referral.status !== "completed" && (
-                                <Button variant="default" size="sm" onClick={() => onSchedule(referral)} className="flex-1 text-xs">
-                                    <CalendarDays className="h-3 w-3 mr-1" /> Schedule
+                                <Button
+                                    size="lg"
+                                    onClick={() => onSchedule(referral)}
+                                    className="w-full font-semibold bg-blue-600 text-white hover:bg-blue-700 border-transparent shadow-sm"
+                                >
+                                    <CalendarDays className="h-4 w-4 mr-2" />
+                                    Schedule Appointment
                                 </Button>
                             )}
+
+                            {/* Secondary Actions */}
+                            <div className="grid grid-cols-3 gap-2">
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                size="lg"
+                                                onClick={() => handleView(referral)}
+                                                className="w-full border-slate-400 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                                            >
+                                                <Eye className="h-4 w-4" />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>View Details</TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                size="lg"
+                                                onClick={() => window.location.href = `tel:${referral.patientPhone}`}
+                                                disabled={!referral.patientPhone}
+                                                className="w-full border-slate-400 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                                            >
+                                                <Phone className="h-4 w-4" />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>Call Patient</TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                size="lg"
+                                                onClick={() => onEmail(referral)}
+                                                className="w-full border-slate-400 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                                            >
+                                                <Send className="h-4 w-4" />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            {referral.emailSent ? "Resend Email" : "Send Email"}
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            </div>
+
+                            {/* Delete Action */}
                             <Button
                                 variant="ghost"
-                                size="icon"
-                                className="h-9 w-9 shrink-0"
-                                onClick={() => handleView(referral)}
-                                title="View Details"
+                                size="sm"
+                                onClick={() => setItemToDelete(referral.id)}
+                                className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
                             >
-                                <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                className="h-9 w-9 shrink-0"
-                                onClick={() => window.location.href = `tel:${referral.patientPhone}`}
-                                disabled={!referral.patientPhone}
-                            >
-                                <Phone className="h-4 w-4" />
-                            </Button>
-                            <Button variant="outline" size="sm" onClick={() => onEmail(referral)} className="flex-1 text-xs">
-                                <Send className="h-3 w-3 mr-1" /> {referral.emailSent ? "Resend" : "Email"}
-                            </Button>
-                        </div>
-                        <div className="flex gap-2 mt-2">
-                            <Button variant="ghost" size="sm" onClick={() => setItemToDelete(referral.id)} className="w-full text-xs text-destructive hover:text-destructive hover:bg-destructive/10">
-                                <Trash2 className="h-3 w-3 mr-1" /> Delete
+                                <Trash2 className="h-3.5 w-3.5 mr-2" />
+                                Delete Referral
                             </Button>
                         </div>
                     </Card>
@@ -251,7 +360,7 @@ const ReferralsTab = ({
             <div className="hidden md:block overflow-x-auto rounded-md border">
                 <Table>
                     <TableHeader>
-                        <TableRow className="bg-white dark:bg-white border-b">
+                        <TableRow className="bg-slate-200 hover:bg-slate-200">
                             <TableHead
                                 className="cursor-pointer hover:bg-muted/50 select-none"
                                 onClick={() => toggleSort("name")}
@@ -277,8 +386,8 @@ const ReferralsTab = ({
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {filteredReferrals.map(referral => (
-                            <TableRow key={referral.id} className={getStatusRowClass(referral.status)}>
+                        {filteredReferrals.map((referral, index) => (
+                            <TableRow key={referral.id} className={index % 2 === 1 ? "bg-muted/50" : ""}>
                                 <TableCell className="font-medium">{referral.patientFirstName} {referral.patientLastName}</TableCell>
                                 <TableCell>
                                     <div className="text-sm">
@@ -291,19 +400,39 @@ const ReferralsTab = ({
                                     <TooltipProvider>
                                         <Tooltip>
                                             <TooltipTrigger asChild>
-                                                <div>
+                                                <div className="cursor-pointer">
                                                     <Select
                                                         value={referral.status}
                                                         onValueChange={(value) => onUpdateStatus(referral.id, value as ProviderReferralSubmission["status"])}
                                                     >
-                                                        <SelectTrigger className="w-32">
-                                                            <SelectValue />
+                                                        <SelectTrigger className="w-auto min-w-[130px] border-0 bg-transparent hover:bg-muted/50 h-auto p-0 [&>svg]:hidden">
+                                                            {getStatusBadge(referral.status, true)}
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            <SelectItem value="pending">Pending</SelectItem>
-                                                            <SelectItem value="contacted">Contacted</SelectItem>
-                                                            <SelectItem value="scheduled">Scheduled</SelectItem>
-                                                            <SelectItem value="completed">Completed</SelectItem>
+                                                            <SelectItem value="pending" className="text-sm font-medium">
+                                                                <div className="flex items-center gap-2">
+                                                                    <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+                                                                    <span className="text-amber-700">Pending</span>
+                                                                </div>
+                                                            </SelectItem>
+                                                            <SelectItem value="contacted" className="text-sm font-medium">
+                                                                <div className="flex items-center gap-2">
+                                                                    <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                                                                    <span className="text-blue-700">Contacted</span>
+                                                                </div>
+                                                            </SelectItem>
+                                                            <SelectItem value="scheduled" className="text-sm font-medium">
+                                                                <div className="flex items-center gap-2">
+                                                                    <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
+                                                                    <span className="text-indigo-700">Scheduled</span>
+                                                                </div>
+                                                            </SelectItem>
+                                                            <SelectItem value="completed" className="text-sm font-medium">
+                                                                <div className="flex items-center gap-2">
+                                                                    <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                                                                    <span className="text-blue-700">Completed</span>
+                                                                </div>
+                                                            </SelectItem>
                                                         </SelectContent>
                                                     </Select>
                                                 </div>
@@ -322,20 +451,23 @@ const ReferralsTab = ({
                                     </TooltipProvider>
                                 </TableCell>
                                 <TableCell>
-                                    <Badge variant={referral.urgency === "urgent" ? "destructive" : "secondary"}>
+                                    <Badge
+                                        variant={referral.urgency === "urgent" ? "destructive" : "secondary"}
+                                        className={referral.urgency === "urgent" ? "" : "bg-gray-100 text-gray-600 hover:bg-gray-100"}
+                                    >
                                         {referral.urgency}
                                     </Badge>
                                 </TableCell>
                                 <TableCell className="text-right space-x-1">
                                     {referral.status !== "scheduled" && referral.status !== "completed" && (
-                                        <Button variant="default" size="sm" onClick={() => onSchedule(referral)} className="gap-1">
+                                        <Button size="sm" onClick={() => onSchedule(referral)} className="gap-1 bg-blue-600 text-white hover:bg-blue-700 border-transparent shadow-sm">
                                             <CalendarDays className="h-3 w-3" /> Schedule
                                         </Button>
                                     )}
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="h-8 w-8"
+                                        className="h-8 w-8 border-slate-400 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                                         onClick={() => handleView(referral)}
                                         title="View Details"
                                     >
@@ -344,20 +476,20 @@ const ReferralsTab = ({
                                     <Button
                                         variant="outline"
                                         size="icon"
-                                        className="h-8 w-8"
+                                        className="h-8 w-8 border-slate-400 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                                         onClick={() => window.location.href = `tel:${referral.patientPhone}`}
                                         disabled={!referral.patientPhone}
                                         title="Call Patient"
                                     >
                                         <Phone className="h-4 w-4" />
                                     </Button>
-                                    <Button variant="outline" size="sm" onClick={() => onEmail(referral)} className="gap-1">
+                                    <Button variant="outline" size="sm" onClick={() => onEmail(referral)} className="gap-1 border-slate-400 text-slate-700 hover:bg-slate-100 hover:text-slate-900">
                                         <Send className="h-3 w-3" /> {referral.emailSent ? "Resend" : "Email"}
                                     </Button>
                                     <Button variant="ghost" size="sm" onClick={() => setItemToDelete(referral.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
                                         <Trash2 className="h-4 w-4" />
                                     </Button>
-                                    {referral.emailSent && <CheckCircle2 className="h-4 w-4 text-green-500 inline ml-1" />}
+                                    {referral.emailSent && <CheckCircle2 className="h-4 w-4 text-blue-500 inline ml-1" />}
                                 </TableCell>
                             </TableRow>
                         ))}

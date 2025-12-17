@@ -285,7 +285,7 @@ export const defaultSiteCopy: SiteCopySection[] = [
     fields: [
       { key: "stat1Value", label: "Satisfaction Rate", value: "98%", type: "text" },
       { key: "stat1Label", label: "Satisfaction Label", value: "Patient Satisfaction", type: "text" },
-      { key: "stat2Value", label: "Patients Served", value: "5,000+", type: "text" },
+      { key: "stat2Value", label: "Patients Served", value: "10,000+", type: "text" },
       { key: "stat2Label", label: "Patients Label", value: "Patients Served", type: "text" },
       { key: "stat3Value", label: "Average Rating", value: "4.9", type: "text" },
       { key: "stat3Label", label: "Rating Label", value: "Average Rating", type: "text" },

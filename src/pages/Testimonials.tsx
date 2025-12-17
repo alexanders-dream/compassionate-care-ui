@@ -15,7 +15,7 @@ const Testimonials = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="bg-[#EBF4FA] py-16 md:py-24">
+      <section className="bg-background py-16 md:py-24">
         <div className="container-main text-center">
           <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-6">
             Patient <span className="text-primary">Testimonials</span>

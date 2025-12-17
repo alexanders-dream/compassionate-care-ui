@@ -25,7 +25,7 @@ const stats = [
 
 const TrustSection = () => {
   return (
-    <section className="py-12 md:py-16 bg-primary text-white">
+    <section className="py-12 md:py-16 bg-secondary dark:bg-card text-white">
       <div className="container-main">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           {stats.map((stat) => (

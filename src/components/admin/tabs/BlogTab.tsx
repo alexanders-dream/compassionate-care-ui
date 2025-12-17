@@ -60,7 +60,7 @@ const BlogTab = ({
             case "scheduled":
                 return <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-0">Scheduled</Badge>;
             default:
-                return <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-0">Published</Badge>;
+                return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-0">Published</Badge>;
         }
     };
 

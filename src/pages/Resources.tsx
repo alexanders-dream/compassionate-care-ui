@@ -21,7 +21,7 @@ const Resources = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="bg-[#EBF4FA] py-16 md:py-24">
+      <section className="bg-background py-16 md:py-24">
         <div className="container-main text-center">
           <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-6">
             Patient <span className="text-primary">Resources</span>
@@ -70,7 +70,7 @@ const Resources = () => {
       </section>
 
       {/* FAQs Section */}
-      <section className="py-16 md:py-24 bg-warm">
+      <section className="py-16 md:py-24 bg-muted/30">
         <div className="container-main">
           <div className="text-center mb-12">
             <HelpCircle className="w-12 h-12 text-primary mx-auto mb-4" />

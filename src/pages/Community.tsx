@@ -47,7 +47,7 @@ const Community = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="bg-[#EBF4FA] py-16 md:py-24">
+      <section className="bg-background py-16 md:py-24">
         <div className="container-main text-center">
           <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-6">
             Community <span className="text-primary">Outreach</span>
@@ -92,7 +92,7 @@ const Community = () => {
       </section>
 
       {/* Partnership Section */}
-      <section className="py-16 md:py-24 bg-warm">
+      <section className="py-16 md:py-24 bg-muted/30">
         <div className="container-main">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>

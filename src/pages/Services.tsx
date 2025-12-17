@@ -33,7 +33,7 @@ const Services = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="bg-white py-16 md:py-24">
+      <section className="bg-background py-16 md:py-24">
         <div className="container-main">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
@@ -101,23 +101,23 @@ const Services = () => {
       </section>
 
       {/* Benefits Section */}
-      <section className="py-16 md:py-24 bg-[#0B2545]">
+      <section className="py-16 md:py-24 bg-secondary dark:bg-muted/30">
         <div className="container-main">
           <div className="text-center mb-12">
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-secondary-foreground mb-4">
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-secondary-foreground dark:text-foreground mb-4">
               Why Choose AR Advanced Woundcare?
             </h2>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
             {benefits.map((benefit, index) => (
               <div key={index} className="text-center">
-                <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4">
-                  <benefit.icon className="w-8 h-8 text-secondary-foreground" />
+                <div className="w-16 h-16 rounded-full bg-white/20 dark:bg-primary/15 flex items-center justify-center mx-auto mb-4">
+                  <benefit.icon className="w-8 h-8 text-secondary-foreground dark:text-primary" />
                 </div>
-                <h3 className="font-display text-lg font-semibold text-secondary-foreground mb-2">
+                <h3 className="font-display text-lg font-semibold text-secondary-foreground dark:text-foreground mb-2">
                   {benefit.title}
                 </h3>
-                <p className="text-secondary-foreground/80">
+                <p className="text-secondary-foreground/80 dark:text-muted-foreground">
                   {benefit.description}
                 </p>
               </div>

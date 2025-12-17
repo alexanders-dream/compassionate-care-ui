@@ -30,7 +30,7 @@ const values = [
 ];
 
 const stats = [
-  { value: "5,000+", label: "Patients Served" },
+  { value: "10,000+", label: "Patients Served" },
   { value: "98%", label: "Patient Satisfaction" },
   { value: "15+", label: "Years Experience" },
   { value: "50+", label: "Healthcare Partners" }
@@ -46,7 +46,7 @@ const About = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="bg-white py-16 md:py-24">
+      <section className="bg-background py-16 md:py-24">
         <div className="container-main">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
@@ -70,7 +70,7 @@ const About = () => {
       </section>
 
       {/* Mission & Vision */}
-      <section className="py-16 md:py-24 bg-warm">
+      <section className="py-16 md:py-24 bg-muted/30">
         <div className="container-main">
           <div className="grid md:grid-cols-2 gap-8">
             <div className="bg-card rounded-2xl p-8 shadow-soft">
