@@ -228,18 +228,18 @@ const FormsTab = () => {
                     <div className="hidden md:block overflow-x-auto">
                         <Table>
                             <TableHeader>
-                                <TableRow>
-                                    <TableHead>Label</TableHead>
-                                    <TableHead>Key</TableHead>
-                                    <TableHead>Type</TableHead>
-                                    <TableHead className="text-center">Required</TableHead>
-                                    <TableHead className="text-center">Enabled</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
+                                <TableRow className="bg-slate-200 hover:bg-slate-200">
+                                    <TableHead className="text-slate-700 font-semibold">Label</TableHead>
+                                    <TableHead className="text-slate-700 font-semibold">Key</TableHead>
+                                    <TableHead className="text-slate-700 font-semibold">Type</TableHead>
+                                    <TableHead className="text-center text-slate-700 font-semibold">Required</TableHead>
+                                    <TableHead className="text-center text-slate-700 font-semibold">Enabled</TableHead>
+                                    <TableHead className="text-right text-slate-700 font-semibold">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {selectedForm.fields.sort((a, b) => a.order - b.order).map(field => (
-                                    <TableRow key={field.id} className={!field.enabled ? "opacity-50" : ""}>
+                                {selectedForm.fields.sort((a, b) => a.order - b.order).map((field, index) => (
+                                    <TableRow key={field.id} className={`${index % 2 === 1 ? "bg-muted/50" : ""} ${!field.enabled ? "opacity-50" : ""}`}>
                                         <TableCell className="font-medium">{field.label}</TableCell>
                                         <TableCell className="text-muted-foreground text-sm">{field.key}</TableCell>
                                         <TableCell>

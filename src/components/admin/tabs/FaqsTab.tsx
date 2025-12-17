@@ -110,15 +110,15 @@ const FaqsTab = ({
             <div className="hidden md:block overflow-x-auto">
                 <Table>
                     <TableHeader>
-                        <TableRow>
-                            <TableHead>Question</TableHead>
-                            <TableHead>Category</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
+                        <TableRow className="bg-slate-200 hover:bg-slate-200">
+                            <TableHead className="text-slate-700 font-semibold">Question</TableHead>
+                            <TableHead className="text-slate-700 font-semibold">Category</TableHead>
+                            <TableHead className="text-right text-slate-700 font-semibold">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {faqs.map(faq => (
-                            <TableRow key={faq.id}>
+                        {faqs.map((faq, index) => (
+                            <TableRow key={faq.id} className={index % 2 === 1 ? "bg-muted/50" : ""}>
                                 <TableCell className="font-medium max-w-md truncate">{faq.question}</TableCell>
                                 <TableCell>{faq.category}</TableCell>
                                 <TableCell className="text-right">

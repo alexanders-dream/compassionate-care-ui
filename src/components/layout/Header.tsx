@@ -40,7 +40,7 @@ const Header = () => {
                 <Link
                   key={link.href}
                   to={link.href}
-                  className={`no-link-style text-sm font-medium transition-colors hover:text-white ${isActive(link.href) ? "text-white" : "text-white/80"
+                  className={`no-link-style text-base font-medium transition-colors hover:text-white ${isActive(link.href) ? "text-white" : "text-white/90"
                     }`}
                 >
                   {link.label}
@@ -80,7 +80,7 @@ const Header = () => {
                   key={link.href}
                   to={link.href}
                   onClick={() => setIsMenuOpen(false)}
-                  className={`no-link-style py-3 text-base font-medium transition-colors ${isActive(link.href) ? "text-white" : "text-white/80"
+                  className={`no-link-style py-3 text-base font-medium transition-colors ${isActive(link.href) ? "text-white" : "text-white/90"
                     }`}
                 >
                   {link.label}

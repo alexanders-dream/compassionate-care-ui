@@ -139,16 +139,16 @@ const TeamTab = ({
             <div className="hidden md:block overflow-x-auto">
                 <Table>
                     <TableHeader>
-                        <TableRow>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Role</TableHead>
-                            <TableHead>Bio</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
+                        <TableRow className="bg-slate-200 hover:bg-slate-200">
+                            <TableHead className="text-slate-700 font-semibold">Name</TableHead>
+                            <TableHead className="text-slate-700 font-semibold">Role</TableHead>
+                            <TableHead className="text-slate-700 font-semibold">Bio</TableHead>
+                            <TableHead className="text-right text-slate-700 font-semibold">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {team.map(member => (
-                            <TableRow key={member.id}>
+                        {team.map((member, index) => (
+                            <TableRow key={member.id} className={index % 2 === 1 ? "bg-muted/50" : ""}>
                                 <TableCell className="font-medium">{member.name}</TableCell>
                                 <TableCell>{member.role}</TableCell>
                                 <TableCell className="max-w-xs truncate">{member.bio}</TableCell>

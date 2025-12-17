@@ -47,11 +47,11 @@ const BlogTab = ({
     const getStatusBadge = (status?: string) => {
         switch (status) {
             case "draft":
-                return <Badge variant="secondary">Draft</Badge>;
+                return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-0">Draft</Badge>;
             case "scheduled":
-                return <Badge variant="outline" className="border-amber-500 text-amber-600">Scheduled</Badge>;
+                return <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-0">Scheduled</Badge>;
             default:
-                return <Badge className="bg-green-500">Published</Badge>;
+                return <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-0">Published</Badge>;
         }
     };
 
@@ -137,18 +137,18 @@ const BlogTab = ({
                     <div className="hidden md:block overflow-x-auto">
                         <Table>
                             <TableHeader>
-                                <TableRow>
-                                    <TableHead>Title</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead>Category</TableHead>
-                                    <TableHead>Author</TableHead>
-                                    <TableHead>Date</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
+                                <TableRow className="bg-slate-200 hover:bg-slate-200">
+                                    <TableHead className="text-slate-700 font-semibold">Title</TableHead>
+                                    <TableHead className="text-slate-700 font-semibold">Status</TableHead>
+                                    <TableHead className="text-slate-700 font-semibold">Category</TableHead>
+                                    <TableHead className="text-slate-700 font-semibold">Author</TableHead>
+                                    <TableHead className="text-slate-700 font-semibold">Date</TableHead>
+                                    <TableHead className="text-right text-slate-700 font-semibold">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {posts.map(post => (
-                                    <TableRow key={post.id}>
+                                {posts.map((post, index) => (
+                                    <TableRow key={post.id} className={index % 2 === 1 ? "bg-muted/50" : ""}>
                                         <TableCell className="font-medium max-w-xs truncate">{post.title}</TableCell>
                                         <TableCell>{getStatusBadge(post.status)}</TableCell>
                                         <TableCell>{post.category}</TableCell>

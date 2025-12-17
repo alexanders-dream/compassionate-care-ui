@@ -117,16 +117,16 @@ const TestimonialsTab = ({
             <div className="hidden md:block overflow-x-auto">
                 <Table>
                     <TableHeader>
-                        <TableRow>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Role</TableHead>
-                            <TableHead>Rating</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
+                        <TableRow className="bg-slate-200 hover:bg-slate-200">
+                            <TableHead className="text-slate-700 font-semibold">Name</TableHead>
+                            <TableHead className="text-slate-700 font-semibold">Role</TableHead>
+                            <TableHead className="text-slate-700 font-semibold">Rating</TableHead>
+                            <TableHead className="text-right text-slate-700 font-semibold">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {testimonials.map(testimonial => (
-                            <TableRow key={testimonial.id}>
+                        {testimonials.map((testimonial, index) => (
+                            <TableRow key={testimonial.id} className={index % 2 === 1 ? "bg-muted/50" : ""}>
                                 <TableCell className="font-medium">{testimonial.name}</TableCell>
                                 <TableCell>{testimonial.role}</TableCell>
                                 <TableCell>{"⭐".repeat(testimonial.rating)}</TableCell>

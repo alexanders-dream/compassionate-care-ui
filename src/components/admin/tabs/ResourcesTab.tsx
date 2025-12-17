@@ -146,16 +146,16 @@ const ResourcesTab = ({
             <div className="hidden md:block overflow-x-auto">
                 <Table>
                     <TableHeader>
-                        <TableRow>
-                            <TableHead>Title</TableHead>
-                            <TableHead>Type</TableHead>
-                            <TableHead>File</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
+                        <TableRow className="bg-slate-200 hover:bg-slate-200">
+                            <TableHead className="text-slate-700 font-semibold">Title</TableHead>
+                            <TableHead className="text-slate-700 font-semibold">Type</TableHead>
+                            <TableHead className="text-slate-700 font-semibold">File</TableHead>
+                            <TableHead className="text-right text-slate-700 font-semibold">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {resources.map(resource => (
-                            <TableRow key={resource.id}>
+                        {resources.map((resource, index) => (
+                            <TableRow key={resource.id} className={index % 2 === 1 ? "bg-muted/50" : ""}>
                                 <TableCell className="font-medium">{resource.title}</TableCell>
                                 <TableCell>
                                     <Badge variant="outline">Resource</Badge>

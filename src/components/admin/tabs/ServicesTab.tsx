@@ -117,16 +117,16 @@ const ServicesTab = ({
             <div className="hidden md:block overflow-x-auto">
                 <Table>
                     <TableHeader>
-                        <TableRow>
-                            <TableHead>Title</TableHead>
-                            <TableHead>Description</TableHead>
-                            <TableHead>Icon</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
+                        <TableRow className="bg-slate-200 hover:bg-slate-200">
+                            <TableHead className="text-slate-700 font-semibold">Title</TableHead>
+                            <TableHead className="text-slate-700 font-semibold">Description</TableHead>
+                            <TableHead className="text-slate-700 font-semibold">Icon</TableHead>
+                            <TableHead className="text-right text-slate-700 font-semibold">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {services.map(service => (
-                            <TableRow key={service.id}>
+                        {services.map((service, index) => (
+                            <TableRow key={service.id} className={index % 2 === 1 ? "bg-muted/50" : ""}>
                                 <TableCell className="font-medium">{service.title}</TableCell>
                                 <TableCell className="max-w-xs truncate">{service.description}</TableCell>
                                 <TableCell>{service.icon}</TableCell>
