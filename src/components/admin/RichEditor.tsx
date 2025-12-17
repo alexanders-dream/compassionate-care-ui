@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
+import { BubbleMenu, FloatingMenu } from "@tiptap/react/menus";
 import { RichEditorMenus } from "./RichEditorMenus";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
@@ -12,7 +13,7 @@ import { Video } from "@/lib/tiptap/VideoExtension";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-// import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"; // Removing Popover
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -117,6 +118,55 @@ const RichEditor = ({ content, onChange, placeholder = "Start writing...", class
             editor.commands.setYoutubeVideo({ src: url });
         } else {
             editor.commands.setVideo({ src: url });
+        }
+    };
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !editor) return;
+
+        setIsUploading(true);
+        try {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Math.random()}.${fileExt}`;
+            const { data, error } = await supabase.storage
+                .from('blog_images')
+                .upload(fileName, file);
+
+            if (error) throw error;
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('blog_images')
+                .getPublicUrl(fileName);
+
+            editor.chain().focus().setImage({ src: publicUrl }).run();
+            toast({ title: "Image uploaded successfully" });
+        } catch (error: any) {
+            toast({ title: "Error uploading image", description: error.message, variant: "destructive" });
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    const handleImageUrl = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if (!editor) return;
+        const formData = new FormData(e.currentTarget);
+        const url = formData.get('url') as string;
+        if (url) {
+            editor.chain().focus().setImage({ src: url }).run();
+            e.currentTarget.reset();
+        }
+    };
+
+    const handleYoutubeUrl = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if (!editor) return;
+        const formData = new FormData(e.currentTarget);
+        const url = formData.get('url') as string;
+        if (url) {
+            editor.commands.setYoutubeVideo({ src: url });
+            e.currentTarget.reset();
         }
     };
 

@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
     Table,
     TableBody,
@@ -18,9 +19,10 @@ import {
     DropdownMenuTrigger,
     DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { Plus, Pencil, Trash2, Sparkles, Share2, Mail, ArrowLeft } from "lucide-react";
+import { Plus, Pencil, Trash2, Sparkles, Share2, Mail, ArrowLeft, Star, Calendar as CalendarIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import AIArticleGenerator, { ArticleMedia } from "@/components/admin/AIArticleGenerator";
+import AIArticleGenerator from "@/components/admin/AIArticleGenerator";
+import { ArticleMedia } from "@/components/admin/AIArticleGenerator";
 import { ScheduleDialog } from "@/components/admin/ScheduleDialog";
 import { BlogPost, categories } from "@/data/blogPosts";
 
@@ -57,13 +59,13 @@ const BlogTab = ({
         }
     }, [location.pathname, location.key]);
 
-    const getStatusBadge = (status?: string) => {
+    const getStatusBadge = (status?: string, post?: ExtendedBlogPost) => {
         switch (status) {
             case "draft":
                 return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-0">Draft</Badge>;
             case "scheduled":
                 const badge = <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-0">Scheduled</Badge>;
-                if (post.scheduledAt || post.scheduledDate) {
+                if (post && (post.scheduledAt || post.scheduledDate)) {
                     const dateStr = post.scheduledAt || post.scheduledDate;
                     return (
                         <TooltipProvider>
@@ -156,7 +158,7 @@ const BlogTab = ({
                                     >
                                         <SelectTrigger className="w-[110px] h-8">
                                             <SelectValue>
-                                                {getStatusBadge(post)}
+                                                {getStatusBadge(post.status, post)}
                                             </SelectValue>
                                         </SelectTrigger>
                                         <SelectContent>
@@ -229,7 +231,7 @@ const BlogTab = ({
                                             >
                                                 <SelectTrigger className="w-[110px] h-8 border-none bg-transparent hover:bg-muted p-0 shadow-none">
                                                     <SelectValue asChild>
-                                                        {getStatusBadge(post)}
+                                                        {getStatusBadge(post.status, post)}
                                                     </SelectValue>
                                                 </SelectTrigger>
                                                 <SelectContent>
