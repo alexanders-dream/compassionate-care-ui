@@ -446,12 +446,12 @@ export const ScheduleDialog = ({
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full justify-start text-left font-normal",
+                      "w-full justify-start text-left font-normal overflow-hidden",
                       !selectedDate && "text-muted-foreground"
                     )}
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
+                    <CalendarIcon className="mr-1 h-4 w-4 shrink-0" />
+                    <span className="truncate">{selectedDate ? format(selectedDate, "PPP") : "Pick a date"}</span>
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -1016,12 +1016,12 @@ const AppointmentScheduler = ({
                         <Button
                           variant="outline"
                           className={cn(
-                            "w-full justify-start text-left font-normal",
+                            "w-full justify-start text-left font-normal overflow-hidden",
                             !selectedDate && "text-muted-foreground"
                           )}
                         >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
+                          <CalendarIcon className="mr-1 h-4 w-4 shrink-0" />
+                          <span className="truncate">{selectedDate ? format(selectedDate, "PPP") : "Pick a date"}</span>
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
@@ -1305,7 +1305,7 @@ const AppointmentScheduler = ({
                 <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => handleEditAppointment(apt)}>
                   <Pencil className="h-4 w-4" />
                 </Button>
-                <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => handleDeleteAppointment(apt.id)}>
+                <Button variant="ghost" size="sm" className="h-8 px-2 hover:bg-destructive/10" onClick={() => handleDeleteAppointment(apt.id)}>
                   <Trash2 className="h-4 w-4 text-destructive" />
                 </Button>
               </div>
@@ -1463,7 +1463,7 @@ const AppointmentScheduler = ({
                   <Button variant="ghost" size="sm" onClick={() => handleEditAppointment(apt)}>
                     <Pencil className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => handleDeleteAppointment(apt.id)}>
+                  <Button variant="ghost" size="sm" className="hover:bg-destructive/10" onClick={() => handleDeleteAppointment(apt.id)}>
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
                 </TableCell>

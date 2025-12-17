@@ -17,23 +17,23 @@ const Footer = () => {
               </div>
               <div>
                 <span className="font-display font-semibold text-white">AR Advanced</span>
-                <span className="block text-xs text-white/70 -mt-1">Woundcare Solutions</span>
+                <span className="block text-xs text-white/90 -mt-1">Woundcare Solutions</span>
               </div>
             </div>
-            <p className="text-sm text-white/80 mb-6 leading-relaxed">
+            <p className="text-sm text-white mb-6 leading-relaxed">
               Compassionate, expert wound care delivered with trust and clinical excellence.
             </p>
             <div className="space-y-3">
               <a
                 href="tel:+18001234567"
-                className="no-link-style flex items-center gap-3 text-sm text-white/90 hover:text-white transition-colors"
+                className="no-link-style flex items-center gap-3 text-sm text-white hover:text-white/80 transition-colors"
               >
                 <Phone size={18} className="text-accent" />
                 <span>(800) 123-4567</span>
               </a>
               <a
                 href="mailto:info@arwoundcare.com"
-                className="no-link-style flex items-center gap-3 text-sm text-white/90 hover:text-white transition-colors"
+                className="no-link-style flex items-center gap-3 text-sm text-white hover:text-white/80 transition-colors"
               >
                 <Mail size={18} className="text-accent" />
                 <span>info@arwoundcare.com</span>
@@ -55,7 +55,7 @@ const Footer = () => {
                 <li key={link.href}>
                   <Link
                     to={link.href}
-                    className="no-link-style text-sm text-white/80 hover:text-white transition-colors"
+                    className="no-link-style text-sm text-white/90 hover:text-white transition-colors"
                   >
                     {link.label}
                   </Link>
@@ -77,7 +77,7 @@ const Footer = () => {
                 <li key={link.href}>
                   <Link
                     to={link.href}
-                    className="no-link-style text-sm text-white/80 hover:text-white transition-colors"
+                    className="no-link-style text-sm text-white/90 hover:text-white transition-colors"
                   >
                     {link.label}
                   </Link>
@@ -92,17 +92,17 @@ const Footer = () => {
             <div className="space-y-4">
               <div className="flex items-start gap-3">
                 <Clock size={18} className="text-accent mt-0.5 shrink-0" />
-                <div className="text-sm text-white/80 leading-relaxed">
-                  <p className="text-sm text-white/80 leading-relaxed">Mon - Fri: 8:00 AM - 6:00 PM</p>
-                  <p className="text-sm text-white/80 leading-relaxed">Sat: 9:00 AM - 2:00 PM</p>
-                  <p className="text-sm text-white/80 leading-relaxed">Sun: Closed</p>
+                <div className="text-sm text-white leading-relaxed">
+                  <p className="text-sm text-white leading-relaxed">Mon - Fri: 8:00 AM - 6:00 PM</p>
+                  <p className="text-sm text-white leading-relaxed">Sat: 9:00 AM - 2:00 PM</p>
+                  <p className="text-sm text-white leading-relaxed">Sun: Closed</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <MapPin size={18} className="text-accent mt-0.5 shrink-0" />
-                <div className="text-sm text-white/80 leading-relaxed">
-                  <p className="text-sm text-white/80 leading-relaxed">123 Healthcare Blvd, Suite 100</p>
-                  <p className="text-sm text-white/80 leading-relaxed">Medical City, ST 12345</p>
+                <div className="text-sm text-white leading-relaxed">
+                  <p className="text-sm text-white leading-relaxed">123 Healthcare Blvd, Suite 100</p>
+                  <p className="text-sm text-white leading-relaxed">Medical City, ST 12345</p>
                 </div>
               </div>
             </div>
@@ -113,10 +113,10 @@ const Footer = () => {
       {/* Bottom Bar */}
       <div className="border-t border-white/10">
         <div className="container-main py-6 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm text-white/60">
+          <p className="text-sm text-white/90">
             © {currentYear} AR Advanced Woundcare Solutions. All rights reserved.
           </p>
-          <div className="flex flex-wrap justify-center gap-6 text-sm text-white/60">
+          <div className="flex flex-wrap justify-center gap-6 text-sm text-white/90">
             <Link to="/privacy" className="no-link-style hover:text-white transition-colors">
               Privacy Policy
             </Link>
