@@ -153,6 +153,7 @@ export interface BlogPost {
   scheduledAt?: string;
   tags?: string[];
   slug: string;
+  is_featured?: boolean;
 }
 
 
@@ -265,7 +266,8 @@ export const SiteDataProvider = ({ children }: SiteDataProviderProps) => {
         publishedAt: post.published_at || undefined,
         scheduledAt: post.scheduled_at || undefined,
         tags: post.tags || [],
-        slug: post.slug
+        slug: post.slug,
+        is_featured: (post as any).is_featured || false
       })));
     }
   };

@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 interface ExtendedBlogPost extends BlogPost {
   status?: "draft" | "published" | "scheduled";
   scheduledDate?: string;
+  scheduledAt?: string;
 }
 
 const BlogEditor = () => {
@@ -76,6 +77,7 @@ const BlogEditor = () => {
         image_url: updatedPost.image,
         status: updatedPost.status,
         slug: updatedPost.slug || updatedPost.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        scheduled_at: updatedPost.scheduledAt || updatedPost.scheduledDate || null, // Handle both potential property names
       };
 
       if (updatedPost.status === 'published') {

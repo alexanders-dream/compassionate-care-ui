@@ -3,7 +3,13 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
+import Youtube from "@tiptap/extension-youtube";
+import ExtensionBubbleMenu from "@tiptap/extension-bubble-menu";
+import ExtensionFloatingMenu from "@tiptap/extension-floating-menu";
 import Placeholder from "@tiptap/extension-placeholder";
+import { RichEditorMenus } from "./RichEditorMenus";
+import { ImageInsertionDialog } from "./ImageInsertionDialog";
+import { SchedulePopover } from "./SchedulePopover";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -14,36 +20,23 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-  Sparkles, Wand2, RotateCcw, RotateCw, Save, X, Bold, Italic,
+  Wand2, RotateCcw, RotateCw, Save, X, Bold, Italic,
   List, ListOrdered, Heading2, Quote, Link2, Image as ImageIcon,
-  Loader2, CheckCircle2, Eye, EyeOff,
-  FileText, Settings2, MessageSquare, Zap, PenLine, RefreshCw
+  Loader2, CheckCircle2, Calendar as CalendarIcon,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { BlogPost, categories } from "@/data/blogPosts";
-import { aiProviders, getProviderById, AIModel } from "@/data/aiProviders";
 import { supabase } from "@/integrations/supabase/client";
 import { getAIConfig, AIConfig } from "@/lib/ai/config";
-import { fetchModels, clearModelCache } from "@/lib/ai/service";
+import { useAIEditor } from "@/hooks/use-ai-editor";
+import { useAIConfig } from "@/hooks/use-ai-config";
+import { AISidebar } from "@/components/admin/ai/AISidebar";
 
 interface AITextEditorProps {
   post: BlogPost;
-  onSave: (post: BlogPost & { status: "draft" | "published" | "scheduled" }) => void;
+  onSave: (post: BlogPost & { status: "draft" | "published" | "scheduled"; scheduledAt?: string }) => void;
   onClose: () => void;
 }
-
-type AIAction = "rewrite" | "expand" | "summarize" | "improve" | "fix_grammar" | "make_formal" | "make_casual" | "add_examples";
-
-const aiActions: { id: AIAction; label: string; icon: React.ReactNode; description: string }[] = [
-  { id: "rewrite", label: "Rewrite", icon: <RefreshCw className="h-4 w-4" />, description: "Rewrite the selected text" },
-  { id: "expand", label: "Expand", icon: <Zap className="h-4 w-4" />, description: "Add more detail and depth" },
-  { id: "summarize", label: "Summarize", icon: <FileText className="h-4 w-4" />, description: "Make it more concise" },
-  { id: "improve", label: "Improve", icon: <Sparkles className="h-4 w-4" />, description: "Enhance writing quality" },
-  { id: "fix_grammar", label: "Fix Grammar", icon: <CheckCircle2 className="h-4 w-4" />, description: "Correct grammar and spelling" },
-  { id: "make_formal", label: "Make Formal", icon: <PenLine className="h-4 w-4" />, description: "Professional tone" },
-  { id: "make_casual", label: "Make Casual", icon: <MessageSquare className="h-4 w-4" />, description: "Friendly, conversational tone" },
-  { id: "add_examples", label: "Add Examples", icon: <List className="h-4 w-4" />, description: "Include practical examples" },
-];
 
 const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
   const { toast } = useToast();
@@ -53,70 +46,20 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
   const [excerpt, setExcerpt] = useState(post.excerpt);
   const [category, setCategory] = useState<BlogPost["category"]>(post.category);
   const [author, setAuthor] = useState(post.author);
-  const [readTime, setReadTime] = useState(post.readTime);
+  const [readTime, setReadTime] = useState(post.readTime || "");
   const [featuredImage, setFeaturedImage] = useState(post.image || "");
+  const [slug, setSlug] = useState(post.slug || "");
+  const [tags, setTags] = useState<string[]>(post.tags || []);
+  const [tagsInput, setTagsInput] = useState(post.tags?.join(", ") || "");
+  const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(!!post.slug);
 
-  // AI state - now using AIConfig structure
-  const [config, setConfig] = useState<AIConfig>({ provider: "", apiKey: "", model: "" });
-  const [showApiKey, setShowApiKey] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [customPrompt, setCustomPrompt] = useState("");
+  // AI state - managed by useAIConfig hook for consistency
+  const { config, setConfig } = useAIConfig();
+
+  // Selection state for UI feedback
   const [selectedText, setSelectedText] = useState("");
   const [scrollProgress, setScrollProgress] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null);
-
-  // Dynamic models state
-  const [availableModels, setAvailableModels] = useState<AIModel[]>([]);
-  const [isLoadingModels, setIsLoadingModels] = useState(false);
-
-  // Load saved AI config on mount
-  useEffect(() => {
-    const loadConfig = async () => {
-      const savedConfig = await getAIConfig(supabase);
-      if (savedConfig) {
-        setConfig(savedConfig);
-      }
-    };
-    loadConfig();
-  }, []);
-
-  // Fetch models when provider or API key changes
-  useEffect(() => {
-    const loadModels = async () => {
-      if (!config.provider) {
-        setAvailableModels([]);
-        return;
-      }
-
-      setIsLoadingModels(true);
-      try {
-        const models = await fetchModels(config.provider, config.apiKey);
-        setAvailableModels(models);
-      } catch (error) {
-        console.error('Failed to load models:', error);
-        setAvailableModels([]);
-      } finally {
-        setIsLoadingModels(false);
-      }
-    };
-    loadModels();
-  }, [config.provider, config.apiKey]);
-
-  // Refresh models function
-  const handleRefreshModels = async () => {
-    if (!config.provider) return;
-    clearModelCache(config.provider);
-    setIsLoadingModels(true);
-    try {
-      const models = await fetchModels(config.provider, config.apiKey);
-      setAvailableModels(models);
-      toast({ title: "Models refreshed", description: `Loaded ${models.length} models` });
-    } catch (error) {
-      toast({ title: "Failed to refresh models", variant: "destructive" });
-    } finally {
-      setIsLoadingModels(false);
-    }
-  };
 
   // Handle scroll progress
   useEffect(() => {
@@ -135,9 +78,22 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
     return () => contentEl.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Auto-generate slug
+  useEffect(() => {
+    if (!isSlugManuallyEdited && title) {
+      const generatedSlug = title.toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)+/g, '');
+      setSlug(generatedSlug);
+    }
+  }, [title, isSlugManuallyEdited]);
+
+  const handleTagsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTagsInput(e.target.value);
+    setTags(e.target.value.split(",").map(t => t.trim()).filter(Boolean));
+  };
+
   const categoryOptions = categories.filter(c => c.id !== "all");
-  const provider = getProviderById(config.provider);
-  const isAIConfigured = config.provider && config.model && config.apiKey;
 
   // TipTap Editor
   const editor = useEditor({
@@ -155,9 +111,17 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
       }),
       Image.configure({
         HTMLAttributes: {
-          class: "rounded-lg max-w-full",
+          class: "rounded-lg max-w-full my-4",
         },
       }),
+      Youtube.configure({
+        controls: false,
+        width: 640,
+        height: 480,
+        HTMLAttributes: { class: "rounded-lg max-w-full my-4 mx-auto" },
+      }),
+      ExtensionBubbleMenu,
+      ExtensionFloatingMenu,
       Placeholder.configure({
         placeholder: "Start writing your article... Select text to apply AI actions.",
       }),
@@ -175,115 +139,17 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
     },
   });
 
-  const applyAIAction = async (action: AIAction) => {
-    if (!isAIConfigured) {
-      toast({ title: "Please configure AI provider first", variant: "destructive" });
-      return;
+  // Calculate read time when content changes
+  useEffect(() => {
+    if (editor) {
+      const wordCount = editor.storage.characterCount?.words?.() || editor.getText().split(/\s+/).filter(w => w.length > 0).length;
+      const time = Math.ceil(wordCount / 200);
+      setReadTime(`${time} min read`);
     }
-    if (!editor) return;
+  }, [editor?.getText()]);
 
-    const textToProcess = selectedText || editor.getText();
-    if (!textToProcess.trim()) {
-      toast({ title: "No text to process", variant: "destructive" });
-      return;
-    }
-
-    setIsProcessing(true);
-
-    try {
-      // Build prompt based on action
-      const actionPrompts: Record<AIAction, string> = {
-        rewrite: "Rewrite the following text while preserving its meaning. Return only the rewritten text, no explanations.",
-        expand: "Expand the following text with more detail and depth. Maintain a professional tone. Return only the expanded text.",
-        summarize: "Summarize the following text concisely. Return only the summary, no explanations.",
-        improve: "Improve the quality, flow, and clarity of the following text. Return only the improved text.",
-        fix_grammar: "Fix any grammar, spelling, and punctuation errors in the following text. Return only the corrected text.",
-        make_formal: "Rewrite the following text in a more formal, professional, and medical-appropriate tone. Return only the formal version.",
-        make_casual: "Rewrite the following text in a more casual, empathetic, and patient-friendly tone. Return only the casual version.",
-        add_examples: "Add practical, relevant examples to illustrate the points in the following text. Return the text with examples added."
-      };
-
-      const systemPrompt = "You are an expert medical content assistant. Output properly formatted HTML content (using <p>, <ul>, <li>, <strong> tags where appropriate) but do NOT wrap the entire response in markdown code blocks. Just return the raw HTML.";
-
-      // Import callAI dynamically to avoid cycle if it was static
-      const { callAI } = await import("@/lib/ai/service");
-
-      const processedText = await callAI({
-        config,
-        systemPrompt: systemPrompt,
-        userPrompt: `${actionPrompts[action]}:\n\n"${textToProcess}"`
-      });
-
-      // Apply to editor
-      if (selectedText) {
-        const { from, to } = editor.state.selection;
-        // If the returned text doesn't look like HTML, wrap it
-        const contentToInsert = processedText.trim().startsWith("<") ? processedText : `<p>${processedText}</p>`;
-        editor.chain().focus().deleteRange({ from, to }).insertContent(contentToInsert).run();
-      } else {
-        // Replacing full content
-        // Ensure no markdown code blocks wrapping
-        const cleanContent = processedText.replace(/^```html/, '').replace(/```$/, '').trim();
-        const contentToSet = cleanContent.startsWith("<") ? cleanContent : `<p>${cleanContent}</p>`;
-        editor.commands.setContent(contentToSet);
-      }
-
-      setSelectedText("");
-      toast({ title: `AI ${action.replace("_", " ")} completed` });
-    } catch (error: any) {
-      console.error("AI Action failed:", error);
-      toast({ title: "AI processing failed", description: error.message, variant: "destructive" });
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const applyCustomPrompt = async () => {
-    if (!isAIConfigured) {
-      toast({ title: "Please configure AI provider first", variant: "destructive" });
-      return;
-    }
-    if (!customPrompt.trim() || !editor) {
-      toast({ title: "Please enter a prompt", variant: "destructive" });
-      return;
-    }
-
-    setIsProcessing(true);
-
-    try {
-      const textToProcess = selectedText || editor.getText();
-      const systemPrompt = "You are an expert medical content assistant. Output properly formatted HTML content (using <p>, <ul>, <li>, <strong> tags where appropriate) but do NOT wrap the entire response in markdown code blocks. Just return the raw HTML.";
-
-      // Import callAI dynamically
-      const { callAI } = await import("@/lib/ai/service");
-
-      const processedText = await callAI({
-        config,
-        systemPrompt: systemPrompt,
-        userPrompt: `Instruction: ${customPrompt}\n\nContent to process:\n"${textToProcess}"`
-      });
-
-      // Apply to editor
-      if (selectedText) {
-        const { from, to } = editor.state.selection;
-        const contentToInsert = processedText.trim().startsWith("<") ? processedText : `<p>${processedText}</p>`;
-        editor.chain().focus().deleteRange({ from, to }).insertContent(contentToInsert).run();
-      } else {
-        const cleanContent = processedText.replace(/^```html/, '').replace(/```$/, '').trim();
-        const contentToSet = cleanContent.startsWith("<") ? cleanContent : `<p>${cleanContent}</p>`;
-        editor.commands.setContent(contentToSet);
-      }
-
-      setSelectedText("");
-      setCustomPrompt("");
-      toast({ title: "Custom AI edit applied" });
-    } catch (error: any) {
-      console.error("AI Action failed:", error);
-      toast({ title: "AI processing failed", description: error.message, variant: "destructive" });
-    } finally {
-      setIsProcessing(false);
-    }
-  };
+  // Hook for AI Logic
+  const { isProcessing, applyAIAction, applyCustomPrompt } = useAIEditor({ editor, config });
 
   const addLink = useCallback(() => {
     if (!editor) return;
@@ -293,15 +159,32 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
     }
   }, [editor]);
 
+  const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
+  const [isFeaturedImageDialogOpen, setIsFeaturedImageDialogOpen] = useState(false);
+
   const addImage = useCallback(() => {
-    if (!editor) return;
-    const url = window.prompt("Enter image URL:");
-    if (url) {
+    setIsImageDialogOpen(true);
+  }, []);
+
+  const handleImageSelected = useCallback((url: string) => {
+    if (editor) {
       editor.chain().focus().setImage({ src: url }).run();
     }
   }, [editor]);
 
-  const handleSave = (status: "draft" | "published" | "scheduled") => {
+  const handleFeaturedImageSelected = useCallback((url: string) => {
+    setFeaturedImage(url);
+  }, []);
+
+  const addYoutube = useCallback(() => {
+    if (!editor) return;
+    const url = window.prompt("Enter YouTube URL:");
+    if (url) {
+      editor.commands.setYoutubeVideo({ src: url });
+    }
+  }, [editor]);
+
+  const handleSave = (status: "draft" | "published" | "scheduled", scheduledDate?: Date) => {
     if (!title.trim() || !editor?.getHTML()) {
       toast({ title: "Title and content are required", variant: "destructive" });
       return;
@@ -316,7 +199,11 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
       author,
       readTime,
       image: featuredImage || undefined,
+      imageUrl: featuredImage || undefined, // Ensure compatibility
+      slug,
+      tags,
       status,
+      scheduledAt: scheduledDate?.toISOString(),
     });
   };
 
@@ -359,6 +246,15 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
             <Save className="h-4 w-4 mr-1" />
             Save Draft
           </Button>
+          <SchedulePopover
+            onSchedule={(date) => handleSave("scheduled", date)}
+            trigger={
+              <Button variant="outline" size="sm" className="gap-1 border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 hover:text-amber-800">
+                <CalendarIcon className="h-4 w-4" />
+                Schedule
+              </Button>
+            }
+          />
           <Button size="sm" onClick={() => handleSave("published")}>
             <CheckCircle2 className="h-4 w-4 mr-1" />
             Publish
@@ -387,7 +283,7 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
               </div>
             </div>
 
-            <TabsContent value="content" className="flex-1 flex flex-col overflow-hidden m-0 h-0">
+            <TabsContent value="content" className="flex-1 flex-col overflow-hidden m-0 data-[state=active]:flex">
               {/* Sticky Header: Title + Toolbar */}
               <div className="shrink-0 bg-background p-4 pb-2 space-y-3 border-b">
                 {/* Title */}
@@ -467,6 +363,13 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
                 </div>
               </div>
 
+              <RichEditorMenus
+                editor={editor}
+                onAddLink={addLink}
+                onAddImage={addImage}
+                onAddYoutube={addYoutube}
+              />
+
               {/* Scrollable Content Area */}
               <ScrollArea className="flex-1" ref={contentRef}>
                 <div className="flex flex-col gap-4 p-4">
@@ -489,200 +392,145 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
               </ScrollArea>
             </TabsContent>
 
-            <TabsContent value="settings" className="flex-1 overflow-auto m-0 p-4">
-              <div className="max-w-2xl space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Category</Label>
-                    <Select value={category} onValueChange={(v) => setCategory(v as BlogPost["category"])}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categoryOptions.map(c => (
-                          <SelectItem key={c.id} value={c.id}>{c.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+            <TabsContent value="settings" className="flex-1 flex-col overflow-hidden !mt-0 bg-muted/10 data-[state=active]:flex">
+              <ScrollArea className="flex-1">
+                <div className="p-6 max-w-4xl mt-0 space-y-0">
+                  <div className="grid gap-6 md:grid-cols-2">
+                    {/* General Settings */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>General Information</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="space-y-2">
+                          <Label>Category</Label>
+                          <Select value={category} onValueChange={(v) => setCategory(v as BlogPost["category"])}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {categoryOptions.map(c => (
+                                <SelectItem key={c.id} value={c.id}>{c.label}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Author</Label>
+                          <Input value={author} onChange={(e) => setAuthor(e.target.value)} />
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Publishing Details */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Article Details</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="space-y-2">
+                          <Label>Read Time</Label>
+                          <Input value={readTime} onChange={(e) => setReadTime(e.target.value)} placeholder="Auto-calculated..." />
+                          <p className="text-[10px] text-muted-foreground">Auto-calculated based on 200 wpm.</p>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Slug</Label>
+                          <Input
+                            value={slug}
+                            onChange={(e) => {
+                              setSlug(e.target.value);
+                              setIsSlugManuallyEdited(true);
+                            }}
+                            placeholder="article-url-slug"
+                          />
+                          <p className="text-[10px] text-muted-foreground">URL slug for SEO.</p>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Tags</Label>
+                          <Input
+                            value={tagsInput}
+                            onChange={handleTagsChange}
+                            placeholder="health, prevention, guide (comma separated)"
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Author</Label>
-                    <Input value={author} onChange={(e) => setAuthor(e.target.value)} />
-                  </div>
+
+                  {/* Media Settings */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Featured Media</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <Label>Featured Image</Label>
+
+                      {featuredImage && (
+                        <div className="relative aspect-video w-full max-w-md overflow-hidden rounded-lg border bg-muted">
+                          <img
+                            src={featuredImage}
+                            alt="Featured preview"
+                            className="h-full w-full object-cover"
+                            onError={(e) => (e.currentTarget.src = "https://placehold.co/600x400?text=Invalid+Image")}
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            className="absolute right-2 top-2 h-8 w-8 shadow-sm"
+                            onClick={() => setFeaturedImage("")}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
+
+                      <div className="flex gap-2 max-w-xl">
+                        <Input
+                          value={featuredImage}
+                          onChange={(e) => setFeaturedImage(e.target.value)}
+                          placeholder="Image URL or Upload..."
+                          className="flex-1"
+                        />
+                        <Button
+                          variant="secondary"
+                          onClick={() => setIsFeaturedImageDialogOpen(true)}
+                          type="button"
+                        >
+                          <ImageIcon className="mr-2 h-4 w-4" />
+                          Choose Image
+                        </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Upload an image or paste a URL. This will be displayed behind the article title.
+                      </p>
+                    </CardContent>
+                  </Card>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Read Time</Label>
-                    <Input value={readTime} onChange={(e) => setReadTime(e.target.value)} placeholder="5 min read" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Featured Image URL</Label>
-                    <Input value={featuredImage} onChange={(e) => setFeaturedImage(e.target.value)} placeholder="https://..." />
-                  </div>
-                </div>
-              </div>
+              </ScrollArea>
             </TabsContent>
           </Tabs>
         </div>
 
         {/* AI Sidebar */}
-        <div className="w-80 border-l bg-muted/30 flex flex-col overflow-hidden shrink-0">
-          <div className="p-4 border-b shrink-0">
-            <h3 className="font-semibold flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-primary" />
-              AI Assistant
-            </h3>
-          </div>
-
-          <ScrollArea className="flex-1">
-            <div className="p-4 space-y-4">
-              {/* AI Configuration */}
-              <Card>
-                <CardHeader className="py-3 px-4">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <Settings2 className="h-4 w-4" />
-                    AI Config
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="px-4 pb-4 space-y-3">
-                  <Select value={config.provider} onValueChange={(v) => setConfig(prev => ({ ...prev, provider: v, model: "" }))}>
-                    <SelectTrigger className="h-9 text-sm">
-                      <SelectValue placeholder="Select provider..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {aiProviders.map(p => (
-                        <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  {config.provider && (
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground">Model</span>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-5 w-5"
-                          onClick={handleRefreshModels}
-                          disabled={isLoadingModels || !config.apiKey}
-                          title="Refresh models"
-                        >
-                          <RefreshCw className={`h-3 w-3 ${isLoadingModels ? 'animate-spin' : ''}`} />
-                        </Button>
-                      </div>
-                      {isLoadingModels ? (
-                        <div className="flex items-center justify-center h-9 bg-muted/50 rounded border text-xs text-muted-foreground">
-                          <Loader2 className="h-3 w-3 animate-spin mr-2" />
-                          Loading...
-                        </div>
-                      ) : availableModels.length > 0 ? (
-                        <Select value={config.model} onValueChange={(v) => setConfig(prev => ({ ...prev, model: v }))}>
-                          <SelectTrigger className="h-9 text-sm">
-                            <SelectValue placeholder="Select model..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {availableModels.map(m => (
-                              <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <div className="flex items-center justify-center h-9 bg-muted/30 rounded border border-dashed text-xs text-muted-foreground">
-                          {config.apiKey ? "Click refresh" : "Enter API key"}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  <div className="flex gap-2">
-                    <Input
-                      type={showApiKey ? "text" : "password"}
-                      value={config.apiKey}
-                      onChange={(e) => setConfig(prev => ({ ...prev, apiKey: e.target.value }))}
-                      placeholder="API Key"
-                      className="h-9 text-sm"
-                    />
-                    <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={() => setShowApiKey(!showApiKey)}>
-                      {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </Button>
-                  </div>
-
-                  {isAIConfigured && (
-                    <Badge variant="default" className="w-full justify-center bg-green-600">
-                      <CheckCircle2 className="h-3 w-3 mr-1" />
-                      AI Ready
-                    </Badge>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Quick Actions */}
-              <Card>
-                <CardHeader className="py-3 px-4">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <Zap className="h-4 w-4" />
-                    Quick Actions
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="px-4 pb-4">
-                  <div className="grid grid-cols-2 gap-2">
-                    {aiActions.map(action => (
-                      <Button
-                        key={action.id}
-                        variant="outline"
-                        size="sm"
-                        className="h-auto py-2 px-3 flex flex-col items-start text-left"
-                        onClick={() => applyAIAction(action.id)}
-                        disabled={isProcessing || !isAIConfigured}
-                      >
-                        <span className="flex items-center gap-1.5 text-xs font-medium">
-                          {action.icon}
-                          {action.label}
-                        </span>
-                      </Button>
-                    ))}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-3">
-                    {selectedText ? "Applies to selected text" : "Applies to entire content"}
-                  </p>
-                </CardContent>
-              </Card>
-
-              {/* Custom Prompt */}
-              <Card>
-                <CardHeader className="py-3 px-4">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <MessageSquare className="h-4 w-4" />
-                    Custom Prompt
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="px-4 pb-4 space-y-3">
-                  <Textarea
-                    value={customPrompt}
-                    onChange={(e) => setCustomPrompt(e.target.value)}
-                    placeholder="E.g., Make this more engaging for healthcare professionals..."
-                    className="h-24 resize-none text-sm"
-                  />
-                  <Button
-                    className="w-full"
-                    size="sm"
-                    onClick={applyCustomPrompt}
-                    disabled={isProcessing || !isAIConfigured || !customPrompt.trim()}
-                  >
-                    {isProcessing ? (
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    ) : (
-                      <Wand2 className="h-4 w-4 mr-2" />
-                    )}
-                    Apply Custom Edit
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          </ScrollArea>
-        </div>
+        <AISidebar
+          config={config}
+          setConfig={setConfig}
+          isProcessing={isProcessing}
+          onAction={applyAIAction}
+          onCustomPrompt={applyCustomPrompt}
+        />
       </div>
+      <ImageInsertionDialog
+        open={isImageDialogOpen}
+        onOpenChange={setIsImageDialogOpen}
+        onImageSelected={handleImageSelected}
+      />
+      <ImageInsertionDialog
+        open={isFeaturedImageDialogOpen}
+        onOpenChange={setIsFeaturedImageDialogOpen}
+        onImageSelected={handleFeaturedImageSelected}
+      />
     </div>
   );
 };

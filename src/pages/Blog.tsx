@@ -13,8 +13,11 @@ const Blog = () => {
   const { blogPosts, loading } = useSiteData();
   const [activeCategory, setActiveCategory] = useState<string>("all");
 
-  // Filter for published posts only
-  const publishedPosts = blogPosts.filter(post => post.status === "published");
+  // Filter for published posts only (or scheduled posts that are due)
+  const publishedPosts = blogPosts.filter(post =>
+    post.status === "published" ||
+    (post.status === "scheduled" && post.scheduledAt && new Date(post.scheduledAt) <= new Date())
+  );
 
   const filteredPosts = activeCategory === "all"
     ? publishedPosts
@@ -29,8 +32,11 @@ const Blog = () => {
     });
   };
 
-  const featuredPost = filteredPosts[0];
-  const remainingPosts = filteredPosts.slice(1);
+  // Determine featured post: prioritizes 'is_featured' flag, falls back to the most recent published post
+  const featuredPost = filteredPosts.find(post => post.is_featured) || filteredPosts[0];
+
+  // Remaining posts should exclude the featured post
+  const remainingPosts = filteredPosts.filter(post => post.id !== featuredPost?.id);
 
   return (
     <Layout>
@@ -97,16 +103,29 @@ const Blog = () => {
               {featuredPost && (
                 <Card className="mb-12 overflow-hidden border-0 shadow-xl bg-card group">
                   <div className="md:flex">
-                    <div className="md:w-2/5 relative bg-[#EBF4FA] p-8 md:p-12 flex items-center justify-center min-h-[280px]">
-                      <div className="absolute inset-0" />
-                      <div className="relative text-center">
+                    <div className="md:w-2/5 relative bg-[#EBF4FA] p-8 md:p-12 flex items-center justify-center min-h-[280px] overflow-hidden">
+                      {featuredPost.imageUrl ? (
+                        <div className="absolute inset-0">
+                          <img
+                            src={featuredPost.imageUrl}
+                            alt={featuredPost.title}
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent md:bg-gradient-to-r md:from-transparent md:to-black/10" />
+                        </div>
+                      ) : (
+                        <div className="absolute inset-0" />
+                      )}
+                      <div className="relative text-center w-full z-10">
                         <div className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-full text-sm font-medium mb-4 shadow-lg">
                           <Sparkles className="w-4 h-4" />
                           Featured Article
                         </div>
-                        <Badge variant="secondary" className="capitalize text-sm px-4 py-1">
-                          {featuredPost.category}
-                        </Badge>
+                        <div className="flex justify-center">
+                          <Badge variant="secondary" className="capitalize text-sm px-4 py-1 shadow-md bg-white text-primary font-semibold hover:bg-white/90">
+                            {featuredPost.category}
+                          </Badge>
+                        </div>
                       </div>
                     </div>
                     <div className="md:w-3/5 p-8 md:p-12 flex flex-col justify-center">
@@ -158,10 +177,21 @@ const Blog = () => {
                     style={{ animationDelay: `${index * 50}ms` }}
                   >
                     <div className="relative h-48 bg-[#EBF4FA] flex items-center justify-center overflow-hidden">
-                      <div className="absolute inset-0 group-hover:scale-110 transition-transform duration-500" />
+                      {post.imageUrl ? (
+                        <div className="absolute inset-0 group-hover:scale-110 transition-transform duration-500">
+                          <img
+                            src={post.imageUrl}
+                            alt={post.title}
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
+                        </div>
+                      ) : (
+                        <div className="absolute inset-0 group-hover:scale-110 transition-transform duration-500" />
+                      )}
                       <Badge
                         variant="secondary"
-                        className="relative capitalize font-medium px-4 py-1.5 shadow-sm"
+                        className="relative z-10 capitalize font-medium px-4 py-1.5 shadow-md bg-white text-primary hover:bg-white/90"
                       >
                         {post.category}
                       </Badge>

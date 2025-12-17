@@ -39,13 +39,18 @@ const BlogPost = () => {
     });
   };
 
+  // Helper filter function
+  const isPublished = (p: typeof blogPosts[0]) =>
+    p.status === 'published' ||
+    (p.status === 'scheduled' && p.scheduledAt && new Date(p.scheduledAt) <= new Date());
+
   // Get related posts from same category, excluding current post
   const relatedPosts = blogPosts
-    .filter(p => p.category === post.category && p.id !== post.id && p.status === 'published')
+    .filter(p => p.category === post.category && p.id !== post.id && isPublished(p))
     .slice(0, 3);
 
   // Get next and previous posts (from filtered published list)
-  const publishedPosts = blogPosts.filter(p => p.status === 'published');
+  const publishedPosts = blogPosts.filter(isPublished);
   const currentIndex = publishedPosts.findIndex(p => p.id === post.id);
   const prevPost = currentIndex > 0 ? publishedPosts[currentIndex - 1] : null;
   const nextPost = currentIndex < publishedPosts.length - 1 ? publishedPosts[currentIndex + 1] : null;
@@ -76,6 +81,18 @@ const BlogPost = () => {
       <div className="bg-[#f8fafc] dark:bg-background min-h-screen pb-20">
         {/* Article Header Background */}
         <section className="bg-gradient-to-br from-[#EBF4FA] via-white to-[#EBF4FA] dark:from-secondary/10 dark:via-background dark:to-secondary/5 pt-24 pb-32 md:pb-48 px-4 relative overflow-hidden">
+          {post.imageUrl && (
+            <>
+              <div className="absolute inset-0 z-0">
+                <img
+                  src={post.imageUrl}
+                  alt={post.title}
+                  className="w-full h-full object-cover opacity-20 dark:opacity-10 blur-sm scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/80 to-[#EBF4FA] dark:from-background/80 dark:via-background/90 dark:to-background" />
+              </div>
+            </>
+          )}
           <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-primary/5 to-transparent pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-1/3 h-full bg-gradient-to-r from-secondary/5 to-transparent pointer-events-none" />
 
@@ -145,7 +162,12 @@ const BlogPost = () => {
                     "prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:bg-primary/5 prose-blockquote:py-4 prose-blockquote:px-6 prose-blockquote:rounded-r-lg prose-blockquote:not-italic prose-blockquote:text-muted-foreground prose-blockquote:my-8",
                     "prose-img:rounded-xl prose-img:shadow-md"
                   )}
-                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(post.content, {
+                      ADD_TAGS: ["iframe"],
+                      ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "style", "title"],
+                    })
+                  }}
                 />
 
                 {/* Share Section */}
@@ -252,8 +274,19 @@ const BlogPost = () => {
                       className="group overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-card h-full flex flex-col"
                     >
                       <div className="h-40 bg-muted flex items-center justify-center relative overflow-hidden">
-                        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5" />
-                        <Badge variant="secondary" className="capitalize relative z-10 shadow-sm hover:bg-secondary/80 transition-colors">
+                        {relatedPost.imageUrl ? (
+                          <div className="absolute inset-0">
+                            <img
+                              src={relatedPost.imageUrl}
+                              alt={relatedPost.title}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            />
+                            <div className="absolute inset-0 bg-black/10" />
+                          </div>
+                        ) : (
+                          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5" />
+                        )}
+                        <Badge variant="secondary" className="capitalize relative z-10 shadow-sm hover:bg-secondary/80 transition-colors backdrop-blur-sm bg-white/90 dark:bg-slate-800/90">
                           {relatedPost.category}
                         </Badge>
                       </div>

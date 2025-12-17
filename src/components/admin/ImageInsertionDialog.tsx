@@ -1,0 +1,257 @@
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Loader2, RotateCw, Image as ImageIcon, Check } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
+
+interface ImageInsertionDialogProps {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    onImageSelected: (url: string) => void;
+}
+
+export function ImageInsertionDialog({ open, onOpenChange, onImageSelected }: ImageInsertionDialogProps) {
+    const { toast } = useToast();
+    const [isUploading, setIsUploading] = useState(false);
+    const [url, setUrl] = useState("");
+
+    // Gallery state
+    const [galleryImages, setGalleryImages] = useState<{ name: string, url: string }[]>([]);
+    const [isLoadingGallery, setIsLoadingGallery] = useState(false);
+    const [selectedGalleryImage, setSelectedGalleryImage] = useState<string | null>(null);
+
+    const fetchGalleryImages = async () => {
+        setIsLoadingGallery(true);
+        try {
+            const { data, error } = await supabase.storage
+                .from('blog-media')
+                .list('', {
+                    limit: 100,
+                    offset: 0,
+                    sortBy: { column: 'created_at', order: 'desc' },
+                });
+
+            if (error) throw error;
+
+            const images = data
+                ?.filter(file => file.name !== '.emptyFolderPlaceholder')
+                .map(file => {
+                    const { data: { publicUrl } } = supabase.storage
+                        .from('blog-media')
+                        .getPublicUrl(file.name);
+                    return { name: file.name, url: publicUrl };
+                }) || [];
+
+            setGalleryImages(images);
+        } catch (error: any) {
+            console.error("Error fetching gallery:", error);
+            toast({ title: "Failed to load gallery", description: error.message, variant: "destructive" });
+        } finally {
+            setIsLoadingGallery(false);
+        }
+    };
+
+    useEffect(() => {
+        if (open) {
+            fetchGalleryImages();
+            setSelectedGalleryImage(null);
+            setUrl("");
+        }
+    }, [open]);
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploading(true);
+        try {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+            const filePath = `${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('blog-media')
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            const { data } = supabase.storage
+                .from('blog-media')
+                .getPublicUrl(filePath);
+
+            // Refresh gallery after upload
+            await fetchGalleryImages();
+
+            // Auto-select the uploaded image if in gallery mode, or just return it
+            onImageSelected(data.publicUrl);
+            onOpenChange(false);
+            toast({ title: "Image uploaded successfully" });
+        } catch (error: any) {
+            toast({ title: "Upload failed", description: error.message, variant: "destructive" });
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    const handleUrlSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (url) {
+            onImageSelected(url);
+            onOpenChange(false);
+            setUrl("");
+        }
+    };
+
+    const handleGallerySelect = () => {
+        if (selectedGalleryImage) {
+            onImageSelected(selectedGalleryImage);
+            onOpenChange(false);
+        }
+    };
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-3xl h-[80vh] flex flex-col p-0 gap-0 overflow-hidden">
+                <DialogHeader className="p-6 pb-2">
+                    <DialogTitle>Insert Image</DialogTitle>
+                    <DialogDescription>
+                        Choose from gallery, upload new, or paste URL.
+                    </DialogDescription>
+                </DialogHeader>
+
+                <Tabs defaultValue="gallery" className="flex-1 flex flex-col overflow-hidden">
+                    <div className="px-6 border-b">
+                        <TabsList className="grid w-full grid-cols-3 mb-2">
+                            <TabsTrigger value="gallery">Gallery</TabsTrigger>
+                            <TabsTrigger value="upload">Upload</TabsTrigger>
+                            <TabsTrigger value="url">URL</TabsTrigger>
+                        </TabsList>
+                    </div>
+
+                    <TabsContent value="gallery" className="flex-1 flex flex-col min-h-0 m-0 p-0">
+                        <div className="p-4 border-b flex justify-between items-center bg-muted/20">
+                            <span className="text-xs text-muted-foreground">
+                                {galleryImages.length} images found
+                            </span>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={fetchGalleryImages}
+                                disabled={isLoadingGallery}
+                                className="h-8 gap-1.5"
+                            >
+                                <RotateCw className={cn("h-3.5 w-3.5", isLoadingGallery && "animate-spin")} />
+                                Refresh
+                            </Button>
+                        </div>
+
+                        <ScrollArea className="flex-1">
+                            <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                {isLoadingGallery && galleryImages.length === 0 ? (
+                                    <div className="col-span-full flex flex-col items-center justify-center py-12 text-muted-foreground gap-2">
+                                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                        <p>Loading gallery...</p>
+                                    </div>
+                                ) : galleryImages.length > 0 ? (
+                                    galleryImages.map((img) => (
+                                        <div
+                                            key={img.name}
+                                            onClick={() => setSelectedGalleryImage(img.url)}
+                                            className={cn(
+                                                "group relative aspect-square border rounded-md overflow-hidden cursor-pointer transition-all hover:ring-2 hover:ring-primary/50",
+                                                selectedGalleryImage === img.url && "ring-2 ring-primary ring-offset-2"
+                                            )}
+                                        >
+                                            <img
+                                                src={img.url}
+                                                alt={img.name}
+                                                className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                                                loading="lazy"
+                                            />
+                                            {selectedGalleryImage === img.url && (
+                                                <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                                                    <div className="bg-primary text-primary-foreground rounded-full p-1">
+                                                        <Check className="h-4 w-4" />
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="col-span-full flex flex-col items-center justify-center py-12 text-muted-foreground gap-2 border-2 border-dashed rounded-lg bg-muted/10">
+                                        <ImageIcon className="h-10 w-10 opacity-20" />
+                                        <p>No images found in gallery</p>
+                                    </div>
+                                )}
+                            </div>
+                        </ScrollArea>
+
+                        <div className="p-4 border-t bg-background flex justify-end">
+                            <Button onClick={handleGallerySelect} disabled={!selectedGalleryImage}>
+                                Insert Selected
+                            </Button>
+                        </div>
+                    </TabsContent>
+
+                    <TabsContent value="upload" className="flex-1 p-6 m-0">
+                        <div className="flex flex-col items-center justify-center h-full gap-4 border-2 border-dashed rounded-lg bg-muted/10 p-8">
+                            <div className="rounded-full bg-primary/10 p-4">
+                                <ImageIcon className="h-8 w-8 text-primary" />
+                            </div>
+                            <div className="text-center space-y-1">
+                                <h3 className="font-semibold text-lg">Upload an image</h3>
+                                <p className="text-sm text-muted-foreground">
+                                    Click to browse or drag and drop
+                                </p>
+                            </div>
+                            <div className="relative">
+                                <Input
+                                    id="image-upload"
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleFileUpload}
+                                    disabled={isUploading}
+                                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                                />
+                                <Button disabled={isUploading} className="w-full min-w-[150px]">
+                                    {isUploading ? (
+                                        <>
+                                            <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Uploading...
+                                        </>
+                                    ) : "Select File"}
+                                </Button>
+                            </div>
+                        </div>
+                    </TabsContent>
+
+                    <TabsContent value="url" className="flex-1 p-6 m-0">
+                        <form onSubmit={handleUrlSubmit} className="max-w-md mx-auto space-y-4 pt-8">
+                            <div className="space-y-2">
+                                <Label htmlFor="image-url">Image URL</Label>
+                                <Input
+                                    id="image-url"
+                                    placeholder="https://example.com/image.jpg"
+                                    value={url}
+                                    onChange={(e) => setUrl(e.target.value)}
+                                    autoFocus
+                                />
+                                <p className="text-xs text-muted-foreground">
+                                    Paste the full URL of the image you want to insert.
+                                </p>
+                            </div>
+                            <Button type="submit" disabled={!url} className="w-full">
+                                Insert Image
+                            </Button>
+                        </form>
+                    </TabsContent>
+                </Tabs>
+            </DialogContent>
+        </Dialog>
+    );
+}

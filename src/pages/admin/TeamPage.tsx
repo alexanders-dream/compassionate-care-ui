@@ -9,20 +9,11 @@ const TeamPage = () => {
     const { toast } = useToast();
 
     const [editingTeamMember, setEditingTeamMember] = useState<TeamMember | null>(null);
-    const [teamMemberImage, setTeamMemberImage] = useState<File | null>(null);
     const [teamMemberImagePreview, setTeamMemberImagePreview] = useState<string | null>(null);
 
-    const handleTeamMemberImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setTeamMemberImage(file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setTeamMemberImagePreview(reader.result as string);
-            };
-            reader.readAsDataURL(file);
-            toast({ title: `Image selected: ${file.name}` });
-        }
+    const handleTeamMemberImageSelected = (url: string) => {
+        setTeamMemberImagePreview(url);
+        toast({ title: "Image updated" });
     };
 
     const handleSaveTeamMember = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -71,7 +62,6 @@ const TeamPage = () => {
         }
 
         setEditingTeamMember(null);
-        setTeamMemberImage(null);
         setTeamMemberImagePreview(null);
     };
 
@@ -99,9 +89,9 @@ const TeamPage = () => {
             onDelete={handleDeleteTeamMember}
             editingTeamMember={editingTeamMember}
             setEditingTeamMember={setEditingTeamMember}
-            teamMemberImage={teamMemberImage}
+            teamMemberImage={null}
             teamMemberImagePreview={teamMemberImagePreview}
-            onImageUpload={handleTeamMemberImageUpload}
+            onImageSelected={handleTeamMemberImageSelected}
         />
     );
 };

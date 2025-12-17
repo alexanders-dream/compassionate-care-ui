@@ -13,7 +13,7 @@ export interface BlogPost {
   tags?: string[];
   publishedAt?: string;
   scheduledAt?: string;
-
+  is_featured?: boolean;
 }
 
 export const blogPosts: BlogPost[] = [

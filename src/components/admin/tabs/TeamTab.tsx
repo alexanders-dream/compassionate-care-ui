@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { Plus, Pencil, Trash2, User } from "lucide-react";
 import { TeamMember } from "@/contexts/SiteDataContext";
+import { ImageInsertionDialog } from "@/components/admin/ImageInsertionDialog";
 
 interface TeamTabProps {
     team: TeamMember[];
@@ -30,7 +31,7 @@ interface TeamTabProps {
     setEditingTeamMember: (member: TeamMember | null) => void;
     teamMemberImage: File | null;
     teamMemberImagePreview: string | null;
-    onImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onImageSelected: (url: string) => void;
 }
 
 const TeamTab = ({
@@ -41,9 +42,10 @@ const TeamTab = ({
     setEditingTeamMember,
     teamMemberImage,
     teamMemberImagePreview,
-    onImageUpload,
+    onImageSelected,
 }: TeamTabProps) => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
 
     const handleOpenDialog = (member: TeamMember | null) => {
         setEditingTeamMember(member);
@@ -91,15 +93,20 @@ const TeamTab = ({
                                             <span className="text-sm text-muted-foreground">Current image</span>
                                         </div>
                                     )}
-                                    <div className="border-2 border-dashed border-border rounded-lg p-4 text-center hover:border-primary/50 transition-colors">
-                                        <input type="file" accept="image/*" onChange={onImageUpload} className="hidden" id="team-member-image" />
-                                        <label htmlFor="team-member-image" className="cursor-pointer">
-                                            <div className="flex flex-col items-center gap-2">
-                                                <div className="p-2 bg-muted rounded-full"><User className="h-5 w-5 text-muted-foreground" /></div>
-                                                <span className="text-sm text-muted-foreground">{teamMemberImage ? teamMemberImage.name : "Click to upload"}</span>
-                                            </div>
-                                        </label>
+                                    <div
+                                        className="border-2 border-dashed border-border rounded-lg p-4 text-center hover:border-primary/50 transition-colors cursor-pointer"
+                                        onClick={() => setIsImageDialogOpen(true)}
+                                    >
+                                        <div className="flex flex-col items-center gap-2">
+                                            <div className="p-2 bg-muted rounded-full"><User className="h-5 w-5 text-muted-foreground" /></div>
+                                            <span className="text-sm text-muted-foreground">Click to select image</span>
+                                        </div>
                                     </div>
+                                    <ImageInsertionDialog
+                                        open={isImageDialogOpen}
+                                        onOpenChange={setIsImageDialogOpen}
+                                        onImageSelected={onImageSelected}
+                                    />
                                 </div>
                             </div>
                             <Button type="submit" className="w-full">Save Team Member</Button>

@@ -15,7 +15,8 @@ const BlogPage = () => {
         media: [],
         status: post.status, // Ensure status is passed
         category: post.category as any, // Cast category to satisfy the literal type union if it doesn't match exactly
-        image: post.imageUrl // Map imageUrl to image expected by UI
+        image: post.imageUrl, // Map imageUrl to image expected by UI
+        is_featured: post.is_featured
     }));
 
     const handleSaveArticle = async (article: ExtendedBlogPost) => {
@@ -116,12 +117,48 @@ const BlogPage = () => {
         }
     };
 
+    const handleSetFeatured = async (post: ExtendedBlogPost) => {
+        try {
+            // Optimistic update
+            const updatedPosts = blogPosts.map(p => ({
+                ...p,
+                is_featured: p.id === post.id
+            })) as any;
+            setBlogPosts(updatedPosts);
+
+            // 1. Unset all current featured posts
+            // 1. Unset all current featured posts
+            const { error: unsetError } = await (supabase
+                .from("blog_posts")
+                .update({ is_featured: false } as any) as any)
+                .eq("is_featured", true);
+
+            if (unsetError) throw unsetError;
+
+            // 2. Set the new featured post
+            const { error: setError } = await (supabase
+                .from("blog_posts")
+                .update({ is_featured: true } as any) as any)
+                .eq("id", post.id);
+
+            if (setError) throw setError;
+
+            await refreshBlogPosts();
+            toast({ title: "Featured article updated" });
+        } catch (error) {
+            console.error("Error setting featured post:", error);
+            toast({ title: "Error updating featured post", variant: "destructive" });
+            await refreshBlogPosts(); // Revert on error
+        }
+    };
+
     return (
         <BlogTab
             posts={posts}
             onSaveArticle={handleSaveArticle}
             onDeletePost={handleDeletePost}
             onSharePost={handleSharePost}
+            onSetFeatured={handleSetFeatured}
         />
     );
 };
