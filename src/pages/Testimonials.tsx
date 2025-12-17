@@ -15,7 +15,7 @@ const Testimonials = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="bg-background py-16 md:py-24">
+      <section className="bg-[#EBF4FA] dark:bg-background py-16 md:py-24">
         <div className="container-main text-center">
           <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-6">
             Patient <span className="text-primary">Testimonials</span>
@@ -55,24 +55,24 @@ const Testimonials = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 md:py-24 bg-[#0B2545]">
+      <section className="py-16 md:py-24 bg-primary dark:bg-card">
         <div className="container-main">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
             <div>
-              <div className="font-display text-4xl md:text-5xl font-bold text-primary-foreground mb-2">98%</div>
-              <div className="text-primary-foreground/80">Patient Satisfaction</div>
+              <div className="font-display text-4xl md:text-5xl font-bold text-white dark:text-primary-foreground mb-2">98%</div>
+              <div className="text-white/80 dark:text-primary-foreground/80">Patient Satisfaction</div>
             </div>
             <div>
-              <div className="font-display text-4xl md:text-5xl font-bold text-primary-foreground mb-2">5,000+</div>
-              <div className="text-primary-foreground/80">Patients Served</div>
+              <div className="font-display text-4xl md:text-5xl font-bold text-white dark:text-primary-foreground mb-2">5,000+</div>
+              <div className="text-white/80 dark:text-primary-foreground/80">Patients Served</div>
             </div>
             <div>
-              <div className="font-display text-4xl md:text-5xl font-bold text-primary-foreground mb-2">4.9</div>
-              <div className="text-primary-foreground/80">Average Rating</div>
+              <div className="font-display text-4xl md:text-5xl font-bold text-white dark:text-primary-foreground mb-2">4.9</div>
+              <div className="text-white/80 dark:text-primary-foreground/80">Average Rating</div>
             </div>
             <div>
-              <div className="font-display text-4xl md:text-5xl font-bold text-primary-foreground mb-2">50+</div>
-              <div className="text-primary-foreground/80">Partner Providers</div>
+              <div className="font-display text-4xl md:text-5xl font-bold text-white dark:text-primary-foreground mb-2">50+</div>
+              <div className="text-white/80 dark:text-primary-foreground/80">Partner Providers</div>
             </div>
           </div>
         </div>

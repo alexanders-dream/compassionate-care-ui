@@ -70,7 +70,7 @@ const About = () => {
       </section>
 
       {/* Mission & Vision */}
-      <section className="py-16 md:py-24 bg-muted/30">
+      <section className="py-16 md:py-24 bg-warm dark:bg-background">
         <div className="container-main">
           <div className="grid md:grid-cols-2 gap-8">
             <div className="bg-card rounded-2xl p-8 shadow-soft">
@@ -131,15 +131,15 @@ const About = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 md:py-24 bg-[#0B2545]">
+      <section className="py-16 md:py-24 bg-primary dark:bg-card">
         <div className="container-main">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
-                <div className="font-display text-4xl md:text-5xl font-bold text-primary-foreground mb-2">
+                <div className="font-display text-4xl md:text-5xl font-bold text-white dark:text-primary-foreground mb-2">
                   {stat.value}
                 </div>
-                <div className="text-primary-foreground/80">
+                <div className="text-white/80 dark:text-primary-foreground/80">
                   {stat.label}
                 </div>
               </div>
@@ -197,7 +197,7 @@ const About = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 md:py-24">
+      <section className="py-16 md:py-24 bg-muted">
         <div className="container-main text-center">
           <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
             Partner With Us

@@ -65,7 +65,7 @@ const Services = () => {
       </section>
 
       {/* Services Grid */}
-      <section className="py-16 md:py-24">
+      <section className="py-16 md:py-24 bg-muted">
         <div className="container-main">
           <div className="text-center mb-12">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
@@ -101,10 +101,10 @@ const Services = () => {
       </section>
 
       {/* Benefits Section */}
-      <section className="py-16 md:py-24 bg-secondary dark:bg-muted/30">
+      <section className="py-16 md:py-24 bg-primary dark:bg-muted/30">
         <div className="container-main">
           <div className="text-center mb-12">
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-secondary-foreground dark:text-foreground mb-4">
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-white dark:text-foreground mb-4">
               Why Choose AR Advanced Woundcare?
             </h2>
           </div>
@@ -112,12 +112,12 @@ const Services = () => {
             {benefits.map((benefit, index) => (
               <div key={index} className="text-center">
                 <div className="w-16 h-16 rounded-full bg-white/20 dark:bg-primary/15 flex items-center justify-center mx-auto mb-4">
-                  <benefit.icon className="w-8 h-8 text-secondary-foreground dark:text-primary" />
+                  <benefit.icon className="w-8 h-8 text-white dark:text-primary" />
                 </div>
-                <h3 className="font-display text-lg font-semibold text-secondary-foreground dark:text-foreground mb-2">
+                <h3 className="font-display text-lg font-semibold text-white dark:text-foreground mb-2">
                   {benefit.title}
                 </h3>
-                <p className="text-secondary-foreground/80 dark:text-muted-foreground">
+                <p className="text-white/80 dark:text-muted-foreground">
                   {benefit.description}
                 </p>
               </div>
