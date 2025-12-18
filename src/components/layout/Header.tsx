@@ -22,9 +22,9 @@ const Header = () => {
     <>
       <header className="sticky top-0 z-50 w-full bg-primary dark:bg-background shadow-md dark:shadow-[0_4px_20px_rgba(55,119,255,0.15)]">
         <div className="container-main">
-          <div className="flex h-16 md:h-20 items-center justify-between">
-            {/* Logo */}
-            <Link to="/" className="no-link-style flex items-center gap-2">
+          <div className="relative flex h-16 md:h-20 items-center justify-between">
+            {/* Logo - positioned at the start */}
+            <Link to="/" className="no-link-style flex items-center gap-2 z-10">
               <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
                 <span className="text-primary-foreground font-bold text-lg">AR</span>
               </div>
@@ -34,8 +34,8 @@ const Header = () => {
               </div>
             </Link>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center gap-8">
+            {/* Desktop Navigation - absolutely centered */}
+            <nav className="hidden lg:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
@@ -48,8 +48,8 @@ const Header = () => {
               ))}
             </nav>
 
-            {/* CTA Buttons */}
-            <div className="hidden md:flex items-center gap-3">
+            {/* CTA Buttons - positioned at the end */}
+            <div className="hidden md:flex items-center gap-3 z-10">
               <ThemeToggle />
               <Button variant="ghost" asChild className="border-2 border-white/80 text-white hover:bg-white/10 hover:text-white">
                 <Link to="/refer" className="no-link-style">Refer a Patient</Link>
