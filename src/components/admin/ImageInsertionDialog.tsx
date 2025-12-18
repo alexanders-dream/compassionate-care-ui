@@ -4,11 +4,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, RotateCw, Image as ImageIcon, Check } from "lucide-react";
+import { Loader2, RotateCw, Image as ImageIcon, Check, Crop as CropIcon, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import Cropper from "react-easy-crop";
+import getCroppedImg from "@/lib/canvasUtils";
+import { Slider } from "@/components/ui/slider";
 
 interface ImageInsertionDialogProps {
     open: boolean;
@@ -25,6 +28,13 @@ export function ImageInsertionDialog({ open, onOpenChange, onImageSelected }: Im
     const [galleryImages, setGalleryImages] = useState<{ name: string, url: string }[]>([]);
     const [isLoadingGallery, setIsLoadingGallery] = useState(false);
     const [selectedGalleryImage, setSelectedGalleryImage] = useState<string | null>(null);
+
+    // Cropping State
+    const [croppingImageSrc, setCroppingImageSrc] = useState<string | null>(null);
+    const [crop, setCrop] = useState({ x: 0, y: 0 });
+    const [zoom, setZoom] = useState(1);
+    const [rotation, setRotation] = useState(0);
+    const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
 
     const fetchGalleryImages = async () => {
         setIsLoadingGallery(true);
@@ -62,40 +72,66 @@ export function ImageInsertionDialog({ open, onOpenChange, onImageSelected }: Im
             fetchGalleryImages();
             setSelectedGalleryImage(null);
             setUrl("");
+            setCroppingImageSrc(null);
+            setZoom(1);
+            setRotation(0);
         }
     }, [open]);
 
+    // File Upload Handler (Read as Data URL first)
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
+        const reader = new FileReader();
+        reader.addEventListener("load", () => {
+            setCroppingImageSrc(reader.result as string);
+        });
+        reader.readAsDataURL(file);
+    };
+
+    const onCropComplete = (croppedArea: any, croppedAreaPixels: any) => {
+        setCroppedAreaPixels(croppedAreaPixels);
+    };
+
+    const handleCropUpload = async () => {
+        if (!croppingImageSrc || !croppedAreaPixels) return;
+
         setIsUploading(true);
         try {
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
-            const filePath = `${fileName}`;
+            const croppedBlob = await getCroppedImg(
+                croppingImageSrc,
+                croppedAreaPixels,
+                rotation
+            );
 
+            if (!croppedBlob) throw new Error("Failed to crop image");
+
+            const fileName = `cropped-${Date.now()}.jpg`;
             const { error: uploadError } = await supabase.storage
                 .from('blog-media')
-                .upload(filePath, file);
+                .upload(fileName, croppedBlob);
 
             if (uploadError) throw uploadError;
 
             const { data } = supabase.storage
                 .from('blog-media')
-                .getPublicUrl(filePath);
+                .getPublicUrl(fileName);
 
             // Refresh gallery after upload
             await fetchGalleryImages();
 
-            // Auto-select the uploaded image if in gallery mode, or just return it
+            // Select and close
             onImageSelected(data.publicUrl);
             onOpenChange(false);
-            toast({ title: "Image uploaded successfully" });
+            toast({ title: "Image cropped and uploaded!" });
+
         } catch (error: any) {
+            console.error("Crop/Upload error", error);
             toast({ title: "Upload failed", description: error.message, variant: "destructive" });
         } finally {
             setIsUploading(false);
+            setCroppingImageSrc(null); // Reset
         }
     };
 
@@ -108,12 +144,73 @@ export function ImageInsertionDialog({ open, onOpenChange, onImageSelected }: Im
         }
     };
 
+    // Gallery Select Trigger (Start Cropping)
     const handleGallerySelect = () => {
         if (selectedGalleryImage) {
-            onImageSelected(selectedGalleryImage);
-            onOpenChange(false);
+            setCroppingImageSrc(selectedGalleryImage);
         }
     };
+
+    if (croppingImageSrc) {
+        return (
+            <Dialog open={open} onOpenChange={onOpenChange}>
+                <DialogContent className="sm:max-w-3xl h-[80vh] flex flex-col p-0 gap-0 overflow-hidden">
+                    <DialogHeader className="p-4 border-b flex-shrink-0">
+                        <DialogTitle>Crop Image</DialogTitle>
+                    </DialogHeader>
+
+                    <div className="relative flex-1 bg-black w-full min-h-0">
+                        <Cropper
+                            image={croppingImageSrc}
+                            crop={crop}
+                            zoom={zoom}
+                            rotation={rotation}
+                            aspect={undefined} // Allow free crop or set 16/9, 4/3, etc.
+                            onCropChange={setCrop}
+                            onCropComplete={onCropComplete}
+                            onZoomChange={setZoom}
+                            onRotationChange={setRotation}
+                        />
+                    </div>
+
+                    <div className="p-4 bg-background border-t space-y-4 flex-shrink-0">
+                        <div className="flex items-center gap-4">
+                            <span className="w-16 text-xs text-muted-foreground flex items-center gap-1"><ZoomIn className="w-3 h-3" /> Zoom</span>
+                            <Slider
+                                value={[zoom]}
+                                min={1}
+                                max={3}
+                                step={0.1}
+                                onValueChange={(vals) => setZoom(vals[0])}
+                                className="flex-1"
+                            />
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <span className="w-16 text-xs text-muted-foreground flex items-center gap-1"><RotateCcw className="w-3 h-3" /> Rotate</span>
+                            <Slider
+                                value={[rotation]}
+                                min={0}
+                                max={360}
+                                step={1}
+                                onValueChange={(vals) => setRotation(vals[0])}
+                                className="flex-1"
+                            />
+                        </div>
+
+                        <div className="flex justify-between">
+                            <Button variant="outline" onClick={() => setCroppingImageSrc(null)}>
+                                Cancel
+                            </Button>
+                            <Button onClick={handleCropUpload} disabled={isUploading}>
+                                {isUploading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                                Crop & Insert
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+        );
+    }
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -194,7 +291,8 @@ export function ImageInsertionDialog({ open, onOpenChange, onImageSelected }: Im
 
                         <div className="p-4 border-t bg-background flex justify-end">
                             <Button onClick={handleGallerySelect} disabled={!selectedGalleryImage}>
-                                Insert Selected
+                                <CropIcon className="w-4 h-4 mr-2" />
+                                Crop & Insert
                             </Button>
                         </div>
                     </TabsContent>
@@ -220,11 +318,7 @@ export function ImageInsertionDialog({ open, onOpenChange, onImageSelected }: Im
                                     className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                                 />
                                 <Button disabled={isUploading} className="w-full min-w-[150px]">
-                                    {isUploading ? (
-                                        <>
-                                            <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Uploading...
-                                        </>
-                                    ) : "Select File"}
+                                    Select File
                                 </Button>
                             </div>
                         </div>
