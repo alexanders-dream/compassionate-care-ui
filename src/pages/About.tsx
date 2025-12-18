@@ -5,6 +5,13 @@ import { Link } from "react-router-dom";
 import { Heart, Shield, Users, Award, Target, Eye } from "lucide-react";
 import heroClinician from "@/assets/hero-clinician.jpg";
 import { useSiteData } from "@/contexts/SiteDataContext";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 const values = [
   {
@@ -160,39 +167,86 @@ const About = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {teamMembers.map((member) => (
-              <div
-                key={member.id}
-                className="bg-card rounded-2xl overflow-hidden shadow-soft group"
+          {teamMembers.filter(m => m.is_public).length <= 3 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {teamMembers.filter(m => m.is_public).map((member) => (
+                <div
+                  key={member.id}
+                  className="bg-card rounded-2xl overflow-hidden shadow-soft group"
+                >
+                  <div className="aspect-[4/3] bg-muted relative overflow-hidden">
+                    {member.image_url ? (
+                      <img
+                        src={member.image_url}
+                        alt={member.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-primary/10">
+                        <Users className="w-16 h-16 text-primary/40" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-6">
+                    <h3 className="font-display text-xl font-semibold text-foreground mb-1">
+                      {member.name}
+                    </h3>
+                    <p className="text-primary font-medium text-sm mb-3">
+                      {member.role}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {member.bio}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="px-12">
+              <Carousel
+                opts={{
+                  align: "start",
+                  loop: true,
+                }}
+                className="w-full"
               >
-                <div className="aspect-[4/3] bg-muted relative overflow-hidden">
-                  {member.image_url ? (
-                    <img
-                      src={member.image_url}
-                      alt={member.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-primary/10">
-                      <Users className="w-16 h-16 text-primary/40" />
-                    </div>
-                  )}
-                </div>
-                <div className="p-6">
-                  <h3 className="font-display text-xl font-semibold text-foreground mb-1">
-                    {member.name}
-                  </h3>
-                  <p className="text-primary font-medium text-sm mb-3">
-                    {member.role}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {member.bio}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
+                <CarouselContent className="-ml-4">
+                  {teamMembers.filter(m => m.is_public).map((member) => (
+                    <CarouselItem key={member.id} className="pl-4 md:basis-1/2 lg:basis-1/3">
+                      <div className="bg-card rounded-2xl overflow-hidden shadow-soft group h-full">
+                        <div className="aspect-[4/3] bg-muted relative overflow-hidden">
+                          {member.image_url ? (
+                            <img
+                              src={member.image_url}
+                              alt={member.name}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-primary/10">
+                              <Users className="w-16 h-16 text-primary/40" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-6">
+                          <h3 className="font-display text-xl font-semibold text-foreground mb-1">
+                            {member.name}
+                          </h3>
+                          <p className="text-primary font-medium text-sm mb-3">
+                            {member.role}
+                          </p>
+                          <p className="text-sm text-muted-foreground line-clamp-4">
+                            {member.bio}
+                          </p>
+                        </div>
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="-left-4 lg:-left-12" />
+                <CarouselNext className="-right-4 lg:-right-12" />
+              </Carousel>
+            </div>
+          )}
         </div>
       </section>
 

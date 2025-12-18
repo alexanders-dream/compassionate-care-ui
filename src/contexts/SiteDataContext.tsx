@@ -29,6 +29,8 @@ export interface TeamMember {
   bio?: string | null;
   image_url?: string | null;
   display_order: number;
+  is_public: boolean;
+  user_id?: string | null;
 }
 
 export interface FAQ {
@@ -331,7 +333,12 @@ export const SiteDataProvider = ({ children }: SiteDataProviderProps) => {
       .order("display_order", { ascending: true });
 
     if (!error && data) {
-      setTeamMembers(data);
+      // Ensure is_public is present (default true if missing from DB response yet)
+      const mappedData: TeamMember[] = data.map((item: any) => ({
+        ...item,
+        is_public: item.is_public ?? true
+      }));
+      setTeamMembers(mappedData);
     }
   };
 

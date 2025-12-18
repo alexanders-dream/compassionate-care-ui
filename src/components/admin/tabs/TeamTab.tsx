@@ -38,6 +38,7 @@ export interface EnhancedTeamMember extends TeamMember {
     email?: string; // from Profile/User
     system_role?: string; // from UserRoles
     user_id?: string; // link to auth user
+    is_public: boolean;
 }
 
 interface TeamTabProps {
@@ -98,6 +99,7 @@ const TeamTab = ({
                 bio: formData.get("bio"),
                 image_url: teamMemberImagePreview || editingTeamMember?.image_url,
                 display_order: editingTeamMember?.display_order,
+                is_public: formData.get("is_public") === "on",
 
                 // System Data
                 email: formData.get("email"),
@@ -165,6 +167,17 @@ const TeamTab = ({
                                         <div>
                                             <Label htmlFor="bio">Bio</Label>
                                             <Textarea id="bio" name="bio" defaultValue={editingTeamMember?.bio || ""} rows={3} placeholder="Short professional biography..." />
+                                        </div>
+
+                                        <div className="flex items-center space-x-2 border p-3 rounded-md bg-background">
+                                            <Switch
+                                                id="is_public"
+                                                name="is_public"
+                                                defaultChecked={editingTeamMember ? editingTeamMember.is_public : true}
+                                            />
+                                            <Label htmlFor="is_public" className="cursor-pointer">
+                                                Show on Website (About Us Page)
+                                            </Label>
                                         </div>
                                         <div>
                                             <Label>Profile Image</Label>
@@ -304,6 +317,7 @@ const TeamTab = ({
                         <TableRow className="bg-muted/50">
                             <TableHead>User</TableHead>
                             <TableHead>Public Role</TableHead>
+                            <TableHead>Visibility</TableHead>
                             <TableHead>System Access</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
@@ -329,6 +343,17 @@ const TeamTab = ({
                                     </div>
                                 </TableCell>
                                 <TableCell>{member.role}</TableCell>
+                                <TableCell>
+                                    {member.is_public ? (
+                                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                                            <Eye className="w-3 h-3 mr-1" /> Visible
+                                        </Badge>
+                                    ) : (
+                                        <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                                            <EyeOff className="w-3 h-3 mr-1" /> Hidden
+                                        </Badge>
+                                    )}
+                                </TableCell>
                                 <TableCell>
                                     <Badge variant={member.system_role === 'admin' ? "default" : "secondary"}>
                                         {member.system_role || 'User'}
@@ -370,7 +395,12 @@ const TeamTab = ({
                             <div className="flex-1 min-w-0">
                                 <div className="flex justify-between items-start">
                                     <div>
-                                        <h3 className="font-medium truncate">{member.name}</h3>
+                                        <div className="flex items-center gap-2">
+                                            <h3 className="font-medium truncate">{member.name}</h3>
+                                            {!member.is_public && (
+                                                <Badge variant="outline" className="text-[10px] px-1 h-4 border-yellow-500 text-yellow-600">Hidden</Badge>
+                                            )}
+                                        </div>
                                         <p className="text-xs text-muted-foreground">{member.role}</p>
                                     </div>
                                     <Badge variant={member.system_role === 'admin' ? "default" : "secondary"} className="text-[10px] px-1.5 py-0 h-5">

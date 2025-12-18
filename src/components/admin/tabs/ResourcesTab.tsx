@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,10 +20,11 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, Pencil, Trash2, FileText, Upload, FolderOpen, Loader2, Check } from "lucide-react";
 import IconPicker from "@/components/admin/IconPicker";
 import { PatientResource } from "@/contexts/SiteDataContext";
-import { useToast } from "@/hooks/use-toast";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ResourcesTabProps {
     resources: PatientResource[];
@@ -35,6 +36,7 @@ interface ResourcesTabProps {
     setResourceIcon: (icon: string) => void;
     resourceFile: File | null;
     onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    isUploading?: boolean;
 }
 
 const ResourcesTab = ({
@@ -47,19 +49,37 @@ const ResourcesTab = ({
     setResourceIcon,
     resourceFile,
     onFileUpload,
+    isUploading = false,
 }: ResourcesTabProps) => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [selectedExistingFile, setSelectedExistingFile] = useState<PatientResource | null>(null);
+
+    // Filter resources that have actual uploaded files (not external URLs)
+    const uploadedResources = resources.filter(r =>
+        r.file_url && r.file_url.includes('patient-resources')
+    );
 
     const handleOpenDialog = (resource: PatientResource | null) => {
         setEditingResource(resource);
         setResourceIcon(resource?.icon || "FileText");
+        setSelectedExistingFile(null);
         setIsDialogOpen(true);
     };
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         onSave(e);
-        setIsDialogOpen(false);
+        if (!isUploading) {
+            setIsDialogOpen(false);
+            setSelectedExistingFile(null);
+        }
     };
+
+    // Close dialog when upload completes
+    useEffect(() => {
+        if (!isUploading && isDialogOpen) {
+            // Dialog stays open during upload, closes after
+        }
+    }, [isUploading]);
 
     return (
         <>
