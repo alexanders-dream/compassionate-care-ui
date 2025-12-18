@@ -62,10 +62,10 @@ const SidebarNavItem = ({
       to={item.path}
       onClick={onItemClick}
       className={({ isActive }) => cn(
-        "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium",
+        "w-full flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
         isActive
-          ? "bg-blue-100 dark:bg-blue-900/40 text-foreground"
-          : "text-muted-foreground hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-foreground",
+          ? "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-100"
+          : "text-muted-foreground hover:bg-muted hover:text-foreground",
         collapsed && "justify-center px-2"
       )}
     >
@@ -125,7 +125,7 @@ const SidebarContent = ({
 
         {/* Exit to Home */}
         <SidebarNavItem
-          item={{ label: "Exit to Home", icon: Home, path: "/" }}
+          item={{ label: "Home", icon: Home, path: "/" }}
           collapsed={collapsed}
           onItemClick={onItemClick}
         />
@@ -138,7 +138,7 @@ const SidebarContent = ({
                 variant="ghost"
                 onClick={handleLogout}
                 className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium justify-center h-auto",
+                  "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium justify-center h-auto",
                   "text-muted-foreground hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-foreground"
                 )}
               >
@@ -158,7 +158,7 @@ const SidebarContent = ({
             variant="ghost"
             onClick={handleLogout}
             className={cn(
-              "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium justify-start h-auto",
+              "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium justify-start h-auto",
               "text-muted-foreground hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-foreground"
             )}
           >
@@ -184,7 +184,7 @@ const AdminSidebar = ({ collapsed, onToggleCollapse }: AdminSidebarProps) => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Mobile: Sheet drawer
+  // Mobile: Floating hamburger button with sheet drawer
   if (isMobile) {
     return (
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
@@ -192,7 +192,7 @@ const AdminSidebar = ({ collapsed, onToggleCollapse }: AdminSidebarProps) => {
           <Button
             variant="ghost"
             size="icon"
-            className="fixed top-4 left-4 z-50 md:hidden bg-background border shadow-sm"
+            className="fixed top-4 right-4 z-50 h-10 w-10 shrink-0 md:hidden bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-700 shadow-md border border-border"
           >
             <Menu className="h-5 w-5" />
           </Button>
