@@ -46,14 +46,37 @@ const getColorFromClass = (className: string): string => {
         'bg-red-200': '#fecaca',
         'text-red-700': '#b91c1c',
         'text-red-900': '#7f1d1d',
+        'bg-slate-100': '#f1f5f9',
+        'bg-slate-200': '#e2e8f0',
+        'text-slate-700': '#334155',
+        'text-slate-900': '#0f172a',
     };
     return colorMap[className] || '';
 };
 
 const StatusCounts = ({ statusCounts, activeFilter, onFilterChange }: StatusCountsProps) => {
+    // Calculate total count
+    const totalCount = statusCounts.reduce((sum, item) => sum + item.count, 0);
+
+    // Define 'All' item with neutral gray styling
+    const allItem = {
+        status: "all",
+        count: totalCount,
+        label: "All",
+        colorClasses: {
+            bg: "bg-slate-100",
+            text: "text-slate-700",
+            activeBg: "bg-slate-200",
+            activeText: "text-slate-900"
+        }
+    };
+
+    // Combine 'All' with existing status counts
+    const allStatusCounts = [allItem, ...statusCounts];
+
     return (
         <div className="flex flex-wrap gap-2 mb-4">
-            {statusCounts.map(({ status, count, label, colorClasses }) => {
+            {allStatusCounts.map(({ status, count, label, colorClasses }) => {
                 const isActive = activeFilter === status;
 
                 const bgColor = isActive

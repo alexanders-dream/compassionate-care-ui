@@ -220,9 +220,9 @@ const VisitRequestsTab = ({
             {/* Mobile Cards */}
             <div className="md:hidden space-y-4">
                 {filteredVisitRequests.map(request => (
-                    <Card key={request.id} className="overflow-hidden shadow-sm">
+                    <Card key={request.id} className="overflow-hidden shadow-lg ring-1 ring-slate-900/5 dark:ring-slate-100/10 rounded-xl bg-white dark:bg-slate-800">
                         {/* Header with Name and Status */}
-                        <div className="bg-muted/40 px-4 py-4 border-b">
+                        <div className="px-4 py-3">
                             <div className="flex items-start justify-between gap-3">
                                 <div className="flex-1 min-w-0">
                                     <h3 className="font-semibold text-base truncate">
@@ -284,22 +284,28 @@ const VisitRequestsTab = ({
                             </div>
                         </div>
 
-                        {/* Contact Info Section */}
-                        <div className="px-4 py-4 space-y-3 text-sm border-b bg-background">
-                            <div className="flex items-center gap-2 text-muted-foreground">
+                        {/* Contact Info Section - Clickable links */}
+                        <div className="px-4 py-2 space-y-1 text-sm">
+                            <a
+                                href={`mailto:${request.email}`}
+                                className="flex items-center gap-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
+                            >
                                 <Mail className="h-4 w-4 shrink-0" />
                                 <span className="truncate">{request.email}</span>
-                            </div>
+                            </a>
                             {request.phone && (
-                                <div className="flex items-center gap-2 text-muted-foreground">
+                                <a
+                                    href={`tel:${request.phone}`}
+                                    className="flex items-center gap-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
+                                >
                                     <Phone className="h-4 w-4 shrink-0" />
                                     <span>{request.phone}</span>
-                                </div>
+                                </a>
                             )}
                         </div>
 
                         {/* Details Section */}
-                        <div className="px-4 py-4 space-y-3 border-b bg-muted/20">
+                        <div className="px-4 py-3 space-y-2">
                             <div className="flex items-center justify-between text-sm">
                                 <span className="text-muted-foreground">Wound Type</span>
                                 <Badge variant="outline" className="capitalize font-medium">
@@ -327,69 +333,25 @@ const VisitRequestsTab = ({
                                 </Button>
                             )}
 
-                            {/* Secondary Actions */}
-                            <div className="grid grid-cols-3 gap-3">
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Button
-                                                variant="outline"
-                                                onClick={() => handleView(request)}
-                                                className="w-full h-11 border-slate-300 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800 flex flex-col items-center justify-center gap-0.5"
-                                            >
-                                                <Eye className="h-4 w-4" />
-                                                <span className="text-xs">View</span>
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>View Details</TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Button
-                                                variant="outline"
-                                                onClick={() => window.location.href = `tel:${request.phone}`}
-                                                disabled={!request.phone}
-                                                className="w-full h-11 border-slate-300 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800 flex flex-col items-center justify-center gap-0.5"
-                                            >
-                                                <Phone className="h-4 w-4" />
-                                                <span className="text-xs">Call</span>
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>Call Patient</TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Button
-                                                variant="outline"
-                                                onClick={() => onEmail(request)}
-                                                className="w-full h-11 border-slate-300 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800 flex flex-col items-center justify-center gap-0.5"
-                                            >
-                                                <Send className="h-4 w-4" />
-                                                <span className="text-xs">Email</span>
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            {request.emailSent ? "Resend Email" : "Send Email"}
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
+                            {/* Action Buttons - View and Delete */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => handleView(request)}
+                                    className="w-full h-11 border-slate-300 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800 flex items-center justify-center gap-2"
+                                >
+                                    <Eye className="h-4 w-4" />
+                                    <span>View</span>
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setItemToDelete(request.id)}
+                                    className="w-full h-11 border-red-300 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/30 flex items-center justify-center gap-2"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                    <span>Delete</span>
+                                </Button>
                             </div>
-
-                            {/* Delete Action */}
-                            <Button
-                                variant="ghost"
-                                onClick={() => setItemToDelete(request.id)}
-                                className="w-full h-10 text-destructive hover:text-destructive hover:bg-destructive/10"
-                            >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Delete Request
-                            </Button>
                         </div>
                     </Card>
                 ))}

@@ -184,8 +184,9 @@ const ReferralsTab = ({
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
-                    <div className="flex gap-2">
-                        {/* Keep urgency filter */}
+                    {/* Mobile: Equal grid for urgency and sort */}
+                    <div className="grid grid-cols-2 gap-2 md:flex md:gap-2">
+                        {/* Urgency filter */}
                         <Select value={filterUrgency} onValueChange={setFilterUrgency}>
                             <SelectTrigger className="w-full md:min-w-[110px] h-10 bg-background">
                                 <Filter className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
@@ -197,8 +198,8 @@ const ReferralsTab = ({
                                 <SelectItem value="urgent">Urgent</SelectItem>
                             </SelectContent>
                         </Select>
-                        {/* Mobile-only sort control */}
-                        <div className="md:hidden flex-1">
+                        {/* Sort control (mobile only visible, but hidden on desktop) */}
+                        <div className="md:hidden">
                             <Select
                                 value={`${sortField}-${sortDirection}`}
                                 onValueChange={(value) => {
@@ -235,9 +236,9 @@ const ReferralsTab = ({
             {/* Mobile Cards */}
             <div className="md:hidden space-y-4">
                 {filteredReferrals.map(referral => (
-                    <Card key={referral.id} className={`overflow-hidden shadow-sm ${referral.urgency === "urgent" ? "border-l-4 border-l-red-500" : ""}`}>
+                    <Card key={referral.id} className={`overflow-hidden shadow-lg ring-1 ring-slate-900/5 dark:ring-slate-100/10 rounded-xl bg-white dark:bg-slate-800 ${referral.urgency === "urgent" ? "border-l-4 border-l-red-500" : ""}`}>
                         {/* Header with Patient Name, Status, and Urgency */}
-                        <div className="bg-muted/40 px-4 py-4 border-b">
+                        <div className="px-4 py-3">
                             <div className="flex items-start justify-between gap-3 mb-2">
                                 <div className="flex-1 min-w-0">
                                     <h3 className="font-semibold text-base truncate">
@@ -306,7 +307,7 @@ const ReferralsTab = ({
                         </div>
 
                         {/* Provider Info Section */}
-                        <div className="px-4 py-3 border-b bg-background">
+                        <div className="px-4 py-2">
                             <div className="flex items-center gap-2 mb-1">
                                 <User className="h-4 w-4 text-muted-foreground shrink-0" />
                                 <span className="text-sm font-medium">{referral.providerName}</span>
@@ -314,18 +315,21 @@ const ReferralsTab = ({
                             <p className="text-xs text-muted-foreground ml-6">{referral.practiceName}</p>
                         </div>
 
-                        {/* Contact Info Section */}
+                        {/* Contact Info Section - Clickable link */}
                         {referral.patientPhone && (
-                            <div className="px-4 py-3 border-b bg-background">
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <div className="px-4 py-2">
+                                <a
+                                    href={`tel:${referral.patientPhone}`}
+                                    className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
+                                >
                                     <Phone className="h-4 w-4 shrink-0" />
                                     <span>{referral.patientPhone}</span>
-                                </div>
+                                </a>
                             </div>
                         )}
 
                         {/* Details Section */}
-                        <div className="px-4 py-3 space-y-2 border-b bg-muted/20">
+                        <div className="px-4 py-2 space-y-2">
                             <div className="flex items-center justify-between text-sm">
                                 <span className="text-muted-foreground">Wound Type</span>
                                 <Badge variant="outline" className="capitalize font-medium">
@@ -353,69 +357,25 @@ const ReferralsTab = ({
                                 </Button>
                             )}
 
-                            {/* Secondary Actions */}
-                            <div className="grid grid-cols-3 gap-3">
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Button
-                                                variant="outline"
-                                                onClick={() => handleView(referral)}
-                                                className="w-full h-11 border-slate-300 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800 flex flex-col items-center justify-center gap-0.5"
-                                            >
-                                                <Eye className="h-4 w-4" />
-                                                <span className="text-xs">View</span>
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>View Details</TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Button
-                                                variant="outline"
-                                                onClick={() => window.location.href = `tel:${referral.patientPhone}`}
-                                                disabled={!referral.patientPhone}
-                                                className="w-full h-11 border-slate-300 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800 flex flex-col items-center justify-center gap-0.5"
-                                            >
-                                                <Phone className="h-4 w-4" />
-                                                <span className="text-xs">Call</span>
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>Call Patient</TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Button
-                                                variant="outline"
-                                                onClick={() => onEmail(referral)}
-                                                className="w-full h-11 border-slate-300 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800 flex flex-col items-center justify-center gap-0.5"
-                                            >
-                                                <Send className="h-4 w-4" />
-                                                <span className="text-xs">Email</span>
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            {referral.emailSent ? "Resend Email" : "Send Email"}
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
+                            {/* Action Buttons - View and Delete */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => handleView(referral)}
+                                    className="w-full h-11 border-slate-300 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800 flex items-center justify-center gap-2"
+                                >
+                                    <Eye className="h-4 w-4" />
+                                    <span>View</span>
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setItemToDelete(referral.id)}
+                                    className="w-full h-11 border-red-300 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/30 flex items-center justify-center gap-2"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                    <span>Delete</span>
+                                </Button>
                             </div>
-
-                            {/* Delete Action */}
-                            <Button
-                                variant="ghost"
-                                onClick={() => setItemToDelete(referral.id)}
-                                className="w-full h-10 text-destructive hover:text-destructive hover:bg-destructive/10"
-                            >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Delete Referral
-                            </Button>
                         </div>
                     </Card>
                 ))}

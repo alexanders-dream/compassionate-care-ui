@@ -1266,15 +1266,35 @@ const AppointmentScheduler = ({
       {/* Mobile Cards */}
       <div className="md:hidden space-y-4">
         {filteredAppointments.map(apt => (
-          <Card key={apt.id} className="overflow-hidden shadow-sm">
+          <Card key={apt.id} className="overflow-hidden shadow-lg ring-1 ring-slate-900/5 dark:ring-slate-100/10 rounded-xl bg-white dark:bg-slate-800">
             {/* Header */}
-            <div className="bg-muted/40 px-4 py-4 border-b">
+            <div className="px-4 py-3">
               <div className="flex justify-between items-start mb-2">
                 <div className="flex items-center gap-2 min-w-0 flex-1">
                   <User className="h-4 w-4 text-muted-foreground shrink-0" />
                   <div className="min-w-0">
                     <p className="font-semibold truncate">{apt.patientName}</p>
-                    <p className="text-xs text-muted-foreground">{apt.patientPhone}</p>
+                    {/* Clickable contact links */}
+                    <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
+                      {apt.patientPhone && (
+                        <a
+                          href={`tel:${apt.patientPhone}`}
+                          className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline flex items-center gap-1"
+                        >
+                          <Phone className="h-3 w-3" />
+                          {apt.patientPhone}
+                        </a>
+                      )}
+                      {apt.patientEmail && (
+                        <a
+                          href={`mailto:${apt.patientEmail}`}
+                          className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline flex items-center gap-1"
+                        >
+                          <Mail className="h-3 w-3" />
+                          <span className="truncate max-w-[120px]">{apt.patientEmail}</span>
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </div>
                 {getStatusBadge(apt.status)}
@@ -1282,7 +1302,7 @@ const AppointmentScheduler = ({
             </div>
 
             {/* Appointment Info */}
-            <div className="px-4 py-4 border-b">
+            <div className="px-4 py-3">
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <CalendarIcon className="h-4 w-4 shrink-0" />
@@ -1305,82 +1325,37 @@ const AppointmentScheduler = ({
 
             {/* Action Buttons */}
             <div className="px-4 py-4 space-y-3">
-              {/* Primary Actions Row */}
-              <div className="grid grid-cols-3 gap-3">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full h-11 border-slate-300 text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800 flex flex-col items-center justify-center gap-0.5"
-                        onClick={() => {
-                          setViewAppointment(apt);
-                          setIsViewDialogOpen(true);
-                        }}
-                      >
-                        <Eye className="h-4 w-4" />
-                        <span className="text-xs">View</span>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>View appointment details</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full h-11 border-slate-300 text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800 flex flex-col items-center justify-center gap-0.5"
-                        onClick={() => window.location.href = `tel:${apt.patientPhone}`}
-                        disabled={!apt.patientPhone}
-                      >
-                        <Phone className="h-4 w-4" />
-                        <span className="text-xs">Call</span>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Call patient</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        onClick={() => openEmailDialog(apt)}
-                        disabled={!apt.patientEmail}
-                        className="w-full h-11 border-slate-300 text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800 flex flex-col items-center justify-center gap-0.5"
-                      >
-                        <Send className="h-4 w-4" />
-                        <span className="text-xs">Email</span>
-                        {emailsSent[apt.id] && <CheckCircle2 className="h-3 w-3 text-blue-500 absolute top-1 right-1" />}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Send email to patient</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-
-              {/* Secondary Actions Row */}
+              {/* View and Edit Row */}
               <div className="grid grid-cols-2 gap-3">
                 <Button
                   variant="outline"
-                  className="h-10 border-slate-300 text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800 flex items-center justify-center gap-2"
-                  onClick={() => handleEditAppointment(apt)}
+                  className="w-full h-11 border-slate-300 text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800 flex items-center justify-center gap-2"
+                  onClick={() => {
+                    setViewAppointment(apt);
+                    setIsViewDialogOpen(true);
+                  }}
                 >
-                  <Pencil className="h-4 w-4" />
-                  <span className="text-xs">Edit</span>
+                  <Eye className="h-4 w-4" />
+                  <span>View</span>
                 </Button>
                 <Button
                   variant="outline"
-                  className="h-10 border-red-300 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/30 flex items-center justify-center gap-2"
-                  onClick={() => handleDeleteAppointment(apt.id)}
+                  className="w-full h-11 border-slate-300 text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800 flex items-center justify-center gap-2"
+                  onClick={() => handleEditAppointment(apt)}
                 >
-                  <Trash2 className="h-4 w-4" />
-                  <span className="text-xs">Delete</span>
+                  <Pencil className="h-4 w-4" />
+                  <span>Edit</span>
                 </Button>
               </div>
+              {/* Delete Button */}
+              <Button
+                variant="outline"
+                className="w-full h-11 border-red-300 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/30 flex items-center justify-center gap-2"
+                onClick={() => handleDeleteAppointment(apt.id)}
+              >
+                <Trash2 className="h-4 w-4" />
+                <span>Delete</span>
+              </Button>
             </div>
           </Card>
         ))}
