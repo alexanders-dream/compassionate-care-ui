@@ -1,6 +1,6 @@
 import {
   ClipboardList, CalendarDays, Settings2, Type, BookOpen,
-  FileText, Star, Briefcase, Users, HelpCircle, ChevronLeft, ChevronRight, Menu, LogOut, Home
+  FileText, Star, Briefcase, Users, HelpCircle, ChevronLeft, ChevronRight, Menu, LogOut, Home, User
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -130,42 +130,60 @@ const SidebarContent = ({
           onItemClick={onItemClick}
         />
 
-        {/* Logout */}
-        {collapsed ? (
-          <Tooltip delayDuration={0}>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                onClick={handleLogout}
-                className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium justify-center h-auto",
-                  "text-muted-foreground hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-foreground"
-                )}
-              >
-                <LogOut className="h-4 w-4 shrink-0" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent
-              side="right"
-              className="bg-slate-900 text-white font-medium px-3 py-1.5 rounded-full shadow-lg border-0"
-              sideOffset={8}
-            >
-              Logout
-            </TooltipContent>
-          </Tooltip>
-        ) : (
-          <Button
-            variant="ghost"
-            onClick={handleLogout}
-            className={cn(
-              "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium justify-start h-auto",
-              "text-muted-foreground hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-foreground"
+        <div className="mt-auto pt-4 border-t border-border/50 space-y-1">
+          {/* Profile Link */}
+          <NavLink
+            to="/admin/profile"
+            onClick={onItemClick}
+            className={({ isActive }) => cn(
+              "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium",
+              isActive
+                ? "bg-blue-100 dark:bg-blue-900/40 text-foreground"
+                : "text-muted-foreground hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-foreground",
+              collapsed && "justify-center px-2"
             )}
           >
-            <LogOut className="h-4 w-4 shrink-0" />
-            <span>Logout</span>
-          </Button>
-        )}
+            <User className="h-4 w-4 shrink-0" />
+            {!collapsed && <span>My Profile</span>}
+          </NavLink>
+
+          {/* Logout */}
+          {collapsed ? (
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  onClick={handleLogout}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium justify-center h-auto",
+                    "text-muted-foreground hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-foreground"
+                  )}
+                >
+                  <LogOut className="h-4 w-4 shrink-0" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent
+                side="right"
+                className="bg-slate-900 text-white font-medium px-3 py-1.5 rounded-full shadow-lg border-0"
+                sideOffset={8}
+              >
+                Logout
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            <Button
+              variant="ghost"
+              onClick={handleLogout}
+              className={cn(
+                "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium justify-start h-auto",
+                "text-muted-foreground hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-foreground"
+              )}
+            >
+              <LogOut className="h-4 w-4 shrink-0" />
+              <span>Logout</span>
+            </Button>
+          )}
+        </div>
 
       </nav>
     </TooltipProvider>
