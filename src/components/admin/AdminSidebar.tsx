@@ -1,12 +1,13 @@
 import {
   ClipboardList, CalendarDays, Settings2, Type, BookOpen,
-  FileText, Star, Briefcase, Users, HelpCircle, ChevronLeft, ChevronRight, Menu
+  FileText, Star, Briefcase, Users, HelpCircle, ChevronLeft, ChevronRight, Menu, LogOut, Home
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { useState, useEffect } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Tooltip,
@@ -50,7 +51,7 @@ const SidebarNavItem = ({
   collapsed,
   onItemClick
 }: {
-  item: typeof menuItems[0];
+  item: { label: string; icon: React.ElementType; path: string };
   collapsed: boolean;
   onItemClick?: () => void;
 }) => {
@@ -92,27 +93,84 @@ const SidebarNavItem = ({
 
   return navLink;
 };
-
 const SidebarContent = ({
   collapsed = false,
   onItemClick
 }: {
   collapsed?: boolean;
   onItemClick?: () => void;
-}) => (
-  <TooltipProvider>
-    <nav className="p-2 space-y-1">
-      {menuItems.map((item) => (
+}) => {
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/auth");
+    if (onItemClick) onItemClick();
+  };
+
+  return (
+    <TooltipProvider>
+      <nav className="p-2 space-y-1">
+        {menuItems.map((item) => (
+          <SidebarNavItem
+            key={item.id}
+            item={item}
+            collapsed={collapsed}
+            onItemClick={onItemClick}
+          />
+        ))}
+
+        <div className="my-2 border-t border-border/50" />
+
+        {/* Exit to Home */}
         <SidebarNavItem
-          key={item.id}
-          item={item}
+          item={{ label: "Exit to Home", icon: Home, path: "/" }}
           collapsed={collapsed}
           onItemClick={onItemClick}
         />
-      ))}
-    </nav>
-  </TooltipProvider>
-);
+
+        {/* Logout */}
+        {collapsed ? (
+          <Tooltip delayDuration={0}>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                onClick={handleLogout}
+                className={cn(
+                  "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium justify-center h-auto",
+                  "text-muted-foreground hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-foreground"
+                )}
+              >
+                <LogOut className="h-4 w-4 shrink-0" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent
+              side="right"
+              className="bg-slate-900 text-white font-medium px-3 py-1.5 rounded-full shadow-lg border-0"
+              sideOffset={8}
+            >
+              Logout
+            </TooltipContent>
+          </Tooltip>
+        ) : (
+          <Button
+            variant="ghost"
+            onClick={handleLogout}
+            className={cn(
+              "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium justify-start h-auto",
+              "text-muted-foreground hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-foreground"
+            )}
+          >
+            <LogOut className="h-4 w-4 shrink-0" />
+            <span>Logout</span>
+          </Button>
+        )}
+
+      </nav>
+    </TooltipProvider>
+  );
+};
 
 const AdminSidebar = ({ collapsed, onToggleCollapse }: AdminSidebarProps) => {
   const [mobileOpen, setMobileOpen] = useState(false);
