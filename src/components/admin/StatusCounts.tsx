@@ -122,10 +122,7 @@ const StatusCounts = ({ statusCounts, activeFilter, onFilterChange }: StatusCoun
                             }}
                         >
                             <span>{label}</span>
-                            <span className={cn(
-                                "font-bold",
-                                isActive && "underline"
-                            )}>
+                            <span className="font-bold">
                                 {count}
                             </span>
                         </Badge>
