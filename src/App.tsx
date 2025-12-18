@@ -43,6 +43,7 @@ const TestimonialsPage = lazy(() => import("./pages/admin/TestimonialsPage"));
 const ServicesPage = lazy(() => import("./pages/admin/ServicesPage"));
 const TeamPage = lazy(() => import("./pages/admin/TeamPage"));
 const FaqsPage = lazy(() => import("./pages/admin/FaqsPage"));
+const ProfilePage = lazy(() => import("./pages/admin/ProfilePage"));
 const BlogEditor = lazy(() => import("./pages/BlogEditor"));
 
 const queryClient = new QueryClient();
@@ -84,9 +85,9 @@ const App = () => (
                   <Route path="/blog/:slug" element={<BlogPost />} />
                   <Route path="/auth" element={<Auth />} />
 
-                  {/* Admin Routes */}
+                  {/* Admin Routes - All authenticated users can access, features differ by role */}
                   <Route path="/admin" element={
-                    <ProtectedRoute requireAdmin>
+                    <ProtectedRoute>
                       <Suspense fallback={<AdminLoadingFallback />}>
                         <AdminLayout />
                       </Suspense>
@@ -103,6 +104,7 @@ const App = () => (
                     <Route path="services" element={<ServicesPage />} />
                     <Route path="team" element={<TeamPage />} />
                     <Route path="faqs" element={<FaqsPage />} />
+                    <Route path="profile" element={<ProfilePage />} />
 
                     {/* Blog Editor Routes */}
                     <Route path="blog/new" element={<BlogEditor />} />

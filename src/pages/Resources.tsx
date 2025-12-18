@@ -56,9 +56,16 @@ const Resources = () => {
                       <p className="text-sm text-muted-foreground mb-4 flex-1">
                         {resource.description}
                       </p>
-                      <Button variant="outline" size="sm" className="gap-2 mt-auto self-start">
-                        <Download className="w-4 h-4" />
-                        Access Resource
+                      <Button variant="outline" size="sm" className="gap-2 mt-auto self-start" asChild>
+                        <a
+                          href={resource.file_url || "#"}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          download={resource.file_name}
+                        >
+                          <Download className="w-4 h-4" />
+                          Access Resource
+                        </a>
                       </Button>
                     </div>
                   </div>

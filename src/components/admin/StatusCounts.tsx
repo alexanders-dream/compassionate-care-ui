@@ -51,52 +51,8 @@ const getColorFromClass = (className: string): string => {
 };
 
 const StatusCounts = ({ statusCounts, activeFilter, onFilterChange }: StatusCountsProps) => {
-    const totalCount = statusCounts.reduce((sum, { count }) => sum + count, 0);
-    const isAllActive = activeFilter === "all";
-
     return (
         <div className="flex flex-wrap gap-2 mb-4">
-            {/* All Status Filter */}
-            <button
-                onClick={() => onFilterChange("all")}
-                className={cn(
-                    "transition-all duration-200 group",
-                    "focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0",
-                    "outline-none ring-0 border-0",
-                    isAllActive ? "scale-105" : "hover:scale-105 active:scale-95"
-                )}
-                style={{ outline: 'none', boxShadow: 'none' }}
-                title="Show all items"
-            >
-                <Badge
-                    className="border-0 px-3 py-1.5 text-sm font-semibold cursor-pointer flex items-center gap-1.5 transition-all outline-none ring-0"
-                    style={{
-                        backgroundColor: isAllActive ? '#d1d5db' : '#f3f4f6',
-                        color: isAllActive ? '#111827' : '#374151',
-                        outline: 'none',
-                        boxShadow: isAllActive ? '0 10px 15px -3px rgb(0 0 0 / 0.1)' : '0 1px 2px 0 rgb(0 0 0 / 0.05)'
-                    }}
-                    onMouseEnter={(e) => {
-                        if (!isAllActive) {
-                            e.currentTarget.style.backgroundColor = '#d1d5db';
-                        }
-                    }}
-                    onMouseLeave={(e) => {
-                        if (!isAllActive) {
-                            e.currentTarget.style.backgroundColor = '#f3f4f6';
-                        }
-                    }}
-                >
-                    <span>All</span>
-                    <span className={cn(
-                        "font-bold",
-                        isAllActive && "underline"
-                    )}>
-                        {totalCount}
-                    </span>
-                </Badge>
-            </button>
-
             {statusCounts.map(({ status, count, label, colorClasses }) => {
                 const isActive = activeFilter === status;
 
