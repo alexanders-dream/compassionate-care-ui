@@ -301,7 +301,7 @@ const AIArticleGenerator = ({ onSaveArticle, editingArticle }: AIArticleGenerato
   );
 
   const EditorArea = (
-    <Card className="flex-1 flex flex-col overflow-hidden h-full border-0 sm:border rounded-none sm:rounded-lg shadow-none sm:shadow">
+    <Card className="flex-1 flex flex-col border-0 sm:border rounded-none sm:rounded-lg shadow-none sm:shadow">
       <CardHeader className="py-3 border-b flex flex-row items-center justify-between space-y-0 px-4">
         <div className="flex items-center gap-2">
           <CardTitle className="text-base">Editor</CardTitle>
@@ -325,7 +325,7 @@ const AIArticleGenerator = ({ onSaveArticle, editingArticle }: AIArticleGenerato
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col p-4 gap-4 overflow-y-auto">
+      <CardContent className="flex-1 flex flex-col p-4 gap-4">
         <div className="space-y-1">
           <Label className="text-xs text-muted-foreground">Featured Image</Label>
           <div className="flex gap-2">
@@ -360,6 +360,10 @@ const AIArticleGenerator = ({ onSaveArticle, editingArticle }: AIArticleGenerato
             onChange={e => setTitle(e.target.value)}
             className="font-bold text-lg border-none shadow-none px-0 focus-visible:ring-0"
             placeholder="Article Title..."
+            autoComplete="off"
+            data-1p-ignore
+            name="article_title_field"
+            data-lpignore="true"
           />
         </div>
 
@@ -415,14 +419,14 @@ const AIArticleGenerator = ({ onSaveArticle, editingArticle }: AIArticleGenerato
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 h-[calc(100vh-100px)] border rounded-lg overflow-hidden bg-background shadow-sm">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 border rounded-lg overflow-hidden bg-background shadow-sm p-4">
       {/* --- Main Editor (Left/Center) --- */}
-      <div className="lg:col-span-9 flex flex-col h-full overflow-hidden border-r">
+      <div className="lg:col-span-8 flex flex-col">
         {EditorArea}
       </div>
 
       {/* --- Sidebar (Right) --- */}
-      <div className="lg:col-span-3 h-full overflow-hidden bg-muted/10">
+      <div className="lg:col-span-4 bg-muted/10">
         <AISidebar
           config={config}
           setConfig={setConfig}

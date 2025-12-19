@@ -90,7 +90,7 @@ export const AISidebar = ({
     };
 
     return (
-        <div className="w-80 border-l bg-muted/30 flex flex-col overflow-hidden shrink-0 h-full">
+        <div className="w-full border-l bg-muted/30 flex flex-col overflow-hidden shrink-0">
             <div className="p-4 border-b shrink-0 bg-background/50 backdrop-blur-sm">
                 <h3 className="font-semibold flex items-center gap-2">
                     <Sparkles className="h-4 w-4 text-primary" />
@@ -181,6 +181,12 @@ export const AISidebar = ({
                                     onChange={(e) => setConfig(prev => ({ ...prev, apiKey: e.target.value }))}
                                     placeholder={currentProvider?.apiKeyPlaceholder || "API Key"}
                                     className="h-8 text-xs font-mono"
+                                    autoComplete="new-password"
+                                    name="ai-api-key-field-no-autofill"
+                                    id="ai-api-key-input"
+                                    data-form-type="other"
+                                    data-1p-ignore
+                                    data-lpignore="true"
                                 />
                                 <Button variant="outline" size="icon" className="h-8 w-8 shrink-0" onClick={() => setShowApiKey(!showApiKey)}>
                                     {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}

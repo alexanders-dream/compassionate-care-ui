@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, RotateCw, Image as ImageIcon, Check, Crop as CropIcon, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
+import { Loader2, RotateCw, Image as ImageIcon, Check, Crop as CropIcon, ZoomIn, ZoomOut, RotateCcw, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -144,10 +144,48 @@ export function ImageInsertionDialog({ open, onOpenChange, onImageSelected }: Im
         }
     };
 
-    // Gallery Select Trigger (Start Cropping)
-    const handleGallerySelect = () => {
+    // Delete Image Handler
+    const handleDeleteImage = async (e: React.MouseEvent, imageName: string) => {
+        e.stopPropagation(); // Prevent selection when clicking delete
+
+        // Removed confirmation as requested
+        // if (!window.confirm("Are you sure you want to delete this image? This cannot be undone.")) {
+        //     return;
+        // }
+
+        try {
+            const { error } = await supabase.storage
+                .from('blog-media')
+                .remove([imageName]);
+
+            if (error) throw error;
+
+            toast({ title: "Image deleted" });
+            fetchGalleryImages(); // Refresh gallery
+
+            // If the deleted image was selected, deselect it
+            const { data } = supabase.storage.from('blog-media').getPublicUrl(imageName);
+            if (selectedGalleryImage === data.publicUrl) {
+                setSelectedGalleryImage(null);
+            }
+
+        } catch (error: any) {
+            console.error("Error deleting image:", error);
+            toast({ title: "Failed to delete image", description: error.message, variant: "destructive" });
+        }
+    };
+
+    // Gallery Select Handlers
+    const handleStartCrop = () => {
         if (selectedGalleryImage) {
             setCroppingImageSrc(selectedGalleryImage);
+        }
+    };
+
+    const handleInsertOriginal = () => {
+        if (selectedGalleryImage) {
+            onImageSelected(selectedGalleryImage);
+            onOpenChange(false);
         }
     };
 
@@ -272,12 +310,24 @@ export function ImageInsertionDialog({ open, onOpenChange, onImageSelected }: Im
                                                 loading="lazy"
                                             />
                                             {selectedGalleryImage === img.url && (
-                                                <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                                                <div className="absolute inset-0 bg-primary/20 flex items-center justify-center pointer-events-none">
                                                     <div className="bg-primary text-primary-foreground rounded-full p-1">
                                                         <Check className="h-4 w-4" />
                                                     </div>
                                                 </div>
                                             )}
+
+                                            {/* Delete Button - Visible on validation or hover */}
+                                            <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <Button
+                                                    variant="destructive"
+                                                    size="icon"
+                                                    className="h-6 w-6 rounded-full opacity-90 hover:opacity-100"
+                                                    onClick={(e) => handleDeleteImage(e, img.name)}
+                                                >
+                                                    <Trash2 className="h-3 w-3" />
+                                                </Button>
+                                            </div>
                                         </div>
                                     ))
                                 ) : (
@@ -289,10 +339,14 @@ export function ImageInsertionDialog({ open, onOpenChange, onImageSelected }: Im
                             </div>
                         </ScrollArea>
 
-                        <div className="p-4 border-t bg-background flex justify-end">
-                            <Button onClick={handleGallerySelect} disabled={!selectedGalleryImage}>
+                        <div className="p-4 border-t bg-background flex justify-end gap-2">
+                            <Button variant="outline" onClick={handleStartCrop} disabled={!selectedGalleryImage}>
                                 <CropIcon className="w-4 h-4 mr-2" />
                                 Crop & Insert
+                            </Button>
+                            <Button onClick={handleInsertOriginal} disabled={!selectedGalleryImage}>
+                                <Check className="w-4 h-4 mr-2" />
+                                Insert Original
                             </Button>
                         </div>
                     </TabsContent>
