@@ -211,7 +211,7 @@ const BlogTab = ({
                     <div className="hidden md:block overflow-x-auto">
                         <Table>
                             <TableHeader>
-                                <TableRow className="bg-slate-200 hover:bg-slate-200">
+                                <TableRow className="bg-muted/50 hover:bg-muted/50">
                                     <TableHead className="text-slate-700 font-semibold">Title</TableHead>
                                     <TableHead className="text-slate-700 font-semibold">Status</TableHead>
                                     <TableHead className="text-slate-700 font-semibold">Category</TableHead>

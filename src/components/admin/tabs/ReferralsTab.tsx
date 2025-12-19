@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from "@/components/ui/table";
@@ -32,6 +32,7 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { ProviderReferralSubmission } from "@/contexts/SiteDataContext";
+import StatusCounts from "../StatusCounts";
 
 interface ReferralsTabProps {
     referrals: ProviderReferralSubmission[];
@@ -70,7 +71,7 @@ const ReferralsTab = ({
             pending: { bg: "bg-amber-100", text: "text-amber-700", label: "Pending" },
             contacted: { bg: "bg-blue-100", text: "text-blue-700", label: "Contacted" },
             scheduled: { bg: "bg-indigo-100", text: "text-indigo-700", label: "Scheduled" },
-            completed: { bg: "bg-blue-100", text: "text-blue-700", label: "Completed" }
+            completed: { bg: "bg-green-100", text: "text-green-700", label: "Completed" }
         };
         const style = styles[status] || { bg: "bg-gray-100", text: "text-gray-700", label: status };
         return (
@@ -116,28 +117,78 @@ const ReferralsTab = ({
             return sortDirection === "asc" ? comparison : -comparison;
         });
 
+    // Calculate status counts
+    const statusCounts = useMemo(() => [
+        {
+            status: "pending",
+            count: referrals.filter(ref => ref.status === "pending").length,
+            label: "Pending",
+            colorClasses: {
+                bg: "bg-amber-100",
+                text: "text-amber-700",
+                activeBg: "bg-amber-200",
+                activeText: "text-amber-900"
+            }
+        },
+        {
+            status: "contacted",
+            count: referrals.filter(ref => ref.status === "contacted").length,
+            label: "Contacted",
+            colorClasses: {
+                bg: "bg-blue-100",
+                text: "text-blue-700",
+                activeBg: "bg-blue-200",
+                activeText: "text-blue-900"
+            }
+        },
+        {
+            status: "scheduled",
+            count: referrals.filter(ref => ref.status === "scheduled").length,
+            label: "Scheduled",
+            colorClasses: {
+                bg: "bg-indigo-100",
+                text: "text-indigo-700",
+                activeBg: "bg-indigo-200",
+                activeText: "text-indigo-900"
+            }
+        },
+        {
+            status: "completed",
+            count: referrals.filter(ref => ref.status === "completed").length,
+            label: "Completed",
+            colorClasses: {
+                bg: "bg-green-100",
+                text: "text-green-700",
+                activeBg: "bg-green-200",
+                activeText: "text-green-900"
+            }
+        },
+    ], [referrals]);
+
     return (
         <div>
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
                 <h2 className="text-lg md:text-xl font-semibold flex items-center gap-2">
                     <User className="h-5 w-5 text-primary" />
                     Provider Referrals ({referrals.length})
                 </h2>
 
-                {/* Search/Filter/Sort Controls matching appointments styling */}
-                <div className="flex flex-col gap-2 w-full md:w-auto">
-                    <div className="relative w-full">
-                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                {/* Search and Filter Controls - Simplified */}
+                <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+                    <div className="relative w-full md:min-w-[280px]">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
-                            placeholder="Search..."
-                            className="pl-8 h-9"
+                            placeholder="Search patients..."
+                            className="pl-9 h-10 bg-background"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
-                    <div className="flex flex-wrap items-center gap-2">
+                    {/* Mobile: Equal grid for urgency and sort */}
+                    <div className="grid grid-cols-2 gap-2 md:flex md:gap-2">
+                        {/* Urgency filter */}
                         <Select value={filterUrgency} onValueChange={setFilterUrgency}>
-                            <SelectTrigger className="w-32 h-9">
+                            <SelectTrigger className="w-full md:min-w-[110px] h-10 bg-background">
                                 <Filter className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
                                 <SelectValue placeholder="Urgency" />
                             </SelectTrigger>
@@ -147,50 +198,47 @@ const ReferralsTab = ({
                                 <SelectItem value="urgent">Urgent</SelectItem>
                             </SelectContent>
                         </Select>
-                        <Select value={filterStatus} onValueChange={setFilterStatus}>
-                            <SelectTrigger className="w-32 h-9">
-                                <Filter className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
-                                <SelectValue placeholder="Status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Status</SelectItem>
-                                <SelectItem value="pending">Pending</SelectItem>
-                                <SelectItem value="contacted">Contacted</SelectItem>
-                                <SelectItem value="scheduled">Scheduled</SelectItem>
-                                <SelectItem value="completed">Completed</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <Select
-                            value={`${sortField}-${sortDirection}`}
-                            onValueChange={(value) => {
-                                const [field, direction] = value.split('-') as ["name" | "date" | "status", "asc" | "desc"];
-                                setSortField(field);
-                                setSortDirection(direction);
-                            }}
-                        >
-                            <SelectTrigger className="w-40 h-9">
-                                {sortDirection === "asc" ? <ArrowUp className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" /> : <ArrowDown className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />}
-                                <SelectValue placeholder="Sort" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="name-asc">Name (A-Z)</SelectItem>
-                                <SelectItem value="name-desc">Name (Z-A)</SelectItem>
-                                <SelectItem value="date-asc">Date (Old-New)</SelectItem>
-                                <SelectItem value="date-desc">Date (New-Old)</SelectItem>
-                                <SelectItem value="status-asc">Status (A-Z)</SelectItem>
-                                <SelectItem value="status-desc">Status (Z-A)</SelectItem>
-                            </SelectContent>
-                        </Select>
+                        {/* Sort control (mobile only visible, but hidden on desktop) */}
+                        <div className="md:hidden">
+                            <Select
+                                value={`${sortField}-${sortDirection}`}
+                                onValueChange={(value) => {
+                                    const [field, direction] = value.split('-') as ["name" | "date" | "status", "asc" | "desc"];
+                                    setSortField(field);
+                                    setSortDirection(direction);
+                                }}
+                            >
+                                <SelectTrigger className="w-full h-10 bg-background">
+                                    {sortDirection === "asc" ? <ArrowUp className="h-4 w-4 mr-2 text-muted-foreground" /> : <ArrowDown className="h-4 w-4 mr-2 text-muted-foreground" />}
+                                    <SelectValue placeholder="Sort" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="name-asc">Name (A-Z)</SelectItem>
+                                    <SelectItem value="name-desc">Name (Z-A)</SelectItem>
+                                    <SelectItem value="date-asc">Date (Old-New)</SelectItem>
+                                    <SelectItem value="date-desc">Date (New-Old)</SelectItem>
+                                    <SelectItem value="status-asc">Status (A-Z)</SelectItem>
+                                    <SelectItem value="status-desc">Status (Z-A)</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
                 </div>
             </div>
 
+            {/* Interactive Status Counters */}
+            <StatusCounts
+                statusCounts={statusCounts}
+                activeFilter={filterStatus}
+                onFilterChange={setFilterStatus}
+            />
+
             {/* Mobile Cards */}
             <div className="md:hidden space-y-4">
                 {filteredReferrals.map(referral => (
-                    <Card key={referral.id} className={`overflow-hidden ${referral.urgency === "urgent" ? "border-l-4 border-l-red-500" : ""}`}>
+                    <Card key={referral.id} className={`overflow-hidden shadow-lg ring-1 ring-slate-900/5 dark:ring-slate-100/10 rounded-xl bg-white dark:bg-slate-800 ${referral.urgency === "urgent" ? "border-l-4 border-l-red-500" : ""}`}>
                         {/* Header with Patient Name, Status, and Urgency */}
-                        <div className="bg-muted/30 px-4 py-3 border-b">
+                        <div className="px-4 py-3">
                             <div className="flex items-start justify-between gap-3 mb-2">
                                 <div className="flex-1 min-w-0">
                                     <h3 className="font-semibold text-base truncate">
@@ -229,8 +277,8 @@ const ReferralsTab = ({
                                                         </SelectItem>
                                                         <SelectItem value="completed" className="text-sm font-medium">
                                                             <div className="flex items-center gap-2">
-                                                                <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                                                                <span className="text-blue-700">Completed</span>
+                                                                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                                                                <span className="text-green-700">Completed</span>
                                                             </div>
                                                         </SelectItem>
                                                     </SelectContent>
@@ -259,7 +307,7 @@ const ReferralsTab = ({
                         </div>
 
                         {/* Provider Info Section */}
-                        <div className="px-4 py-3 border-b bg-background">
+                        <div className="px-4 py-2">
                             <div className="flex items-center gap-2 mb-1">
                                 <User className="h-4 w-4 text-muted-foreground shrink-0" />
                                 <span className="text-sm font-medium">{referral.providerName}</span>
@@ -267,18 +315,21 @@ const ReferralsTab = ({
                             <p className="text-xs text-muted-foreground ml-6">{referral.practiceName}</p>
                         </div>
 
-                        {/* Contact Info Section */}
+                        {/* Contact Info Section - Clickable link */}
                         {referral.patientPhone && (
-                            <div className="px-4 py-3 border-b bg-background">
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <div className="px-4 py-2">
+                                <a
+                                    href={`tel:${referral.patientPhone}`}
+                                    className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
+                                >
                                     <Phone className="h-4 w-4 shrink-0" />
                                     <span>{referral.patientPhone}</span>
-                                </div>
+                                </a>
                             </div>
                         )}
 
                         {/* Details Section */}
-                        <div className="px-4 py-3 space-y-2 border-b bg-muted/20">
+                        <div className="px-4 py-2 space-y-2">
                             <div className="flex items-center justify-between text-sm">
                                 <span className="text-muted-foreground">Wound Type</span>
                                 <Badge variant="outline" className="capitalize font-medium">
@@ -302,75 +353,29 @@ const ReferralsTab = ({
                                     onClick={() => onSchedule(referral)}
                                     className="w-full font-semibold bg-blue-600 text-white hover:bg-blue-700 border-transparent shadow-sm"
                                 >
-                                    <CalendarDays className="h-4 w-4 mr-2" />
-                                    Schedule Appointment
+                                    Schedule
                                 </Button>
                             )}
 
-                            {/* Secondary Actions */}
-                            <div className="grid grid-cols-3 gap-2">
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Button
-                                                variant="outline"
-                                                size="lg"
-                                                onClick={() => handleView(referral)}
-                                                className="w-full border-slate-400 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
-                                            >
-                                                <Eye className="h-4 w-4" />
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>View Details</TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Button
-                                                variant="outline"
-                                                size="lg"
-                                                onClick={() => window.location.href = `tel:${referral.patientPhone}`}
-                                                disabled={!referral.patientPhone}
-                                                className="w-full border-slate-400 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
-                                            >
-                                                <Phone className="h-4 w-4" />
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>Call Patient</TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Button
-                                                variant="outline"
-                                                size="lg"
-                                                onClick={() => onEmail(referral)}
-                                                className="w-full border-slate-400 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
-                                            >
-                                                <Send className="h-4 w-4" />
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            {referral.emailSent ? "Resend Email" : "Send Email"}
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
+                            {/* Action Buttons - View and Delete */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => handleView(referral)}
+                                    className="w-full h-11 border-slate-300 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800 flex items-center justify-center gap-2"
+                                >
+                                    <Eye className="h-4 w-4" />
+                                    <span>View</span>
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setItemToDelete(referral.id)}
+                                    className="w-full h-11 border-red-300 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/30 flex items-center justify-center gap-2"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                    <span>Delete</span>
+                                </Button>
                             </div>
-
-                            {/* Delete Action */}
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setItemToDelete(referral.id)}
-                                className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
-                            >
-                                <Trash2 className="h-3.5 w-3.5 mr-2" />
-                                Delete Referral
-                            </Button>
                         </div>
                     </Card>
                 ))}
@@ -385,14 +390,14 @@ const ReferralsTab = ({
             <div className="hidden md:block overflow-x-auto rounded-md border">
                 <Table>
                     <TableHeader>
-                        <TableRow className="bg-slate-200 hover:bg-slate-200">
+                        <TableRow className="bg-muted/50 hover:bg-muted/50 border-b-0">
                             <TableHead
                                 className="cursor-pointer hover:bg-muted/50 select-none"
                                 onClick={() => toggleSort("name")}
                             >
                                 <div className="flex items-center gap-1">
                                     Patient
-                                    <ArrowUpDown className={`h-3.5 w-3.5 ${sortField === "name" ? "text-primary" : "text-muted-foreground"}`} />
+                                    <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
                                 </div>
                             </TableHead>
                             <TableHead>Provider</TableHead>
@@ -403,7 +408,7 @@ const ReferralsTab = ({
                             >
                                 <div className="flex items-center gap-1">
                                     Status
-                                    <ArrowUpDown className={`h-3.5 w-3.5 ${sortField === "status" ? "text-primary" : "text-muted-foreground"}`} />
+                                    <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
                                 </div>
                             </TableHead>
                             <TableHead>Urgency</TableHead>
@@ -413,7 +418,7 @@ const ReferralsTab = ({
                     <TableBody>
                         {filteredReferrals.map((referral, index) => (
                             <TableRow key={referral.id} className={index % 2 === 1 ? "bg-muted/50" : ""}>
-                                <TableCell className="font-medium">{referral.patientFirstName} {referral.patientLastName}</TableCell>
+                                <TableCell className="font-bold">{referral.patientFirstName} {referral.patientLastName}</TableCell>
                                 <TableCell>
                                     <div className="text-sm">
                                         <div>{referral.providerName}</div>
@@ -454,8 +459,8 @@ const ReferralsTab = ({
                                                             </SelectItem>
                                                             <SelectItem value="completed" className="text-sm font-medium">
                                                                 <div className="flex items-center gap-2">
-                                                                    <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                                                                    <span className="text-blue-700">Completed</span>
+                                                                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                                                                    <span className="text-green-700">Completed</span>
                                                                 </div>
                                                             </SelectItem>
                                                         </SelectContent>
@@ -492,23 +497,23 @@ const ReferralsTab = ({
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="h-8 w-8 border-slate-400 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
                                         onClick={() => handleView(referral)}
                                         title="View Details"
                                     >
                                         <Eye className="h-4 w-4" />
                                     </Button>
                                     <Button
-                                        variant="outline"
+                                        variant="ghost"
                                         size="icon"
-                                        className="h-8 w-8 border-slate-400 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
                                         onClick={() => window.location.href = `tel:${referral.patientPhone}`}
                                         disabled={!referral.patientPhone}
                                         title="Call Patient"
                                     >
                                         <Phone className="h-4 w-4" />
                                     </Button>
-                                    <Button variant="outline" size="sm" onClick={() => onEmail(referral)} className="gap-1 border-slate-400 text-slate-700 hover:bg-slate-100 hover:text-slate-900">
+                                    <Button variant="ghost" size="sm" onClick={() => onEmail(referral)} className="gap-1 text-muted-foreground hover:text-foreground">
                                         <Send className="h-3 w-3" /> {referral.emailSent ? "Resend" : "Email"}
                                     </Button>
                                     <Button variant="ghost" size="sm" onClick={() => setItemToDelete(referral.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
