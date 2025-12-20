@@ -49,25 +49,6 @@ const SiteCopyTab = ({
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold">Site Copy Management</h2>
-                <Select value={selectedCopyPage} onValueChange={setSelectedCopyPage}>
-                    <SelectTrigger className="w-48">
-                        <SelectValue placeholder="Filter by page" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {uniquePages.map(page => (
-                            <SelectItem key={page} value={page}>
-                                {page === "all" ? "All Pages" : page}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-            </div>
-
-            <p className="text-sm text-muted-foreground">
-                Edit the text content displayed across your website. Changes will be reflected site-wide.
-            </p>
 
             <div className="space-y-6">
                 {filteredCopySections.map(section => (

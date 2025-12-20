@@ -28,7 +28,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Pencil, Trash2, User, Shield, Key, Eye, EyeOff, ArrowUpDown } from "lucide-react";
+import { Plus, Pencil, Trash2, User, Shield, Key, Eye, EyeOff, ArrowUpDown, Users } from "lucide-react";
 import { TeamMember } from "@/contexts/SiteDataContext";
 import { ImageInsertionDialog } from "@/components/admin/ImageInsertionDialog";
 import { Badge } from "@/components/ui/badge";
@@ -176,11 +176,12 @@ const TeamTab = ({
 
     return (
         <>
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
-                <div>
-                    <h2 className="text-lg md:text-xl font-semibold">User & Team Management</h2>
-                    <p className="text-sm text-muted-foreground">Manage system access and public team profiles.</p>
-                </div>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
+                <h2 className="text-lg md:text-xl font-semibold flex items-center gap-2">
+                    <Users className="h-5 w-5 text-primary" />
+                    Team Members ({team.length})
+                </h2>
+
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
                         <Button onClick={() => handleOpenDialog(null)} className="w-full sm:w-auto">
@@ -360,7 +361,7 @@ const TeamTab = ({
             <div className="hidden md:block overflow-x-auto rounded-md border">
                 <Table>
                     <TableHeader>
-                        <TableRow className="bg-muted/50">
+                        <TableRow className="bg-muted/50 hover:bg-muted/50 border-b-0">
                             <TableHead
                                 className="cursor-pointer hover:bg-muted/50 select-none"
                                 onClick={() => toggleSort("name")}
@@ -401,8 +402,8 @@ const TeamTab = ({
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {paginatedTeam.map((member) => (
-                            <TableRow key={member.id} className="hover:bg-muted/5">
+                        {paginatedTeam.map((member, index) => (
+                            <TableRow key={member.id} className={index % 2 === 1 ? "bg-muted/50" : ""}>
                                 <TableCell>
                                     <div className="flex items-center gap-3">
                                         <div className="h-10 w-10 rounded-full bg-muted overflow-hidden">

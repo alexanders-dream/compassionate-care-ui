@@ -168,18 +168,25 @@ const ResourcesPage = () => {
     };
 
     return (
-        <ResourcesTab
-            resources={patientResources}
-            onSave={handleSaveResource}
-            onDelete={handleDeleteResource}
-            editingResource={editingResource}
-            setEditingResource={setEditingResource}
-            resourceIcon={resourceIcon}
-            setResourceIcon={setResourceIcon}
-            resourceFile={resourceFile}
-            onFileUpload={handleFileUpload}
-            isUploading={isUploading}
-        />
+        <div className="space-y-6">
+            <div>
+                <h2 className="text-3xl font-bold tracking-tight">Patient Resources</h2>
+                <p className="text-muted-foreground">Manage downloadable patient resources</p>
+            </div>
+
+            <ResourcesTab
+                resources={patientResources}
+                onSave={handleSaveResource}
+                onDelete={handleDeleteResource}
+                editingResource={editingResource}
+                setEditingResource={setEditingResource}
+                resourceIcon={resourceIcon}
+                setResourceIcon={setResourceIcon}
+                resourceFile={resourceFile}
+                onFileUpload={handleFileUpload}
+                isUploading={isUploading}
+            />
+        </div>
     );
 };
 

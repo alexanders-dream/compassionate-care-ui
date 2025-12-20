@@ -52,11 +52,18 @@ const SiteCopyPage = () => {
     };
 
     return (
-        <SiteCopyTab
-            siteCopy={siteCopy}
-            onUpdateField={handleUpdateCopyField}
-            onSaveSection={handleSaveCopySection}
-        />
+        <div className="space-y-6">
+            <div>
+                <h2 className="text-3xl font-bold tracking-tight">Site Copy</h2>
+                <p className="text-muted-foreground">Manage website text content</p>
+            </div>
+
+            <SiteCopyTab
+                siteCopy={siteCopy}
+                onUpdateField={handleUpdateCopyField}
+                onSaveSection={handleSaveCopySection}
+            />
+        </div>
     );
 };
 

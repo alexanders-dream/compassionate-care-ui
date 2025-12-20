@@ -1012,7 +1012,8 @@ const AppointmentScheduler = ({
     <div className="space-y-4 md:space-y-6">
       <div className="flex flex-col gap-3">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-          <h2 className="text-lg md:text-xl font-semibold">
+          <h2 className="text-lg md:text-xl font-semibold flex items-center gap-2">
+            <CalendarIcon className="h-5 w-5 text-primary" />
             Appointments ({filteredAppointments.length}{filterStatus !== "all" || searchQuery ? ` of ${appointments.length}` : ""})
           </h2>
           <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
@@ -1412,7 +1413,7 @@ const AppointmentScheduler = ({
 
 
       {/* Desktop Table */}
-      <div className="hidden md:block overflow-x-auto">
+      <div className="hidden md:block overflow-x-auto rounded-md border">
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50 hover:bg-muted/50 border-b-0">
@@ -1477,34 +1478,18 @@ const AppointmentScheduler = ({
             {paginatedAppointments.map((apt, index) => (
               <TableRow key={apt.id} className={index % 2 === 1 ? "bg-muted/50" : ""}>
                 <TableCell>
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <div className="font-bold">{apt.patientName}</div>
-                      <div className="text-sm text-muted-foreground">{apt.patientPhone}</div>
-                    </div>
-                  </div>
+                  <div className="font-bold">{apt.patientName}</div>
+                  <div className="text-sm text-muted-foreground">{apt.patientPhone}</div>
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-2">
-                    <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <div>{format(new Date(apt.appointmentDate), "MMM d, yyyy")}</div>
-                      <div className="text-sm text-muted-foreground flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {apt.appointmentTime} ({apt.duration}min)
-                      </div>
-                    </div>
+                  <div>{format(new Date(apt.appointmentDate), "MMM d, yyyy")}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {apt.appointmentTime} ({apt.duration}min)
                   </div>
                 </TableCell>
                 <TableCell>{getTypeBadge(apt.type)}</TableCell>
                 <TableCell>{apt.clinician}</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3 text-muted-foreground" />
-                    <span className="capitalize">{apt.location.replace("-", " ")}</span>
-                  </div>
-                </TableCell>
+                <TableCell className="capitalize">{apt.location.replace("-", " ")}</TableCell>
                 <TableCell>
                   <TooltipProvider>
                     <Tooltip>

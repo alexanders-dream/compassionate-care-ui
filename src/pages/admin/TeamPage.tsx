@@ -251,16 +251,23 @@ const TeamPage = () => {
     };
 
     return (
-        <TeamTab
-            team={unifiedTeam}
-            onSave={handleSaveUser}
-            onDelete={handleDelete}
-            onPasswordReset={handleAdminResetPassword}
-            editingTeamMember={editingTeamMember}
-            setEditingTeamMember={setEditingTeamMember}
-            teamMemberImagePreview={teamMemberImagePreview}
-            onImageSelected={handleTeamMemberImageSelected}
-        />
+        <div className="space-y-6">
+            <div>
+                <h2 className="text-3xl font-bold tracking-tight">Team</h2>
+                <p className="text-muted-foreground">Manage team members and users</p>
+            </div>
+
+            <TeamTab
+                team={unifiedTeam}
+                onSave={handleSaveUser}
+                onDelete={handleDelete}
+                onPasswordReset={handleAdminResetPassword}
+                editingTeamMember={editingTeamMember}
+                setEditingTeamMember={setEditingTeamMember}
+                teamMemberImagePreview={teamMemberImagePreview}
+                onImageSelected={handleTeamMemberImageSelected}
+            />
+        </div>
     );
 };
 
