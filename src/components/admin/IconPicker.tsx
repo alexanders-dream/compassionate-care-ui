@@ -4,8 +4,13 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { iconOptions } from "@/lib/icons";
 
@@ -57,33 +62,47 @@ export const IconPicker = ({ value, onChange, name }: IconPickerProps) => {
               className="h-8"
             />
           </div>
-          <ScrollArea className="h-64">
-            <div className="grid grid-cols-6 gap-1 p-2">
-              {filteredIcons.map(({ name: iconName, icon: IconComponent }) => (
-                <button
-                  key={iconName}
-                  type="button"
-                  onClick={() => {
-                    onChange(iconName);
-                    setOpen(false);
-                    setSearch("");
-                  }}
-                  className={cn(
-                    "flex flex-col items-center justify-center p-2 rounded-md hover:bg-muted transition-colors",
-                    value === iconName && "bg-primary/10 ring-1 ring-primary"
-                  )}
-                  title={iconName}
-                >
-                  <IconComponent className="h-5 w-5" />
-                </button>
-              ))}
-            </div>
-            {filteredIcons.length === 0 && (
-              <p className="text-center text-muted-foreground py-4 text-sm">
-                No icons found
-              </p>
-            )}
-          </ScrollArea>
+          <div
+            className="overflow-y-scroll"
+            style={{
+              height: '256px',
+              WebkitOverflowScrolling: 'touch',
+              overscrollBehavior: 'contain'
+            }}
+          >
+            <TooltipProvider>
+              <div className="grid grid-cols-6 gap-1 p-2">
+                {filteredIcons.map(({ name: iconName, icon: IconComponent }) => (
+                  <Tooltip key={iconName}>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onChange(iconName);
+                          setOpen(false);
+                          setSearch("");
+                        }}
+                        className={cn(
+                          "flex flex-col items-center justify-center p-2 rounded-md hover:bg-muted transition-colors",
+                          value === iconName && "bg-primary/10 ring-1 ring-primary"
+                        )}
+                      >
+                        <IconComponent className="h-5 w-5" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">
+                      <p>{iconName}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                ))}
+              </div>
+              {filteredIcons.length === 0 && (
+                <p className="text-center text-muted-foreground py-4 text-sm">
+                  No icons found
+                </p>
+              )}
+            </TooltipProvider>
+          </div>
         </PopoverContent>
       </Popover>
     </div>

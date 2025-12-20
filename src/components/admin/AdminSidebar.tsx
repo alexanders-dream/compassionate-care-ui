@@ -62,10 +62,10 @@ const SidebarNavItem = ({
       to={item.path}
       onClick={onItemClick}
       className={({ isActive }) => cn(
-        "w-full flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+        "w-full flex items-center gap-3 px-4 py-2 mx-1 rounded-full text-sm font-medium transition-all duration-200",
         isActive
-          ? "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-100"
-          : "text-muted-foreground hover:bg-muted hover:text-foreground",
+          ? "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-100 shadow-sm"
+          : "text-muted-foreground hover:bg-slate-200/80 dark:hover:bg-slate-700/60 hover:text-foreground hover:shadow-md hover:scale-[1.02]",
         collapsed && "justify-center px-2"
       )}
     >
@@ -140,10 +140,10 @@ const SidebarContent = ({
                   to="/admin/profile"
                   onClick={onItemClick}
                   className={({ isActive }) => cn(
-                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium",
+                    "w-full flex items-center gap-3 px-3 py-2.5 mx-1 rounded-full text-sm font-medium transition-all duration-200",
                     isActive
-                      ? "bg-blue-100 dark:bg-blue-900/40 text-foreground"
-                      : "text-muted-foreground hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-foreground",
+                      ? "bg-blue-100 dark:bg-blue-900/40 text-foreground shadow-sm"
+                      : "text-muted-foreground hover:bg-slate-200/80 dark:hover:bg-slate-700/60 hover:text-foreground hover:shadow-md hover:scale-[1.02]",
                     collapsed && "justify-center px-2"
                   )}
                 >
@@ -163,10 +163,10 @@ const SidebarContent = ({
               to="/admin/profile"
               onClick={onItemClick}
               className={({ isActive }) => cn(
-                "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium",
+                "w-full flex items-center gap-3 px-3 py-2.5 mx-1 rounded-full text-sm font-medium transition-all duration-200",
                 isActive
-                  ? "bg-blue-100 dark:bg-blue-900/40 text-foreground"
-                  : "text-muted-foreground hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-foreground",
+                  ? "bg-blue-100 dark:bg-blue-900/40 text-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-slate-200/80 dark:hover:bg-slate-700/60 hover:text-foreground hover:shadow-md hover:scale-[1.02]",
                 collapsed && "justify-center px-2"
               )}
             >
@@ -183,8 +183,8 @@ const SidebarContent = ({
                   variant="ghost"
                   onClick={handleLogout}
                   className={cn(
-                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium justify-center h-auto",
-                    "text-muted-foreground hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-foreground"
+                    "w-full flex items-center gap-3 px-3 py-2.5 mx-1 rounded-full text-sm font-medium justify-center h-auto transition-all duration-200",
+                    "text-muted-foreground hover:bg-slate-200/80 dark:hover:bg-slate-700/60 hover:text-foreground hover:shadow-md hover:scale-[1.02]"
                   )}
                 >
                   <LogOut className="h-4 w-4 shrink-0" />
@@ -203,8 +203,8 @@ const SidebarContent = ({
               variant="ghost"
               onClick={handleLogout}
               className={cn(
-                "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium justify-start h-auto",
-                "text-muted-foreground hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-foreground"
+                "w-full flex items-center gap-3 px-3 py-2.5 mx-1 rounded-full text-sm font-medium justify-start h-auto transition-all duration-200",
+                "text-muted-foreground hover:bg-slate-200/80 dark:hover:bg-slate-700/60 hover:text-foreground hover:shadow-md hover:scale-[1.02]"
               )}
             >
               <LogOut className="h-4 w-4 shrink-0" />

@@ -21,16 +21,16 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { Plus, Pencil, Trash2, ArrowUpDown, Briefcase } from "lucide-react";
-import IconPicker from "@/components/admin/IconPicker";
-import { Service } from "@/contexts/SiteDataContext";
-import { getIconByName } from "@/lib/icons";
-import AdminPagination from "../AdminPagination";
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
+import IconPicker from "@/components/admin/IconPicker";
+import { Service } from "@/contexts/SiteDataContext";
+import { getIconByName } from "@/lib/icons";
+import AdminPagination from "../AdminPagination";
 
 interface ServicesTabProps {
     services: Service[];
@@ -151,7 +151,7 @@ const ServicesTab = ({
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <div className="p-2 bg-primary/10 rounded-md cursor-help">
+                                        <div className="p-2 bg-primary/10 rounded-md">
                                             {(() => {
                                                 const Icon = getIconByName(service.icon);
                                                 return <Icon className="h-5 w-5 text-primary" />;
@@ -236,7 +236,7 @@ const ServicesTab = ({
                                                 <TooltipProvider>
                                                     <Tooltip>
                                                         <TooltipTrigger asChild>
-                                                            <div className="p-1.5 bg-primary/10 rounded-md cursor-help">
+                                                            <div className="p-1.5 bg-primary/10 rounded-md">
                                                                 <Icon className="h-4 w-4 text-primary" />
                                                             </div>
                                                         </TooltipTrigger>

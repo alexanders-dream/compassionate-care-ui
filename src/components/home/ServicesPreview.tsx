@@ -1,6 +1,12 @@
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { ArrowRight } from "lucide-react";
 import homeCareImage from "@/assets/home-care-visit.jpg";
 import { useSiteData } from "@/contexts/SiteDataContext";
@@ -34,9 +40,18 @@ const ServicesPreview = () => {
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   <CardContent className="p-6">
-                    <div className="w-14 h-14 rounded-xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center mb-4 group-hover:bg-blue-200 dark:group-hover:bg-blue-800/50 transition-colors">
-                      <IconComponent size={28} className="text-primary" />
-                    </div>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="w-14 h-14 rounded-xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center mb-4 group-hover:bg-blue-200 dark:group-hover:bg-blue-800/50 transition-colors">
+                            <IconComponent size={28} className="text-primary" />
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{service.icon}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                     <h3 className="text-xl font-semibold mb-2">
                       {service.title}
                     </h3>
