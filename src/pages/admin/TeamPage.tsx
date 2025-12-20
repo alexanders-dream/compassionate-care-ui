@@ -361,6 +361,7 @@ const TeamPage = () => {
                 setEditingTeamMember={setEditingTeamMember}
                 teamMemberImagePreview={teamMemberImagePreview}
                 onImageSelected={handleTeamMemberImageSelected}
+                onVisibilityChange={handleVisibilityChange}
             />
         </div>
     );
