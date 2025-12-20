@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from "@/components/ui/table";
@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { VisitRequest } from "@/contexts/SiteDataContext";
 import StatusCounts from "../StatusCounts";
+import AdminPagination from "../AdminPagination";
 
 interface VisitRequestsTabProps {
     visitRequests: VisitRequest[];
@@ -53,9 +54,18 @@ const VisitRequestsTab = ({
 }: VisitRequestsTabProps) => {
     const [filterStatus, setFilterStatus] = useState<string>("all");
     const [searchQuery, setSearchQuery] = useState("");
-    const [sortField, setSortField] = useState<"name" | "date" | "status">("date");
+    const [sortField, setSortField] = useState<"name" | "date" | "status" | "woundType">("date");
     const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
     const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
+
+    // Reset page when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [filterStatus, searchQuery, sortField, sortDirection]);
 
     const getStatusBadge = (status: string, showIcon: boolean = false) => {
         const styles: Record<string, { bg: string; text: string; label: string }> = {
@@ -73,7 +83,7 @@ const VisitRequestsTab = ({
         );
     };
 
-    const toggleSort = (field: "name" | "date" | "status") => {
+    const toggleSort = (field: "name" | "date" | "status" | "woundType") => {
         if (field === sortField) {
             setSortDirection(sortDirection === "asc" ? "desc" : "asc");
         } else {
@@ -112,9 +122,20 @@ const VisitRequestsTab = ({
                 case "status":
                     comparison = a.status.localeCompare(b.status);
                     break;
+                case "woundType":
+                    comparison = a.woundType.localeCompare(b.woundType);
+                    break;
             }
             return sortDirection === "asc" ? comparison : -comparison;
         });
+
+    // Paginate the filtered results
+    const totalItems = filteredVisitRequests.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const paginatedRequests = filteredVisitRequests.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
 
     // Calculate status counts
     const statusCounts = useMemo(() => [
@@ -219,7 +240,7 @@ const VisitRequestsTab = ({
 
             {/* Mobile Cards */}
             <div className="md:hidden space-y-4">
-                {filteredVisitRequests.map(request => (
+                {paginatedRequests.map(request => (
                     <Card key={request.id} className="overflow-hidden shadow-lg ring-1 ring-slate-900/5 dark:ring-slate-100/10 rounded-xl bg-white dark:bg-slate-800">
                         {/* Header with Name and Status */}
                         <div className="px-4 py-3">
@@ -360,6 +381,14 @@ const VisitRequestsTab = ({
                         {visitRequests.length === 0 ? "No visit requests yet" : "No results match your filters"}
                     </p>
                 )}
+                {/* Mobile Pagination */}
+                <AdminPagination
+                    currentPage={currentPage}
+                    totalItems={filteredVisitRequests.length}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={setCurrentPage}
+                    onItemsPerPageChange={setItemsPerPage}
+                />
             </div>
 
             {/* Desktop Table */}
@@ -377,7 +406,15 @@ const VisitRequestsTab = ({
                                 </div>
                             </TableHead>
                             <TableHead>Contact</TableHead>
-                            <TableHead>Wound Type</TableHead>
+                            <TableHead
+                                className="cursor-pointer hover:bg-muted/50 select-none"
+                                onClick={() => toggleSort("woundType")}
+                            >
+                                <div className="flex items-center gap-1">
+                                    Wound Type
+                                    <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
+                                </div>
+                            </TableHead>
                             <TableHead
                                 className="cursor-pointer hover:bg-muted/50 select-none"
                                 onClick={() => toggleSort("status")}
@@ -400,7 +437,7 @@ const VisitRequestsTab = ({
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {filteredVisitRequests.map((request, index) => (
+                        {paginatedRequests.map((request, index) => (
                             <TableRow key={request.id} className={index % 2 === 1 ? "bg-muted/50" : ""}>
                                 <TableCell className="font-bold">
                                     {request.firstName} {request.lastName}
@@ -511,6 +548,17 @@ const VisitRequestsTab = ({
                         )}
                     </TableBody>
                 </Table>
+            </div>
+
+            {/* Desktop Pagination */}
+            <div className="hidden md:block">
+                <AdminPagination
+                    currentPage={currentPage}
+                    totalItems={filteredVisitRequests.length}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={setCurrentPage}
+                    onItemsPerPageChange={setItemsPerPage}
+                />
             </div>
 
             <SubmissionDetailsDialog

@@ -34,7 +34,8 @@ const SubmissionsPage = () => {
     const [emailOpen, setEmailOpen] = useState(false);
     const [emailData, setEmailData] = useState<{ id: string; type: "visit" | "referral"; to: string; subject: string; message: string } | null>(null);
 
-    const updateVisitStatus = async (id: string, status: VisitRequest["status"]) => {
+    // Internal function to update visit status directly (without opening dialog)
+    const updateVisitStatusDirect = async (id: string, status: VisitRequest["status"]) => {
         const { error } = await supabase.from("visit_requests").update({ status }).eq("id", id);
         if (error) toast({ title: "Failed to update status", variant: "destructive" });
         else {
@@ -43,13 +44,46 @@ const SubmissionsPage = () => {
         }
     };
 
-    const updateReferralStatus = async (id: string, status: ProviderReferralSubmission["status"]) => {
+    // Internal function to update referral status directly (without opening dialog)
+    const updateReferralStatusDirect = async (id: string, status: ProviderReferralSubmission["status"]) => {
         const { error } = await supabase.from("provider_referrals").update({ status }).eq("id", id);
         if (error) toast({ title: "Failed to update status", variant: "destructive" });
         else {
             toast({ title: "Status updated" });
             refreshReferrals();
         }
+    };
+
+    const updateVisitStatus = async (id: string, status: VisitRequest["status"]) => {
+        // If changing to "scheduled", open the schedule dialog instead of just updating status
+        if (status === "scheduled") {
+            // Prevent duplicate dialogs
+            if (isScheduleDialogOpen) return;
+
+            const request = visitRequests.find(vr => vr.id === id);
+            if (request) {
+                openScheduleDialog("visit", request);
+                return;
+            }
+        }
+
+        await updateVisitStatusDirect(id, status);
+    };
+
+    const updateReferralStatus = async (id: string, status: ProviderReferralSubmission["status"]) => {
+        // If changing to "scheduled", open the schedule dialog instead of just updating status
+        if (status === "scheduled") {
+            // Prevent duplicate dialogs
+            if (isScheduleDialogOpen) return;
+
+            const referral = referrals.find(r => r.id === id);
+            if (referral) {
+                openScheduleDialog("referral", referral);
+                return;
+            }
+        }
+
+        await updateReferralStatusDirect(id, status);
     };
 
     const deleteVisitRequest = async (id: string) => {
@@ -65,7 +99,7 @@ const SubmissionsPage = () => {
     const deleteReferral = async (id: string) => {
         const { error } = await supabase.from("provider_referrals").delete().eq("id", id);
         if (error) {
-            toast({ title: "Failed to delete referral", variant: "destructive" });
+            toast({ title: "Failed to delete referral" });
         } else {
             toast({ title: "Referral deleted" });
             refreshReferrals();
@@ -73,6 +107,9 @@ const SubmissionsPage = () => {
     };
 
     const openScheduleDialog = (type: "visit" | "referral", item: any) => {
+        // Prevent duplicate dialogs
+        if (isScheduleDialogOpen) return;
+
         if (type === "visit") {
             const req = item as VisitRequest;
             setScheduleInitialData({
@@ -182,9 +219,9 @@ const SubmissionsPage = () => {
                         visit_request_id: apt.visitRequestId,
                         provider_referral_id: apt.providerReferralId
                     });
-                    // Also update status of linked request
-                    if (apt.visitRequestId) updateVisitStatus(apt.visitRequestId, "scheduled");
-                    if (apt.providerReferralId) updateReferralStatus(apt.providerReferralId, "scheduled");
+                    // Also update status of linked request to "scheduled" using direct update
+                    if (apt.visitRequestId) updateVisitStatusDirect(apt.visitRequestId, "scheduled");
+                    if (apt.providerReferralId) updateReferralStatusDirect(apt.providerReferralId, "scheduled");
                     setIsScheduleDialogOpen(false);
                 }}
                 existingAppointments={appointments} // We could pass appointments if needed for conflict checking

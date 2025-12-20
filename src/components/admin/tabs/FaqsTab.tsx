@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,8 +20,9 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, ArrowUpDown } from "lucide-react";
 import { FAQ } from "@/contexts/SiteDataContext";
+import AdminPagination from "../AdminPagination";
 
 interface FaqsTabProps {
     faqs: FAQ[];
@@ -39,6 +40,26 @@ const FaqsTab = ({
     setEditingFaq,
 }: FaqsTabProps) => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [sortField, setSortField] = useState<"question" | "category">("question");
+    const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
+
+    // Reset page when sort changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [sortField, sortDirection]);
+
+    const toggleSort = (field: "question" | "category") => {
+        if (field === sortField) {
+            setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+        } else {
+            setSortField(field);
+            setSortDirection("asc");
+        }
+    };
 
     const handleOpenDialog = (faq: FAQ | null) => {
         setEditingFaq(faq);
@@ -49,6 +70,25 @@ const FaqsTab = ({
         onSave(e);
         setIsDialogOpen(false);
     };
+
+    const sortedFaqs = [...faqs].sort((a, b) => {
+        let comparison = 0;
+        switch (sortField) {
+            case "question":
+                comparison = a.question.localeCompare(b.question);
+                break;
+            case "category":
+                comparison = a.category.localeCompare(b.category);
+                break;
+        }
+        return sortDirection === "asc" ? comparison : -comparison;
+    });
+
+    // Paginate the sorted FAQs
+    const paginatedFaqs = sortedFaqs.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
 
     return (
         <>
@@ -84,8 +124,8 @@ const FaqsTab = ({
             </div>
 
             {/* Mobile Cards */}
-            <div className="md:hidden space-y-3">
-                {faqs.map(faq => (
+            <div className="md:hidden space-y-4">
+                {paginatedFaqs.map(faq => (
                     <Card key={faq.id} className="p-4">
                         <div className="flex justify-between items-start gap-2 mb-2">
                             <p className="font-medium text-sm line-clamp-2 flex-1">{faq.question}</p>
@@ -104,20 +144,44 @@ const FaqsTab = ({
                 {faqs.length === 0 && (
                     <p className="text-center text-muted-foreground py-8">No FAQs yet</p>
                 )}
+                {/* Mobile Pagination */}
+                <AdminPagination
+                    currentPage={currentPage}
+                    totalItems={sortedFaqs.length}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={setCurrentPage}
+                    onItemsPerPageChange={setItemsPerPage}
+                />
             </div>
 
             {/* Desktop Table */}
-            <div className="hidden md:block overflow-x-auto">
+            <div className="hidden md:block overflow-x-auto rounded-md border">
                 <Table>
                     <TableHeader>
                         <TableRow className="bg-slate-200 hover:bg-slate-200">
-                            <TableHead className="text-slate-700 font-semibold">Question</TableHead>
-                            <TableHead className="text-slate-700 font-semibold">Category</TableHead>
+                            <TableHead
+                                className="cursor-pointer hover:bg-muted/50 select-none"
+                                onClick={() => toggleSort("question")}
+                            >
+                                <div className="flex items-center gap-1">
+                                    Question
+                                    <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
+                                </div>
+                            </TableHead>
+                            <TableHead
+                                className="cursor-pointer hover:bg-muted/50 select-none"
+                                onClick={() => toggleSort("category")}
+                            >
+                                <div className="flex items-center gap-1">
+                                    Category
+                                    <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
+                                </div>
+                            </TableHead>
                             <TableHead className="text-right text-slate-700 font-semibold">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {faqs.map((faq, index) => (
+                        {paginatedFaqs.map((faq, index) => (
                             <TableRow key={faq.id} className={index % 2 === 1 ? "bg-muted/50" : ""}>
                                 <TableCell className="font-medium max-w-md truncate">{faq.question}</TableCell>
                                 <TableCell>{faq.category}</TableCell>
@@ -133,6 +197,17 @@ const FaqsTab = ({
                         ))}
                     </TableBody>
                 </Table>
+            </div>
+
+            {/* Desktop Pagination */}
+            <div className="hidden md:block">
+                <AdminPagination
+                    currentPage={currentPage}
+                    totalItems={sortedFaqs.length}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={setCurrentPage}
+                    onItemsPerPageChange={setItemsPerPage}
+                />
             </div>
         </>
     );

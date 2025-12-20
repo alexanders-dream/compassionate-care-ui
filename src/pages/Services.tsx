@@ -2,20 +2,10 @@ import { Helmet } from "react-helmet-async";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Stethoscope, Heart, Bandage, Users, ShieldCheck, Clock, Home, Scissors } from "lucide-react";
+import { ShieldCheck, Clock, Heart } from "lucide-react";
 import homeCareVisit from "@/assets/home-care-visit.jpg";
 import { useSiteData } from "@/contexts/SiteDataContext";
-
-const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  Stethoscope,
-  Heart,
-  Bandage,
-  Users,
-  ShieldCheck,
-  Clock,
-  Home,
-  Scissors,
-};
+import { getIconByName } from "@/lib/icons";
 
 const benefits = [
   { icon: ShieldCheck, title: "Licensed Clinicians", description: "All care provided by certified wound care specialists" },
@@ -46,7 +36,7 @@ const Services = () => {
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button size="lg" className="no-link-style" asChild>
-                  <Link to="/request-visit">Schedule a Visit</Link>
+                  <Link to="/request-visit">Schedule Consultation</Link>
                 </Button>
                 <Button size="lg" variant="outline" asChild>
                   <Link to="/refer">Provider Referral</Link>
@@ -78,7 +68,7 @@ const Services = () => {
 
           <div className="grid md:grid-cols-2 gap-8">
             {services.map((service, index) => {
-              const IconComponent = iconMap[service.icon] || Heart;
+              const IconComponent = getIconByName(service.icon);
               return (
                 <div
                   key={service.id || index}
@@ -137,7 +127,7 @@ const Services = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="no-link-style" asChild>
-              <Link to="/request-visit">Book a Visit</Link>
+              <Link to="/request-visit">Book Consultation</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
               <Link to="/contact">Contact Us</Link>

@@ -1,37 +1,15 @@
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Bandage, Stethoscope, Home, Clipboard } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import homeCareImage from "@/assets/home-care-visit.jpg";
-
-const services = [
-  {
-    icon: Bandage,
-    title: "Wound Assessment",
-    description: "Comprehensive evaluation of wound type, size, and healing stage to create personalized treatment plans.",
-    href: "/services#assessment",
-  },
-  {
-    icon: Stethoscope,
-    title: "Clinical Treatment",
-    description: "Advanced wound care techniques including debridement, dressings, and evidence-based therapies.",
-    href: "/services#treatment",
-  },
-  {
-    icon: Home,
-    title: "In-Home Care",
-    description: "Convenient wound care services delivered in the comfort of your home by certified specialists.",
-    href: "/services#home-care",
-  },
-  {
-    icon: Clipboard,
-    title: "Care Coordination",
-    description: "Seamless communication with your healthcare team to ensure optimal recovery outcomes.",
-    href: "/services#coordination",
-  },
-];
+import { useSiteData } from "@/contexts/SiteDataContext";
+import { getIconByName } from "@/lib/icons";
 
 const ServicesPreview = () => {
+  const { services } = useSiteData();
+  const displayServices = services.slice(0, 4);
+
   return (
     <section className="section-padding bg-muted">
       <div className="container-main">
@@ -47,32 +25,35 @@ const ServicesPreview = () => {
         <div className="grid lg:grid-cols-3 gap-8 items-start">
           {/* Services Grid */}
           <div className="lg:col-span-2 grid sm:grid-cols-2 gap-6">
-            {services.map((service, index) => (
-              <Card
-                key={service.title}
-                className="group bg-card border-border hover:border-primary/40 transition-all duration-300 hover:-translate-y-1 shadow-card hover:shadow-elevated"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <CardContent className="p-6">
-                  <div className="w-14 h-14 rounded-xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center mb-4 group-hover:bg-blue-200 dark:group-hover:bg-blue-800/50 transition-colors">
-                    <service.icon size={28} className="text-primary" />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2">
-                    {service.title}
-                  </h3>
-                  <p className="text-muted-foreground text-sm mb-4 leading-relaxed">
-                    {service.description}
-                  </p>
-                  <Link
-                    to={service.href}
-                    className="inline-flex items-center gap-1 text-primary text-sm font-medium hover:gap-2 transition-all"
-                  >
-                    Learn more
-                    <ArrowRight size={16} />
-                  </Link>
-                </CardContent>
-              </Card>
-            ))}
+            {displayServices.map((service, index) => {
+              const IconComponent = getIconByName(service.icon);
+              return (
+                <Card
+                  key={service.id || index}
+                  className="group bg-card border-border hover:border-primary/40 transition-all duration-300 hover:-translate-y-1 shadow-card hover:shadow-elevated"
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
+                  <CardContent className="p-6">
+                    <div className="w-14 h-14 rounded-xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center mb-4 group-hover:bg-blue-200 dark:group-hover:bg-blue-800/50 transition-colors">
+                      <IconComponent size={28} className="text-primary" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2">
+                      {service.title}
+                    </h3>
+                    <p className="text-muted-foreground text-sm mb-4 leading-relaxed line-clamp-3">
+                      {service.description}
+                    </p>
+                    <Link
+                      to="/services"
+                      className="inline-flex items-center gap-1 text-primary text-sm font-medium hover:gap-2 transition-all"
+                    >
+                      Learn more
+                      <ArrowRight size={16} />
+                    </Link>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
 
           {/* Featured Image */}

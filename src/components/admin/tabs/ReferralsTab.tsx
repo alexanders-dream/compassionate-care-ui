@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from "@/components/ui/table";
@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ProviderReferralSubmission } from "@/contexts/SiteDataContext";
 import StatusCounts from "../StatusCounts";
+import AdminPagination from "../AdminPagination";
 
 interface ReferralsTabProps {
     referrals: ProviderReferralSubmission[];
@@ -54,9 +55,18 @@ const ReferralsTab = ({
     const [filterStatus, setFilterStatus] = useState<string>("all");
     const [filterUrgency, setFilterUrgency] = useState<string>("all");
     const [searchQuery, setSearchQuery] = useState("");
-    const [sortField, setSortField] = useState<"name" | "date" | "status">("date");
+    const [sortField, setSortField] = useState<"name" | "date" | "status" | "providerName" | "woundType" | "urgency">("date");
     const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
     const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
+
+    // Reset page when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [filterStatus, filterUrgency, searchQuery, sortField, sortDirection]);
 
     const [viewSubmission, setViewSubmission] = useState<ProviderReferralSubmission | null>(null);
     const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
@@ -82,7 +92,7 @@ const ReferralsTab = ({
         );
     };
 
-    const toggleSort = (field: "name" | "date" | "status") => {
+    const toggleSort = (field: "name" | "date" | "status" | "providerName" | "woundType" | "urgency") => {
         if (field === sortField) {
             setSortDirection(sortDirection === "asc" ? "desc" : "asc");
         } else {
@@ -113,9 +123,24 @@ const ReferralsTab = ({
                 case "status":
                     comparison = a.status.localeCompare(b.status);
                     break;
+                case "providerName":
+                    comparison = a.providerName.localeCompare(b.providerName);
+                    break;
+                case "woundType":
+                    comparison = a.woundType.localeCompare(b.woundType);
+                    break;
+                case "urgency":
+                    comparison = a.urgency.localeCompare(b.urgency);
+                    break;
             }
             return sortDirection === "asc" ? comparison : -comparison;
         });
+
+    // Paginate the filtered results
+    const paginatedReferrals = filteredReferrals.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
 
     // Calculate status counts
     const statusCounts = useMemo(() => [
@@ -235,7 +260,7 @@ const ReferralsTab = ({
 
             {/* Mobile Cards */}
             <div className="md:hidden space-y-4">
-                {filteredReferrals.map(referral => (
+                {paginatedReferrals.map(referral => (
                     <Card key={referral.id} className={`overflow-hidden shadow-lg ring-1 ring-slate-900/5 dark:ring-slate-100/10 rounded-xl bg-white dark:bg-slate-800 ${referral.urgency === "urgent" ? "border-l-4 border-l-red-500" : ""}`}>
                         {/* Header with Patient Name, Status, and Urgency */}
                         <div className="px-4 py-3">
@@ -384,6 +409,14 @@ const ReferralsTab = ({
                         {referrals.length === 0 ? "No provider referrals yet" : "No results match your filters"}
                     </p>
                 )}
+                {/* Mobile Pagination */}
+                <AdminPagination
+                    currentPage={currentPage}
+                    totalItems={filteredReferrals.length}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={setCurrentPage}
+                    onItemsPerPageChange={setItemsPerPage}
+                />
             </div>
 
             {/* Desktop Table */}
@@ -400,8 +433,24 @@ const ReferralsTab = ({
                                     <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
                                 </div>
                             </TableHead>
-                            <TableHead>Provider</TableHead>
-                            <TableHead>Wound Type</TableHead>
+                            <TableHead
+                                className="cursor-pointer hover:bg-muted/50 select-none"
+                                onClick={() => toggleSort("providerName")}
+                            >
+                                <div className="flex items-center gap-1">
+                                    Provider
+                                    <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
+                                </div>
+                            </TableHead>
+                            <TableHead
+                                className="cursor-pointer hover:bg-muted/50 select-none"
+                                onClick={() => toggleSort("woundType")}
+                            >
+                                <div className="flex items-center gap-1">
+                                    Wound Type
+                                    <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
+                                </div>
+                            </TableHead>
                             <TableHead
                                 className="cursor-pointer hover:bg-muted/50 select-none"
                                 onClick={() => toggleSort("status")}
@@ -411,12 +460,20 @@ const ReferralsTab = ({
                                     <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
                                 </div>
                             </TableHead>
-                            <TableHead>Urgency</TableHead>
+                            <TableHead
+                                className="cursor-pointer hover:bg-muted/50 select-none"
+                                onClick={() => toggleSort("urgency")}
+                            >
+                                <div className="flex items-center gap-1">
+                                    Urgency
+                                    <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
+                                </div>
+                            </TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {filteredReferrals.map((referral, index) => (
+                        {paginatedReferrals.map((referral, index) => (
                             <TableRow key={referral.id} className={index % 2 === 1 ? "bg-muted/50" : ""}>
                                 <TableCell className="font-bold">{referral.patientFirstName} {referral.patientLastName}</TableCell>
                                 <TableCell>
@@ -532,6 +589,17 @@ const ReferralsTab = ({
                         )}
                     </TableBody>
                 </Table>
+            </div>
+
+            {/* Desktop Pagination */}
+            <div className="hidden md:block">
+                <AdminPagination
+                    currentPage={currentPage}
+                    totalItems={filteredReferrals.length}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={setCurrentPage}
+                    onItemsPerPageChange={setItemsPerPage}
+                />
             </div>
 
             <SubmissionDetailsDialog

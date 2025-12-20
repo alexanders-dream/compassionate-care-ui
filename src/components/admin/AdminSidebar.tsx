@@ -1,6 +1,6 @@
 import {
   ClipboardList, CalendarDays, Settings2, Type, BookOpen,
-  FileText, Star, Briefcase, Users, HelpCircle, ChevronLeft, ChevronRight, Menu, LogOut, Home, User
+  FileText, Star, Briefcase, Users, HelpCircle, ChevronLeft, ChevronRight, Menu, LogOut, Home, User, Shield
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,8 @@ export type AdminSection =
   | "testimonials"
   | "services"
   | "team"
-  | "faqs";
+  | "faqs"
+  | "insurance";
 
 interface AdminSidebarProps {
   collapsed: boolean;
@@ -42,6 +43,7 @@ const menuItems: { id: AdminSection; label: string; icon: React.ElementType; pat
   { id: "services", label: "Services", icon: Briefcase, path: "/admin/services" },
   { id: "team", label: "Team", icon: Users, path: "/admin/team" },
   { id: "faqs", label: "FAQs", icon: HelpCircle, path: "/admin/faqs" },
+  { id: "insurance", label: "Insurance", icon: Shield, path: "/admin/insurance" },
 ];
 
 const SidebarNavItem = ({
@@ -131,20 +133,47 @@ const SidebarContent = ({
 
         <div className="mt-auto pt-4 border-t border-border/50 space-y-1">
           {/* Profile Link */}
-          <NavLink
-            to="/admin/profile"
-            onClick={onItemClick}
-            className={({ isActive }) => cn(
-              "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium",
-              isActive
-                ? "bg-blue-100 dark:bg-blue-900/40 text-foreground"
-                : "text-muted-foreground hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-foreground",
-              collapsed && "justify-center px-2"
-            )}
-          >
-            <User className="h-4 w-4 shrink-0" />
-            {!collapsed && <span>My Profile</span>}
-          </NavLink>
+          {collapsed ? (
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger asChild>
+                <NavLink
+                  to="/admin/profile"
+                  onClick={onItemClick}
+                  className={({ isActive }) => cn(
+                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium",
+                    isActive
+                      ? "bg-blue-100 dark:bg-blue-900/40 text-foreground"
+                      : "text-muted-foreground hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-foreground",
+                    collapsed && "justify-center px-2"
+                  )}
+                >
+                  <User className="h-4 w-4 shrink-0" />
+                </NavLink>
+              </TooltipTrigger>
+              <TooltipContent
+                side="right"
+                className="bg-slate-900 text-white font-medium px-3 py-1.5 rounded-full shadow-lg border-0"
+                sideOffset={8}
+              >
+                My Profile
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            <NavLink
+              to="/admin/profile"
+              onClick={onItemClick}
+              className={({ isActive }) => cn(
+                "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium",
+                isActive
+                  ? "bg-blue-100 dark:bg-blue-900/40 text-foreground"
+                  : "text-muted-foreground hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-foreground",
+                collapsed && "justify-center px-2"
+              )}
+            >
+              <User className="h-4 w-4 shrink-0" />
+              <span>My Profile</span>
+            </NavLink>
+          )}
 
           {/* Logout */}
           {collapsed ? (
@@ -183,6 +212,7 @@ const SidebarContent = ({
             </Button>
           )}
         </div>
+
       </nav>
     </TooltipProvider>
   );

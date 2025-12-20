@@ -19,12 +19,13 @@ import {
     DropdownMenuTrigger,
     DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { Plus, Pencil, Trash2, Sparkles, Share2, Mail, ArrowLeft, Star, Calendar as CalendarIcon } from "lucide-react";
+import { Plus, Pencil, Trash2, Sparkles, Share2, Mail, ArrowLeft, Star, Calendar as CalendarIcon, ArrowUpDown } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import AIArticleGenerator from "@/components/admin/AIArticleGenerator";
 import { ArticleMedia } from "@/components/admin/AIArticleGenerator";
 import { ScheduleDialog } from "@/components/admin/ScheduleDialog";
 import { BlogPost, categories } from "@/data/blogPosts";
+import AdminPagination from "../AdminPagination";
 
 export interface ExtendedBlogPost extends BlogPost {
     status?: "draft" | "published" | "scheduled";
@@ -51,6 +52,26 @@ const BlogTab = ({
     const navigate = useNavigate();
     const location = useLocation();
     const [showAIGenerator, setShowAIGenerator] = useState(false);
+    const [sortField, setSortField] = useState<"title" | "status" | "category" | "author" | "date">("date");
+    const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
+
+    // Reset page when sort changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [sortField, sortDirection]);
+
+    const toggleSort = (field: "title" | "status" | "category" | "author" | "date") => {
+        if (field === sortField) {
+            setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+        } else {
+            setSortField(field);
+            setSortDirection("asc");
+        }
+    };
 
     // Reset AI generator view when navigating to the blog tab
     useEffect(() => {
@@ -97,6 +118,34 @@ const BlogTab = ({
         }
         onSaveArticle(updatedPost);
     };
+
+    const sortedPosts = [...posts].sort((a, b) => {
+        let comparison = 0;
+        switch (sortField) {
+            case "title":
+                comparison = a.title.localeCompare(b.title);
+                break;
+            case "status":
+                comparison = (a.status || "published").localeCompare(b.status || "published");
+                break;
+            case "category":
+                comparison = a.category.localeCompare(b.category);
+                break;
+            case "author":
+                comparison = a.author.localeCompare(b.author);
+                break;
+            case "date":
+                comparison = new Date(a.date).getTime() - new Date(b.date).getTime();
+                break;
+        }
+        return sortDirection === "asc" ? comparison : -comparison;
+    });
+
+    // Paginate the sorted posts
+    const paginatedPosts = sortedPosts.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
 
     return (
         <>
@@ -147,8 +196,8 @@ const BlogTab = ({
                     </div>
 
                     {/* Mobile Cards */}
-                    <div className="md:hidden space-y-3">
-                        {posts.map(post => (
+                    <div className="md:hidden space-y-4">
+                        {paginatedPosts.map(post => (
                             <Card key={post.id} className="p-4">
                                 <div className="flex justify-between items-start mb-2">
                                     <p className="font-medium text-sm line-clamp-2 flex-1 pr-2">{post.title}</p>
@@ -205,23 +254,71 @@ const BlogTab = ({
                         {posts.length === 0 && (
                             <p className="text-center text-muted-foreground py-8">No blog posts yet</p>
                         )}
+                        {/* Mobile Pagination */}
+                        <AdminPagination
+                            currentPage={currentPage}
+                            totalItems={sortedPosts.length}
+                            itemsPerPage={itemsPerPage}
+                            onPageChange={setCurrentPage}
+                            onItemsPerPageChange={setItemsPerPage}
+                        />
                     </div>
 
                     {/* Desktop Table */}
-                    <div className="hidden md:block overflow-x-auto">
+                    <div className="hidden md:block overflow-x-auto rounded-md border">
                         <Table>
                             <TableHeader>
                                 <TableRow className="bg-muted/50 hover:bg-muted/50">
-                                    <TableHead className="text-slate-700 font-semibold">Title</TableHead>
-                                    <TableHead className="text-slate-700 font-semibold">Status</TableHead>
-                                    <TableHead className="text-slate-700 font-semibold">Category</TableHead>
-                                    <TableHead className="text-slate-700 font-semibold">Author</TableHead>
-                                    <TableHead className="text-slate-700 font-semibold">Date</TableHead>
+                                    <TableHead
+                                        className="cursor-pointer hover:bg-muted/50 select-none"
+                                        onClick={() => toggleSort("title")}
+                                    >
+                                        <div className="flex items-center gap-1">
+                                            Title
+                                            <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
+                                        </div>
+                                    </TableHead>
+                                    <TableHead
+                                        className="cursor-pointer hover:bg-muted/50 select-none"
+                                        onClick={() => toggleSort("status")}
+                                    >
+                                        <div className="flex items-center gap-1">
+                                            Status
+                                            <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
+                                        </div>
+                                    </TableHead>
+                                    <TableHead
+                                        className="cursor-pointer hover:bg-muted/50 select-none"
+                                        onClick={() => toggleSort("category")}
+                                    >
+                                        <div className="flex items-center gap-1">
+                                            Category
+                                            <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
+                                        </div>
+                                    </TableHead>
+                                    <TableHead
+                                        className="cursor-pointer hover:bg-muted/50 select-none"
+                                        onClick={() => toggleSort("author")}
+                                    >
+                                        <div className="flex items-center gap-1">
+                                            Author
+                                            <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
+                                        </div>
+                                    </TableHead>
+                                    <TableHead
+                                        className="cursor-pointer hover:bg-muted/50 select-none"
+                                        onClick={() => toggleSort("date")}
+                                    >
+                                        <div className="flex items-center gap-1">
+                                            Date
+                                            <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
+                                        </div>
+                                    </TableHead>
                                     <TableHead className="text-right text-slate-700 font-semibold">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {posts.map((post, index) => (
+                                {paginatedPosts.map((post, index) => (
                                     <TableRow key={post.id} className={index % 2 === 1 ? "bg-muted/50" : ""}>
                                         <TableCell className="font-medium max-w-xs truncate">{post.title}</TableCell>
                                         <TableCell>
@@ -322,6 +419,17 @@ const BlogTab = ({
                                 ))}
                             </TableBody>
                         </Table>
+                    </div>
+
+                    {/* Desktop Pagination */}
+                    <div className="hidden md:block">
+                        <AdminPagination
+                            currentPage={currentPage}
+                            totalItems={sortedPosts.length}
+                            itemsPerPage={itemsPerPage}
+                            onPageChange={setCurrentPage}
+                            onItemsPerPageChange={setItemsPerPage}
+                        />
                     </div>
                 </>
             )}

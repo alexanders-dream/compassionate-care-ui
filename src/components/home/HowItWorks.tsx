@@ -4,7 +4,7 @@ const steps = [
   {
     number: "01",
     icon: Phone,
-    title: "Request a Visit",
+    title: "Request Consultation",
     description: "Fill out our simple form or call us directly. We'll gather your information and understand your needs.",
   },
   {

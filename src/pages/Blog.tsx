@@ -68,7 +68,7 @@ const Blog = () => {
       </section>
 
       {/* Category Filter */}
-      <section className="sticky top-16 z-30 bg-background/95 backdrop-blur-md border-b py-4">
+      <section className="sticky top-20 z-30 bg-background/95 backdrop-blur-md border-b py-4">
         <div className="container-main">
           <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
             {categories.map((category) => (

@@ -11,7 +11,7 @@ const CTABanner = () => {
             Ready to Start Your Healing Journey?
           </h2>
           <p className="text-lg text-secondary/80 mb-8 max-w-xl mx-auto leading-relaxed">
-            Our compassionate team is here to help. Request a visit today and
+            Our compassionate team is here to help. Request a consultation today and
             experience the difference expert wound care can make.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -21,7 +21,7 @@ const CTABanner = () => {
               className="bg-primary border-2 border-primary text-white hover:bg-primary/90 hover:text-white"
             >
               <Link to="/request-visit" className="no-link-style">
-                Request a Visit
+                Request Consultation
                 <ArrowRight size={18} />
               </Link>
             </Button>

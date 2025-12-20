@@ -12,29 +12,40 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { CheckCircle2, Trash2, Image } from "lucide-react";
+import { CheckCircle2, Trash2, Image as ImageIcon } from "lucide-react";
 import { SiteCopySection } from "@/data/siteCopy";
-import { useToast } from "@/hooks/use-toast";
+import { ImageInsertionDialog } from "@/components/admin/ImageInsertionDialog";
 
 interface SiteCopyTabProps {
     siteCopy: SiteCopySection[];
     onUpdateField: (sectionId: string, fieldKey: string, newValue: string) => void;
     onSaveSection: (sectionId: string) => void;
-    onImageUpload: (sectionId: string, fieldKey: string, e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 const SiteCopyTab = ({
     siteCopy,
     onUpdateField,
     onSaveSection,
-    onImageUpload,
 }: SiteCopyTabProps) => {
     const [selectedCopyPage, setSelectedCopyPage] = useState<string>("all");
+    // Track which image field's dialog is open: { sectionId, fieldKey } or null
+    const [activeImageField, setActiveImageField] = useState<{ sectionId: string; fieldKey: string } | null>(null);
 
     const uniquePages = ["all", ...new Set(siteCopy.map(s => s.page))];
     const filteredCopySections = selectedCopyPage === "all"
         ? siteCopy
         : siteCopy.filter(s => s.page === selectedCopyPage);
+
+    const handleImageSelected = (url: string) => {
+        if (activeImageField) {
+            onUpdateField(activeImageField.sectionId, activeImageField.fieldKey, url);
+            setActiveImageField(null);
+        }
+    };
+
+    const openImageDialog = (sectionId: string, fieldKey: string) => {
+        setActiveImageField({ sectionId, fieldKey });
+    };
 
     return (
         <div className="space-y-6">
@@ -92,20 +103,15 @@ const SiteCopyTab = ({
                                                 </div>
                                             )}
                                             <div className="flex items-center gap-3">
-                                                <label
-                                                    htmlFor={`${section.id}-${field.key}`}
-                                                    className="flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md cursor-pointer hover:bg-secondary/80 transition-colors text-sm font-medium"
+                                                <Button
+                                                    type="button"
+                                                    variant="secondary"
+                                                    size="sm"
+                                                    onClick={() => openImageDialog(section.id, field.key)}
                                                 >
-                                                    <Image className="h-4 w-4" />
-                                                    {field.value ? "Change Image" : "Upload Image"}
-                                                </label>
-                                                <input
-                                                    type="file"
-                                                    id={`${section.id}-${field.key}`}
-                                                    accept="image/*"
-                                                    onChange={(e) => onImageUpload(section.id, field.key, e)}
-                                                    className="hidden"
-                                                />
+                                                    <ImageIcon className="h-4 w-4 mr-2" />
+                                                    {field.value ? "Change Image" : "Select Image"}
+                                                </Button>
                                                 {field.value && (
                                                     <Button
                                                         type="button"
@@ -142,6 +148,15 @@ const SiteCopyTab = ({
                     </Card>
                 ))}
             </div>
+
+            {/* Image Insertion Dialog - shared across all image fields */}
+            <ImageInsertionDialog
+                open={activeImageField !== null}
+                onOpenChange={(open) => {
+                    if (!open) setActiveImageField(null);
+                }}
+                onImageSelected={handleImageSelected}
+            />
         </div>
     );
 };

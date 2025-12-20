@@ -19,6 +19,7 @@ import RequestVisit from "./pages/RequestVisit";
 import ProviderReferral from "./pages/ProviderReferral";
 import Conditions from "./pages/Conditions";
 import Testimonials from "./pages/Testimonials";
+import Faqs from "./pages/Faqs";
 import Resources from "./pages/Resources";
 import Insurance from "./pages/Insurance";
 import Community from "./pages/Community";
@@ -44,6 +45,7 @@ const ServicesPage = lazy(() => import("./pages/admin/ServicesPage"));
 const TeamPage = lazy(() => import("./pages/admin/TeamPage"));
 const FaqsPage = lazy(() => import("./pages/admin/FaqsPage"));
 const ProfilePage = lazy(() => import("./pages/admin/ProfilePage"));
+const InsurancePage = lazy(() => import("./pages/admin/InsurancePage"));
 const BlogEditor = lazy(() => import("./pages/BlogEditor"));
 
 const queryClient = new QueryClient();
@@ -75,6 +77,7 @@ const App = () => (
                   <Route path="/refer" element={<ProviderReferral />} />
                   <Route path="/conditions" element={<Conditions />} />
                   <Route path="/testimonials" element={<Testimonials />} />
+                  <Route path="/faqs" element={<Faqs />} />
                   <Route path="/resources" element={<Resources />} />
                   <Route path="/insurance" element={<Insurance />} />
                   <Route path="/community" element={<Community />} />
@@ -104,6 +107,7 @@ const App = () => (
                     <Route path="services" element={<ServicesPage />} />
                     <Route path="team" element={<TeamPage />} />
                     <Route path="faqs" element={<FaqsPage />} />
+                    <Route path="insurance" element={<InsurancePage />} />
                     <Route path="profile" element={<ProfilePage />} />
 
                     {/* Blog Editor Routes */}

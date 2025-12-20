@@ -3,7 +3,7 @@ import { Shield, Award, CheckCircle, Heart } from "lucide-react";
 const badges = [
     {
         icon: Shield,
-        label: "HIPAA Compliant",
+        label: "Secure & Confidential",
         description: "Your data is protected"
     },
     {

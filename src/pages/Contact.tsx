@@ -81,7 +81,7 @@ const Contact = () => {
     <Layout>
       <Helmet>
         <title>Contact Us | AR Advanced Woundcare Solutions</title>
-        <meta name="description" content="Contact AR Advanced Woundcare Solutions for questions about our services, to schedule a visit, or to discuss referral partnerships." />
+        <meta name="description" content="Contact AR Advanced Woundcare Solutions for questions about our services, to schedule a consultation, or to discuss referral partnerships." />
       </Helmet>
 
       {/* Hero Section */}
@@ -91,7 +91,7 @@ const Contact = () => {
             Get in <span className="text-primary">Touch</span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Have questions about our services? Need to schedule a visit or discuss a referral?
+            Have questions about our services? Need to schedule a consultation or discuss a referral?
             We're here to help.
           </p>
         </div>
@@ -239,7 +239,7 @@ const Contact = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="no-link-style" asChild>
-              <Link to="/request-visit">Schedule a Visit</Link>
+              <Link to="/request-visit">Schedule Consultation</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
               <Link to="/refer">Refer a Patient</Link>

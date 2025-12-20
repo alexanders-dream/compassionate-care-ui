@@ -26,7 +26,7 @@ const HeroSection = () => {
             <div className="flex flex-col sm:flex-row gap-4">
               <Button size="lg" asChild>
                 <Link to="/request-visit" className="no-link-style">
-                  Request a Visit
+                  Request Consultation
                   <ArrowRight size={18} />
                 </Link>
               </Button>

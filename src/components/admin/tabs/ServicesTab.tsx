@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,9 +20,11 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, ArrowUpDown } from "lucide-react";
 import IconPicker from "@/components/admin/IconPicker";
 import { Service } from "@/contexts/SiteDataContext";
+import { getIconByName } from "@/lib/icons";
+import AdminPagination from "../AdminPagination";
 
 interface ServicesTabProps {
     services: Service[];
@@ -44,6 +46,26 @@ const ServicesTab = ({
     setServiceIcon,
 }: ServicesTabProps) => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [sortField, setSortField] = useState<"title" | "description" | "icon">("title");
+    const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
+
+    // Reset page when sort changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [sortField, sortDirection]);
+
+    const toggleSort = (field: "title" | "description" | "icon") => {
+        if (field === sortField) {
+            setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+        } else {
+            setSortField(field);
+            setSortDirection("asc");
+        }
+    };
 
     const handleOpenDialog = (service: Service | null) => {
         setEditingService(service);
@@ -55,6 +77,28 @@ const ServicesTab = ({
         onSave(e);
         setIsDialogOpen(false);
     };
+
+    const sortedServices = [...services].sort((a, b) => {
+        let comparison = 0;
+        switch (sortField) {
+            case "title":
+                comparison = a.title.localeCompare(b.title);
+                break;
+            case "description":
+                comparison = a.description.localeCompare(b.description);
+                break;
+            case "icon":
+                comparison = a.icon.localeCompare(b.icon);
+                break;
+        }
+        return sortDirection === "asc" ? comparison : -comparison;
+    });
+
+    // Paginate the sorted services
+    const paginatedServices = sortedServices.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
 
     return (
         <>
@@ -90,12 +134,17 @@ const ServicesTab = ({
             </div>
 
             {/* Mobile Cards */}
-            <div className="md:hidden space-y-3">
-                {services.map(service => (
+            <div className="md:hidden space-y-4">
+                {paginatedServices.map(service => (
                     <Card key={service.id} className="p-4">
                         <div className="flex justify-between items-start mb-2">
                             <p className="font-medium">{service.title}</p>
-                            <Badge variant="outline">{service.icon}</Badge>
+                            <div className="p-2 bg-primary/10 rounded-md">
+                                {(() => {
+                                    const Icon = getIconByName(service.icon);
+                                    return <Icon className="h-5 w-5 text-primary" />;
+                                })()}
+                            </div>
                         </div>
                         <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{service.description}</p>
                         <div className="flex gap-2">
@@ -111,25 +160,69 @@ const ServicesTab = ({
                 {services.length === 0 && (
                     <p className="text-center text-muted-foreground py-8">No services yet</p>
                 )}
+                {/* Mobile Pagination */}
+                <AdminPagination
+                    currentPage={currentPage}
+                    totalItems={sortedServices.length}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={setCurrentPage}
+                    onItemsPerPageChange={setItemsPerPage}
+                />
             </div>
 
             {/* Desktop Table */}
-            <div className="hidden md:block overflow-x-auto">
+            <div className="hidden md:block overflow-x-auto rounded-md border">
                 <Table>
                     <TableHeader>
                         <TableRow className="bg-slate-200 hover:bg-slate-200">
-                            <TableHead className="text-slate-700 font-semibold">Title</TableHead>
-                            <TableHead className="text-slate-700 font-semibold">Description</TableHead>
-                            <TableHead className="text-slate-700 font-semibold">Icon</TableHead>
+                            <TableHead
+                                className="cursor-pointer hover:bg-muted/50 select-none"
+                                onClick={() => toggleSort("title")}
+                            >
+                                <div className="flex items-center gap-1">
+                                    Title
+                                    <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
+                                </div>
+                            </TableHead>
+                            <TableHead
+                                className="cursor-pointer hover:bg-muted/50 select-none"
+                                onClick={() => toggleSort("description")}
+                            >
+                                <div className="flex items-center gap-1">
+                                    Description
+                                    <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
+                                </div>
+                            </TableHead>
+                            <TableHead
+                                className="cursor-pointer hover:bg-muted/50 select-none"
+                                onClick={() => toggleSort("icon")}
+                            >
+                                <div className="flex items-center gap-1">
+                                    Icon
+                                    <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
+                                </div>
+                            </TableHead>
                             <TableHead className="text-right text-slate-700 font-semibold">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {services.map((service, index) => (
+                        {paginatedServices.map((service, index) => (
                             <TableRow key={service.id} className={index % 2 === 1 ? "bg-muted/50" : ""}>
                                 <TableCell className="font-medium">{service.title}</TableCell>
                                 <TableCell className="max-w-xs truncate">{service.description}</TableCell>
-                                <TableCell>{service.icon}</TableCell>
+                                <TableCell>
+                                    {(() => {
+                                        const Icon = getIconByName(service.icon);
+                                        return (
+                                            <div className="flex items-center gap-2">
+                                                <div className="p-1.5 bg-primary/10 rounded-md">
+                                                    <Icon className="h-4 w-4 text-primary" />
+                                                </div>
+                                                <span className="text-xs text-muted-foreground">{service.icon}</span>
+                                            </div>
+                                        );
+                                    })()}
+                                </TableCell>
                                 <TableCell className="text-right">
                                     <Button variant="ghost" size="sm" onClick={() => handleOpenDialog(service)}>
                                         <Pencil className="h-4 w-4" />
@@ -142,6 +235,17 @@ const ServicesTab = ({
                         ))}
                     </TableBody>
                 </Table>
+            </div>
+
+            {/* Desktop Pagination */}
+            <div className="hidden md:block">
+                <AdminPagination
+                    currentPage={currentPage}
+                    totalItems={sortedServices.length}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={setCurrentPage}
+                    onItemsPerPageChange={setItemsPerPage}
+                />
             </div>
         </>
     );

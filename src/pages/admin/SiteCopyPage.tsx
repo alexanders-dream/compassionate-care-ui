@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useSiteData } from "@/contexts/SiteDataContext";
 import SiteCopyTab from "@/components/admin/tabs/SiteCopyTab";
 import { useToast } from "@/hooks/use-toast";
@@ -52,24 +51,11 @@ const SiteCopyPage = () => {
         }
     };
 
-    const handleCopyImageUpload = (sectionId: string, fieldKey: string, e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                handleUpdateCopyField(sectionId, fieldKey, reader.result as string);
-                toast({ title: "Image uploaded", description: file.name });
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
     return (
         <SiteCopyTab
             siteCopy={siteCopy}
             onUpdateField={handleUpdateCopyField}
             onSaveSection={handleSaveCopySection}
-            onImageUpload={handleCopyImageUpload}
         />
     );
 };

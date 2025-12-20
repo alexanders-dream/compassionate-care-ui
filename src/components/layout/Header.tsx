@@ -55,7 +55,7 @@ const Header = () => {
                 <Link to="/refer" className="no-link-style">Refer a Patient</Link>
               </Button>
               <Button asChild className="bg-white text-primary dark:!text-[#00243a] hover:bg-white/90 font-semibold">
-                <Link to="/request-visit" className="no-link-style">Book a Visit</Link>
+                <Link to="/request-visit" className="no-link-style">Book Consultation</Link>
               </Button>
             </div>
 
@@ -94,7 +94,7 @@ const Header = () => {
                 </Button>
                 <Button asChild className="w-full justify-center bg-white text-primary dark:!text-[#00243a] hover:bg-white/90 font-semibold">
                   <Link to="/request-visit" onClick={() => setIsMenuOpen(false)} className="no-link-style">
-                    Book a Visit
+                    Book Consultation
                   </Link>
                 </Button>
               </div>

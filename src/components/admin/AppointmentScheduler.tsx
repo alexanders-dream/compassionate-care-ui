@@ -36,6 +36,7 @@ import {
   VisitRequest, ProviderReferralSubmission
 } from "@/data/siteContent";
 import StatusCounts from "./StatusCounts";
+import AdminPagination from "./AdminPagination";
 
 // Shared constants
 export const clinicians = [
@@ -645,14 +646,22 @@ const AppointmentScheduler = ({
 
   // Filtering and sorting state
   const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [sortField, setSortField] = useState<"name" | "date" | "status">("date");
+  const [sortField, setSortField] = useState<"name" | "date" | "status" | "type" | "clinician" | "location">("date");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterStatus, searchQuery, sortField, sortDirection]);
   // Removed status row background coloring - now using badges with alternating rows
 
   // Helper for toggling sort direction
-  const toggleSort = (field: "name" | "date" | "status") => {
+  const toggleSort = (field: "name" | "date" | "status" | "type" | "clinician" | "location") => {
     if (field === sortField) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
@@ -691,9 +700,24 @@ const AppointmentScheduler = ({
         case "status":
           comparison = a.status.localeCompare(b.status);
           break;
+        case "type":
+          comparison = a.type.localeCompare(b.type);
+          break;
+        case "clinician":
+          comparison = a.clinician.localeCompare(b.clinician);
+          break;
+        case "location":
+          comparison = a.location.localeCompare(b.location);
+          break;
       }
       return sortDirection === "asc" ? comparison : -comparison;
     });
+
+  // Paginate the filtered results
+  const paginatedAppointments = filteredAppointments.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   // Wrapper to update appointments and notify parent
   const setAppointments = (updater: Appointment[] | ((prev: Appointment[]) => Appointment[])) => {
@@ -1265,7 +1289,7 @@ const AppointmentScheduler = ({
 
       {/* Mobile Cards */}
       <div className="md:hidden space-y-4">
-        {filteredAppointments.map(apt => (
+        {paginatedAppointments.map(apt => (
           <Card key={apt.id} className="overflow-hidden shadow-lg ring-1 ring-slate-900/5 dark:ring-slate-100/10 rounded-xl bg-white dark:bg-slate-800">
             {/* Header */}
             <div className="px-4 py-3">
@@ -1297,7 +1321,19 @@ const AppointmentScheduler = ({
                     </div>
                   </div>
                 </div>
-                {getStatusBadge(apt.status)}
+                {(() => {
+                  const todayStr = format(new Date(), "yyyy-MM-dd");
+                  const isPastDue = apt.status === "scheduled" && apt.appointmentDate < todayStr;
+                  if (isPastDue) {
+                    return (
+                      <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100 border-0 px-3 py-1.5 text-sm font-semibold flex items-center gap-1.5">
+                        <AlertCircle className="h-3.5 w-3.5" />
+                        Update Appointment
+                      </Badge>
+                    );
+                  }
+                  return getStatusBadge(apt.status);
+                })()}
               </div>
             </div>
 
@@ -1364,6 +1400,14 @@ const AppointmentScheduler = ({
             {appointments.length === 0 ? "No appointments scheduled" : "No results match your filters"}
           </p>
         )}
+        {/* Mobile Pagination */}
+        <AdminPagination
+          currentPage={currentPage}
+          totalItems={filteredAppointments.length}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+          onItemsPerPageChange={setItemsPerPage}
+        />
       </div>
 
 
@@ -1390,9 +1434,33 @@ const AppointmentScheduler = ({
                   <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
                 </div>
               </TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Clinician</TableHead>
-              <TableHead>Location</TableHead>
+              <TableHead
+                className="cursor-pointer hover:bg-muted/50 select-none"
+                onClick={() => toggleSort("type")}
+              >
+                <div className="flex items-center gap-1">
+                  Type
+                  <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
+                </div>
+              </TableHead>
+              <TableHead
+                className="cursor-pointer hover:bg-muted/50 select-none"
+                onClick={() => toggleSort("clinician")}
+              >
+                <div className="flex items-center gap-1">
+                  Clinician
+                  <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
+                </div>
+              </TableHead>
+              <TableHead
+                className="cursor-pointer hover:bg-muted/50 select-none"
+                onClick={() => toggleSort("location")}
+              >
+                <div className="flex items-center gap-1">
+                  Location
+                  <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
+                </div>
+              </TableHead>
               <TableHead
                 className="cursor-pointer hover:bg-muted/50 select-none"
                 onClick={() => toggleSort("status")}
@@ -1406,7 +1474,7 @@ const AppointmentScheduler = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredAppointments.map((apt, index) => (
+            {paginatedAppointments.map((apt, index) => (
               <TableRow key={apt.id} className={index % 2 === 1 ? "bg-muted/50" : ""}>
                 <TableCell>
                   <div className="flex items-center gap-2">
@@ -1447,7 +1515,20 @@ const AppointmentScheduler = ({
                             onValueChange={(value) => handleUpdateStatus(apt.id, value as Appointment["status"])}
                           >
                             <SelectTrigger className="w-auto min-w-[130px] border-0 bg-transparent hover:bg-muted/50 h-auto p-0 [&>svg]:hidden">
-                              {getStatusBadge(apt.status, true)}
+                              {(() => {
+                                const todayStr = format(new Date(), "yyyy-MM-dd");
+                                const isPastDue = apt.status === "scheduled" && apt.appointmentDate < todayStr;
+                                if (isPastDue) {
+                                  return (
+                                    <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100 border-0 px-3 py-1.5 text-sm font-semibold flex items-center gap-1.5">
+                                      <AlertCircle className="h-3.5 w-3.5" />
+                                      Update Appointment
+                                      <ChevronDown className="h-3.5 w-3.5" />
+                                    </Badge>
+                                  );
+                                }
+                                return getStatusBadge(apt.status, true);
+                              })()}
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="scheduled" className="text-sm font-medium">
@@ -1458,8 +1539,8 @@ const AppointmentScheduler = ({
                               </SelectItem>
                               <SelectItem value="completed" className="text-sm font-medium">
                                 <div className="flex items-center gap-2">
-                                  <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                                  <span className="text-blue-700">Completed</span>
+                                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                                  <span className="text-green-700">Completed</span>
                                 </div>
                               </SelectItem>
                               <SelectItem value="cancelled" className="text-sm font-medium">
@@ -1544,6 +1625,17 @@ const AppointmentScheduler = ({
             )}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Desktop Pagination */}
+      <div className="hidden md:block">
+        <AdminPagination
+          currentPage={currentPage}
+          totalItems={filteredAppointments.length}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+          onItemsPerPageChange={setItemsPerPage}
+        />
       </div>
 
 

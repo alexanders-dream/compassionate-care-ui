@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,10 +28,11 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Pencil, Trash2, User, Shield, Key, Eye, EyeOff } from "lucide-react";
+import { Plus, Pencil, Trash2, User, Shield, Key, Eye, EyeOff, ArrowUpDown } from "lucide-react";
 import { TeamMember } from "@/contexts/SiteDataContext";
 import { ImageInsertionDialog } from "@/components/admin/ImageInsertionDialog";
 import { Badge } from "@/components/ui/badge";
+import AdminPagination from "../AdminPagination";
 
 // Extended Type for the Unified View
 export interface EnhancedTeamMember extends TeamMember {
@@ -67,6 +68,26 @@ const TeamTab = ({
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [sortField, setSortField] = useState<"name" | "role" | "is_public" | "system_role">("name");
+    const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
+
+    // Reset page when sort changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [sortField, sortDirection]);
+
+    const toggleSort = (field: "name" | "role" | "is_public" | "system_role") => {
+        if (field === sortField) {
+            setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+        } else {
+            setSortField(field);
+            setSortDirection("asc");
+        }
+    };
 
     // Form State
     const [activeTab, setActiveTab] = useState("public");
@@ -127,6 +148,31 @@ const TeamTab = ({
             setIsSaving(false);
         }
     };
+
+    const sortedTeam = [...team].sort((a, b) => {
+        let comparison = 0;
+        switch (sortField) {
+            case "name":
+                comparison = a.name.localeCompare(b.name);
+                break;
+            case "role":
+                comparison = a.role.localeCompare(b.role);
+                break;
+            case "is_public":
+                comparison = (a.is_public === b.is_public) ? 0 : a.is_public ? -1 : 1;
+                break;
+            case "system_role":
+                comparison = (a.system_role || "").localeCompare(b.system_role || "");
+                break;
+        }
+        return sortDirection === "asc" ? comparison : -comparison;
+    });
+
+    // Paginate the sorted team
+    const paginatedTeam = sortedTeam.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
 
     return (
         <>
@@ -315,15 +361,47 @@ const TeamTab = ({
                 <Table>
                     <TableHeader>
                         <TableRow className="bg-muted/50">
-                            <TableHead>User</TableHead>
-                            <TableHead>Public Role</TableHead>
-                            <TableHead>Visibility</TableHead>
-                            <TableHead>System Access</TableHead>
+                            <TableHead
+                                className="cursor-pointer hover:bg-muted/50 select-none"
+                                onClick={() => toggleSort("name")}
+                            >
+                                <div className="flex items-center gap-1">
+                                    User
+                                    <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
+                                </div>
+                            </TableHead>
+                            <TableHead
+                                className="cursor-pointer hover:bg-muted/50 select-none"
+                                onClick={() => toggleSort("role")}
+                            >
+                                <div className="flex items-center gap-1">
+                                    Public Role
+                                    <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
+                                </div>
+                            </TableHead>
+                            <TableHead
+                                className="cursor-pointer hover:bg-muted/50 select-none"
+                                onClick={() => toggleSort("is_public")}
+                            >
+                                <div className="flex items-center gap-1">
+                                    Visibility
+                                    <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
+                                </div>
+                            </TableHead>
+                            <TableHead
+                                className="cursor-pointer hover:bg-muted/50 select-none"
+                                onClick={() => toggleSort("system_role")}
+                            >
+                                <div className="flex items-center gap-1">
+                                    System Access
+                                    <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
+                                </div>
+                            </TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {team.map((member) => (
+                        {paginatedTeam.map((member) => (
                             <TableRow key={member.id} className="hover:bg-muted/5">
                                 <TableCell>
                                     <div className="flex items-center gap-3">
@@ -378,9 +456,20 @@ const TeamTab = ({
                 </Table>
             </div>
 
+            {/* Desktop Pagination */}
+            <div className="hidden md:block">
+                <AdminPagination
+                    currentPage={currentPage}
+                    totalItems={sortedTeam.length}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={setCurrentPage}
+                    onItemsPerPageChange={setItemsPerPage}
+                />
+            </div>
+
             {/* Mobile View */}
             <div className="md:hidden space-y-4">
-                {team.map((member) => (
+                {paginatedTeam.map((member) => (
                     <Card key={member.id} className="p-4">
                         <div className="flex items-start gap-3">
                             <div className="h-10 w-10 rounded-full bg-muted overflow-hidden shrink-0">
@@ -420,6 +509,14 @@ const TeamTab = ({
                         </div>
                     </Card>
                 ))}
+                {/* Mobile Pagination */}
+                <AdminPagination
+                    currentPage={currentPage}
+                    totalItems={sortedTeam.length}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={setCurrentPage}
+                    onItemsPerPageChange={setItemsPerPage}
+                />
             </div>
         </>
     );

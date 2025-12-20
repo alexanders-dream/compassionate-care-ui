@@ -52,6 +52,16 @@ export interface PatientResource {
   download_count: number;
 }
 
+export interface InsuranceProvider {
+  id: string;
+  name: string;
+  logo_url?: string | null;
+  description?: string | null;
+  payment_details?: string | null;
+  is_active: boolean;
+  display_order: number;
+}
+
 
 export interface VisitRequest {
   id: string;
@@ -185,6 +195,7 @@ interface SiteDataContextType {
   patientResources: PatientResource[];
   visitRequests: VisitRequest[];
   referrals: ProviderReferralSubmission[];
+  insuranceProviders: InsuranceProvider[];
 
   appointments: Appointment[];
   blogPosts: BlogPost[];
@@ -199,6 +210,7 @@ interface SiteDataContextType {
   refreshPatientResources: () => Promise<void>;
   refreshVisitRequests: () => Promise<void>;
   refreshReferrals: () => Promise<void>;
+  refreshInsuranceProviders: () => Promise<void>;
 
   refreshAppointments: () => Promise<void>;
   refreshBlogPosts: () => Promise<void>;
@@ -212,6 +224,7 @@ interface SiteDataContextType {
   setPatientResources: React.Dispatch<React.SetStateAction<PatientResource[]>>;
   setVisitRequests: React.Dispatch<React.SetStateAction<VisitRequest[]>>;
   setReferrals: React.Dispatch<React.SetStateAction<ProviderReferralSubmission[]>>;
+  setInsuranceProviders: React.Dispatch<React.SetStateAction<InsuranceProvider[]>>;
 
   setAppointments: React.Dispatch<React.SetStateAction<Appointment[]>>;
   setBlogPosts: React.Dispatch<React.SetStateAction<BlogPost[]>>;
@@ -240,6 +253,7 @@ export const SiteDataProvider = ({ children }: SiteDataProviderProps) => {
   const [patientResources, setPatientResources] = useState<PatientResource[]>([]);
   const [visitRequests, setVisitRequests] = useState<VisitRequest[]>([]);
   const [referrals, setReferrals] = useState<ProviderReferralSubmission[]>([]);
+  const [insuranceProviders, setInsuranceProviders] = useState<InsuranceProvider[]>([]);
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
@@ -431,6 +445,17 @@ export const SiteDataProvider = ({ children }: SiteDataProviderProps) => {
 
 
 
+  const refreshInsuranceProviders = async () => {
+    const { data, error } = await (supabase as any)
+      .from("insurance_providers")
+      .select("*")
+      .order("display_order", { ascending: true });
+
+    if (!error && data) {
+      setInsuranceProviders(data as InsuranceProvider[]);
+    }
+  };
+
   const refreshAppointments = async () => {
     const { data, error } = await supabase
       .from("appointments")
@@ -473,6 +498,7 @@ export const SiteDataProvider = ({ children }: SiteDataProviderProps) => {
         refreshPatientResources(),
         refreshVisitRequests(),
         refreshReferrals(),
+        refreshInsuranceProviders(),
 
         refreshAppointments(),
         refreshBlogPosts(),
@@ -494,6 +520,7 @@ export const SiteDataProvider = ({ children }: SiteDataProviderProps) => {
         patientResources,
         visitRequests,
         referrals,
+        insuranceProviders,
 
         appointments,
         blogPosts,
@@ -506,6 +533,7 @@ export const SiteDataProvider = ({ children }: SiteDataProviderProps) => {
         refreshPatientResources,
         refreshVisitRequests,
         refreshReferrals,
+        refreshInsuranceProviders,
 
         refreshAppointments,
         refreshBlogPosts,
@@ -517,6 +545,7 @@ export const SiteDataProvider = ({ children }: SiteDataProviderProps) => {
         setPatientResources,
         setVisitRequests,
         setReferrals,
+        setInsuranceProviders,
 
         setAppointments,
         setBlogPosts,

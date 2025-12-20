@@ -21,10 +21,11 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Pencil, Trash2, FileText, Upload, FolderOpen, Loader2, Check } from "lucide-react";
+import { Plus, Pencil, Trash2, FileText, Upload, FolderOpen, Loader2, Check, ArrowUpDown } from "lucide-react";
 import IconPicker from "@/components/admin/IconPicker";
 import { PatientResource } from "@/contexts/SiteDataContext";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import AdminPagination from "../AdminPagination";
 
 interface ResourcesTabProps {
     resources: PatientResource[];
@@ -53,6 +54,26 @@ const ResourcesTab = ({
 }: ResourcesTabProps) => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [selectedExistingFile, setSelectedExistingFile] = useState<PatientResource | null>(null);
+    const [sortField, setSortField] = useState<"title" | "type" | "file_name">("title");
+    const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
+
+    // Reset page when sort changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [sortField, sortDirection]);
+
+    const toggleSort = (field: "title" | "type" | "file_name") => {
+        if (field === sortField) {
+            setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+        } else {
+            setSortField(field);
+            setSortDirection("asc");
+        }
+    };
 
     // Filter resources that have actual uploaded files (not external URLs)
     const uploadedResources = resources.filter(r =>
@@ -80,6 +101,30 @@ const ResourcesTab = ({
             // Dialog stays open during upload, closes after
         }
     }, [isUploading]);
+
+    const sortedResources = [...resources].sort((a, b) => {
+        let comparison = 0;
+        switch (sortField) {
+            case "title":
+                comparison = a.title.localeCompare(b.title);
+                break;
+            case "type":
+                comparison = 0; // Currently all are "Resource"
+                break;
+            case "file_name":
+                const fileA = a.file_name || a.file_url || "";
+                const fileB = b.file_name || b.file_url || "";
+                comparison = fileA.localeCompare(fileB);
+                break;
+        }
+        return sortDirection === "asc" ? comparison : -comparison;
+    });
+
+    // Paginate the sorted resources
+    const paginatedResources = sortedResources.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
 
     return (
         <>
@@ -137,8 +182,8 @@ const ResourcesTab = ({
             </div>
 
             {/* Mobile Cards */}
-            <div className="md:hidden space-y-3">
-                {resources.map(resource => (
+            <div className="md:hidden space-y-4">
+                {paginatedResources.map(resource => (
                     <Card key={resource.id} className="p-4">
                         <div className="flex justify-between items-start mb-2">
                             <div className="flex-1 min-w-0">
@@ -160,21 +205,53 @@ const ResourcesTab = ({
                 {resources.length === 0 && (
                     <p className="text-center text-muted-foreground py-8">No resources yet</p>
                 )}
+                {/* Mobile Pagination */}
+                <AdminPagination
+                    currentPage={currentPage}
+                    totalItems={sortedResources.length}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={setCurrentPage}
+                    onItemsPerPageChange={setItemsPerPage}
+                />
             </div>
 
             {/* Desktop Table */}
-            <div className="hidden md:block overflow-x-auto">
+            <div className="hidden md:block overflow-x-auto rounded-md border">
                 <Table>
                     <TableHeader>
                         <TableRow className="bg-slate-200 hover:bg-slate-200">
-                            <TableHead className="text-slate-700 font-semibold">Title</TableHead>
-                            <TableHead className="text-slate-700 font-semibold">Type</TableHead>
-                            <TableHead className="text-slate-700 font-semibold">File</TableHead>
+                            <TableHead
+                                className="cursor-pointer hover:bg-muted/50 select-none"
+                                onClick={() => toggleSort("title")}
+                            >
+                                <div className="flex items-center gap-1">
+                                    Title
+                                    <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
+                                </div>
+                            </TableHead>
+                            <TableHead
+                                className="cursor-pointer hover:bg-muted/50 select-none"
+                                onClick={() => toggleSort("type")}
+                            >
+                                <div className="flex items-center gap-1">
+                                    Type
+                                    <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
+                                </div>
+                            </TableHead>
+                            <TableHead
+                                className="cursor-pointer hover:bg-muted/50 select-none"
+                                onClick={() => toggleSort("file_name")}
+                            >
+                                <div className="flex items-center gap-1">
+                                    File
+                                    <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
+                                </div>
+                            </TableHead>
                             <TableHead className="text-right text-slate-700 font-semibold">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {resources.map((resource, index) => (
+                        {paginatedResources.map((resource, index) => (
                             <TableRow key={resource.id} className={index % 2 === 1 ? "bg-muted/50" : ""}>
                                 <TableCell className="font-medium">{resource.title}</TableCell>
                                 <TableCell>
@@ -195,6 +272,17 @@ const ResourcesTab = ({
                         ))}
                     </TableBody>
                 </Table>
+            </div>
+
+            {/* Desktop Pagination */}
+            <div className="hidden md:block">
+                <AdminPagination
+                    currentPage={currentPage}
+                    totalItems={sortedResources.length}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={setCurrentPage}
+                    onItemsPerPageChange={setItemsPerPage}
+                />
             </div>
         </>
     );
