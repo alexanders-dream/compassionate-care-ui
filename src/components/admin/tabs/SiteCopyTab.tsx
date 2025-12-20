@@ -15,6 +15,7 @@ import {
 import { CheckCircle2, Trash2, Image as ImageIcon } from "lucide-react";
 import { SiteCopySection } from "@/data/siteCopy";
 import { ImageInsertionDialog } from "@/components/admin/ImageInsertionDialog";
+import RoleGate from "@/components/auth/RoleGate";
 
 interface SiteCopyTabProps {
     siteCopy: SiteCopySection[];
@@ -48,116 +49,118 @@ const SiteCopyTab = ({
     };
 
     return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold">Site Copy Management</h2>
-                <Select value={selectedCopyPage} onValueChange={setSelectedCopyPage}>
-                    <SelectTrigger className="w-48">
-                        <SelectValue placeholder="Filter by page" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {uniquePages.map(page => (
-                            <SelectItem key={page} value={page}>
-                                {page === "all" ? "All Pages" : page}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-            </div>
-
-            <p className="text-sm text-muted-foreground">
-                Edit the text content displayed across your website. Changes will be reflected site-wide.
-            </p>
-
+        <RoleGate allowedRoles={['admin']} fallback={<div className="p-4">Access Denied</div>}>
             <div className="space-y-6">
-                {filteredCopySections.map(section => (
-                    <Card key={section.id}>
-                        <CardHeader className="pb-3">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <Badge variant="outline" className="mb-2">{section.page}</Badge>
-                                    <CardTitle className="text-lg">{section.section}</CardTitle>
+                <div className="flex justify-between items-center">
+                    <h2 className="text-xl font-semibold">Site Copy Management</h2>
+                    <Select value={selectedCopyPage} onValueChange={setSelectedCopyPage}>
+                        <SelectTrigger className="w-48">
+                            <SelectValue placeholder="Filter by page" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {uniquePages.map(page => (
+                                <SelectItem key={page} value={page}>
+                                    {page === "all" ? "All Pages" : page}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                <p className="text-sm text-muted-foreground">
+                    Edit the text content displayed across your website. Changes will be reflected site-wide.
+                </p>
+
+                <div className="space-y-6">
+                    {filteredCopySections.map(section => (
+                        <Card key={section.id}>
+                            <CardHeader className="pb-3">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <Badge variant="outline" className="mb-2">{section.page}</Badge>
+                                        <CardTitle className="text-lg">{section.section}</CardTitle>
+                                    </div>
+                                    <Button
+                                        size="sm"
+                                        onClick={() => onSaveSection(section.id)}
+                                    >
+                                        <CheckCircle2 className="h-4 w-4 mr-2" />
+                                        Save Changes
+                                    </Button>
                                 </div>
-                                <Button
-                                    size="sm"
-                                    onClick={() => onSaveSection(section.id)}
-                                >
-                                    <CheckCircle2 className="h-4 w-4 mr-2" />
-                                    Save Changes
-                                </Button>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            {section.fields.map(field => (
-                                <div key={field.key}>
-                                    <Label htmlFor={`${section.id}-${field.key}`}>{field.label}</Label>
-                                    {field.type === "image" ? (
-                                        <div className="mt-1 space-y-3">
-                                            {field.value && (
-                                                <div className="relative w-full max-w-xs aspect-video rounded-lg overflow-hidden border bg-muted">
-                                                    <img
-                                                        src={field.value}
-                                                        alt={field.label}
-                                                        className="w-full h-full object-cover"
-                                                    />
-                                                </div>
-                                            )}
-                                            <div className="flex items-center gap-3">
-                                                <Button
-                                                    type="button"
-                                                    variant="secondary"
-                                                    size="sm"
-                                                    onClick={() => openImageDialog(section.id, field.key)}
-                                                >
-                                                    <ImageIcon className="h-4 w-4 mr-2" />
-                                                    {field.value ? "Change Image" : "Select Image"}
-                                                </Button>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {section.fields.map(field => (
+                                    <div key={field.key}>
+                                        <Label htmlFor={`${section.id}-${field.key}`}>{field.label}</Label>
+                                        {field.type === "image" ? (
+                                            <div className="mt-1 space-y-3">
                                                 {field.value && (
+                                                    <div className="relative w-full max-w-xs aspect-video rounded-lg overflow-hidden border bg-muted">
+                                                        <img
+                                                            src={field.value}
+                                                            alt={field.label}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    </div>
+                                                )}
+                                                <div className="flex items-center gap-3">
                                                     <Button
                                                         type="button"
-                                                        variant="ghost"
+                                                        variant="secondary"
                                                         size="sm"
-                                                        onClick={() => onUpdateField(section.id, field.key, "")}
-                                                        className="text-destructive hover:text-destructive"
+                                                        onClick={() => openImageDialog(section.id, field.key)}
                                                     >
-                                                        <Trash2 className="h-4 w-4 mr-1" />
-                                                        Remove
+                                                        <ImageIcon className="h-4 w-4 mr-2" />
+                                                        {field.value ? "Change Image" : "Select Image"}
                                                     </Button>
-                                                )}
+                                                    {field.value && (
+                                                        <Button
+                                                            type="button"
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => onUpdateField(section.id, field.key, "")}
+                                                            className="text-destructive hover:text-destructive"
+                                                        >
+                                                            <Trash2 className="h-4 w-4 mr-1" />
+                                                            Remove
+                                                        </Button>
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
-                                    ) : field.type === "textarea" ? (
-                                        <Textarea
-                                            id={`${section.id}-${field.key}`}
-                                            value={field.value}
-                                            onChange={(e) => onUpdateField(section.id, field.key, e.target.value)}
-                                            rows={3}
-                                            className="mt-1"
-                                        />
-                                    ) : (
-                                        <Input
-                                            id={`${section.id}-${field.key}`}
-                                            value={field.value}
-                                            onChange={(e) => onUpdateField(section.id, field.key, e.target.value)}
-                                            className="mt-1"
-                                        />
-                                    )}
-                                </div>
-                            ))}
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
+                                        ) : field.type === "textarea" ? (
+                                            <Textarea
+                                                id={`${section.id}-${field.key}`}
+                                                value={field.value}
+                                                onChange={(e) => onUpdateField(section.id, field.key, e.target.value)}
+                                                rows={3}
+                                                className="mt-1"
+                                            />
+                                        ) : (
+                                            <Input
+                                                id={`${section.id}-${field.key}`}
+                                                value={field.value}
+                                                onChange={(e) => onUpdateField(section.id, field.key, e.target.value)}
+                                                className="mt-1"
+                                            />
+                                        )}
+                                    </div>
+                                ))}
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
 
-            {/* Image Insertion Dialog - shared across all image fields */}
-            <ImageInsertionDialog
-                open={activeImageField !== null}
-                onOpenChange={(open) => {
-                    if (!open) setActiveImageField(null);
-                }}
-                onImageSelected={handleImageSelected}
-            />
-        </div>
+                {/* Image Insertion Dialog - shared across all image fields */}
+                <ImageInsertionDialog
+                    open={activeImageField !== null}
+                    onOpenChange={(open) => {
+                        if (!open) setActiveImageField(null);
+                    }}
+                    onImageSelected={handleImageSelected}
+                />
+            </div>
+        </RoleGate>
     );
 };
 

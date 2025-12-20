@@ -143,7 +143,32 @@ const TeamPage = () => {
 
     const handleSaveUser = async (data: any, isNew: boolean, password?: string) => {
         try {
-            // 1. Handle Public Team Data Update
+            // 0. EDGE FUNCTION: Use 'create-user' function if creating a new System User with password
+            if (isNew && data.email && password) {
+                const { data: responseData, error: funcError } = await supabase.functions.invoke('create-user', {
+                    body: {
+                        email: data.email,
+                        password: password,
+                        name: data.name,
+                        role: data.role,
+                        bio: data.bio,
+                        image_url: data.image_url,
+                        is_public: data.is_public ?? true,
+                        system_role: data.system_role
+                    }
+                });
+
+                if (funcError) throw funcError;
+                if (responseData?.error) throw new Error(responseData.error);
+
+                toast({ title: "User created successfully", description: "Account created and linked to team member." });
+                fetchData();
+                setEditingTeamMember(null);
+                setTeamMemberImagePreview(null);
+                return;
+            }
+
+            // 1. Handle Public Team Data Update (Legacy / Update Flow)
             let teamMemberId = data.id;
 
             if (isNew || (teamMemberId && teamMemberId.startsWith("temp_"))) {
@@ -232,21 +257,91 @@ const TeamPage = () => {
 
     const handleDelete = async (id: string, userId?: string) => {
         try {
+            // 1. Delete Team Member Entry (Public Profile)
             if (!id.startsWith("temp_")) {
                 const { error } = await supabase.from("team_members").delete().eq("id", id);
                 if (error) throw error;
             }
 
+            // 2. Delete System User (Auth & Roles) using Edge Function
             if (userId) {
-                await supabase.from("user_roles").delete().eq("user_id", userId);
+                const { error: funcError } = await supabase.functions.invoke('delete-user', {
+                    body: { userId }
+                });
+
+                if (funcError) {
+                    console.error("Edge function delete error:", funcError);
+                    // Fallback: If edge function fails (not deployed?), try to at least remove access role
+                    // but warn user.
+                    await supabase.from("user_roles").delete().eq("user_id", userId);
+                    toast({
+                        title: "Partial Deletion",
+                        description: "Removed public profile and access role. Deploy 'delete-user' function to fully remove auth account.",
+                        variant: "destructive"
+                    });
+                } else {
+                    toast({ title: "User and Member removed" });
+                }
+            } else {
+                toast({ title: "Member removed" });
             }
 
             setUnifiedTeam(unifiedTeam.filter(m => m.id !== id));
-            toast({ title: "Member removed" });
             fetchData();
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error deleting:", error);
-            toast({ title: "Error deleting", variant: "destructive" });
+            toast({ title: "Error deleting", description: error.message, variant: "destructive" });
+        }
+    };
+
+    const handleVisibilityChange = async (id: string, newVisibility: boolean) => {
+        // Optimistic Update
+        setUnifiedTeam(prev => prev.map(m => m.id === id ? { ...m, is_public: newVisibility } : m));
+
+        try {
+            if (id.startsWith("temp_")) {
+                // It's a system user not in team_members yet. We need to "add" them to the team_members table.
+                const member = unifiedTeam.find(m => m.id === id);
+                if (!member) return;
+
+                const { data: newTeam, error } = await supabase
+                    .from("team_members")
+                    .insert({
+                        name: member.name,
+                        role: member.role, // "System User" usually
+                        bio: "",
+                        image_url: member.image_url,
+                        is_public: newVisibility,
+                        display_order: 100,
+                        user_id: member.user_id
+                    })
+                    .select()
+                    .single();
+
+                if (error) throw error;
+
+                // Update local state with real ID
+                setUnifiedTeam(prev => prev.map(m => m.id === id ? { ...m, ...newTeam, is_public: newVisibility } : m));
+                toast({ title: newVisibility ? "User is now visible" : "User is now hidden" });
+
+            } else {
+                // Existing team member
+                const { error } = await supabase
+                    .from("team_members")
+                    .update({ is_public: newVisibility } as any)
+                    .eq("id", id);
+
+                if (error) throw error;
+                toast({ title: newVisibility ? "User is now visible" : "User is now hidden" });
+
+                // Update global context if needed
+                setTeamMembers(teamMembers.map(t => t.id === id ? { ...t, is_public: newVisibility } : t));
+            }
+        } catch (error) {
+            console.error("Error updating visibility:", error);
+            toast({ title: "Failed to update visibility", variant: "destructive" });
+            // Revert optimistic update
+            setUnifiedTeam(prev => prev.map(m => m.id === id ? { ...m, is_public: !newVisibility } : m));
         }
     };
 
@@ -260,6 +355,7 @@ const TeamPage = () => {
             setEditingTeamMember={setEditingTeamMember}
             teamMemberImagePreview={teamMemberImagePreview}
             onImageSelected={handleTeamMemberImageSelected}
+            onVisibilityChange={handleVisibilityChange}
         />
     );
 };

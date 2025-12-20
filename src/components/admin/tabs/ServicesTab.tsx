@@ -24,6 +24,7 @@ import { Plus, Pencil, Trash2, ArrowUpDown } from "lucide-react";
 import IconPicker from "@/components/admin/IconPicker";
 import { Service } from "@/contexts/SiteDataContext";
 import { getIconByName } from "@/lib/icons";
+import RoleGate from "@/components/auth/RoleGate";
 import AdminPagination from "../AdminPagination";
 
 interface ServicesTabProps {
@@ -105,11 +106,13 @@ const ServicesTab = ({
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
                 <h2 className="text-lg md:text-xl font-semibold">Services ({services.length})</h2>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                    <DialogTrigger asChild>
-                        <Button onClick={() => handleOpenDialog(null)} className="w-full sm:w-auto">
-                            <Plus className="h-4 w-4 mr-2" /> Add Service
-                        </Button>
-                    </DialogTrigger>
+                    <RoleGate allowedRoles={['admin', 'medical_staff']}>
+                        <DialogTrigger asChild>
+                            <Button onClick={() => handleOpenDialog(null)} className="w-full sm:w-auto">
+                                <Plus className="h-4 w-4 mr-2" /> Add Service
+                            </Button>
+                        </DialogTrigger>
+                    </RoleGate>
                     <DialogContent className="max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
                             <DialogTitle>{editingService ? "Edit Service" : "New Service"}</DialogTitle>
@@ -148,12 +151,14 @@ const ServicesTab = ({
                         </div>
                         <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{service.description}</p>
                         <div className="flex gap-2">
-                            <Button variant="outline" size="sm" className="flex-1" onClick={() => handleOpenDialog(service)}>
-                                <Pencil className="h-3 w-3 mr-1" /> Edit
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => onDelete(service.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
+                            <RoleGate allowedRoles={['admin', 'medical_staff']}>
+                                <Button variant="outline" size="sm" className="flex-1" onClick={() => handleOpenDialog(service)}>
+                                    <Pencil className="h-3 w-3 mr-1" /> Edit
+                                </Button>
+                                <Button variant="ghost" size="sm" onClick={() => onDelete(service.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </RoleGate>
                         </div>
                     </Card>
                 ))}
@@ -224,12 +229,14 @@ const ServicesTab = ({
                                     })()}
                                 </TableCell>
                                 <TableCell className="text-right">
-                                    <Button variant="ghost" size="sm" onClick={() => handleOpenDialog(service)}>
-                                        <Pencil className="h-4 w-4" />
-                                    </Button>
-                                    <Button variant="ghost" size="sm" onClick={() => onDelete(service.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
+                                    <RoleGate allowedRoles={['admin', 'medical_staff']}>
+                                        <Button variant="ghost" size="sm" onClick={() => handleOpenDialog(service)}>
+                                            <Pencil className="h-4 w-4" />
+                                        </Button>
+                                        <Button variant="ghost" size="sm" onClick={() => onDelete(service.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </RoleGate>
                                 </TableCell>
                             </TableRow>
                         ))}

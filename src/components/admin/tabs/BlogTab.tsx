@@ -21,7 +21,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Plus, Pencil, Trash2, Sparkles, Share2, Mail, ArrowLeft, Star, Calendar as CalendarIcon, ArrowUpDown } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import RoleGate from "@/components/auth/RoleGate";
 import AIArticleGenerator from "@/components/admin/AIArticleGenerator";
+import AITextEditor from "@/components/admin/AITextEditor";
 import { ArticleMedia } from "@/components/admin/AIArticleGenerator";
 import { ScheduleDialog } from "@/components/admin/ScheduleDialog";
 import { BlogPost, categories } from "@/data/blogPosts";
@@ -52,6 +54,7 @@ const BlogTab = ({
     const navigate = useNavigate();
     const location = useLocation();
     const [showAIGenerator, setShowAIGenerator] = useState(false);
+    const [editingPost, setEditingPost] = useState<ExtendedBlogPost | null>(null);
     const [sortField, setSortField] = useState<"title" | "status" | "category" | "author" | "date">("date");
     const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
@@ -77,6 +80,7 @@ const BlogTab = ({
     useEffect(() => {
         if (location.pathname === "/admin/blog") {
             setShowAIGenerator(false);
+            setEditingPost(null);
         }
     }, [location.pathname, location.key]);
 
@@ -108,6 +112,11 @@ const BlogTab = ({
     const handleSaveArticle = async (article: ExtendedBlogPost) => {
         await onSaveArticle(article);
         setShowAIGenerator(false);
+    };
+
+    const handleSaveEditedArticle = async (article: ExtendedBlogPost & { status: "draft" | "published" | "scheduled"; scheduledAt?: string }) => {
+        await onSaveArticle(article);
+        setEditingPost(null);
     };
 
     const handleStatusChange = (post: ExtendedBlogPost, newStatus: "draft" | "published" | "scheduled", scheduledDate?: Date) => {
@@ -149,7 +158,13 @@ const BlogTab = ({
 
     return (
         <>
-            {showAIGenerator ? (
+            {editingPost ? (
+                <AITextEditor
+                    post={editingPost}
+                    onSave={handleSaveEditedArticle}
+                    onClose={() => setEditingPost(null)}
+                />
+            ) : showAIGenerator ? (
                 <div className="space-y-4">
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
                         <div className="flex-1">
@@ -186,12 +201,14 @@ const BlogTab = ({
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
                         <h2 className="text-lg md:text-xl font-semibold">Blog Posts ({posts.length})</h2>
                         <div className="flex gap-2">
-                            <Button variant="outline" size="sm" onClick={() => setShowAIGenerator(true)} className="flex-1 sm:flex-none">
-                                <Sparkles className="h-4 w-4 mr-1 sm:mr-2" /> <span className="hidden sm:inline">AI Generate</span><span className="sm:hidden">AI</span>
-                            </Button>
-                            <Button size="sm" onClick={() => navigate("/admin/blog/new?new=true")} className="flex-1 sm:flex-none">
-                                <Plus className="h-4 w-4 mr-1 sm:mr-2" /> Add
-                            </Button>
+                            <RoleGate allowedRoles={['admin', 'medical_staff']}>
+                                <Button variant="outline" size="sm" onClick={() => setShowAIGenerator(true)} className="flex-1 sm:flex-none">
+                                    <Sparkles className="h-4 w-4 mr-1 sm:mr-2" /> <span className="hidden sm:inline">AI Generate</span><span className="sm:hidden">AI</span>
+                                </Button>
+                                <Button size="sm" onClick={() => navigate("/admin/blog/new?new=true")} className="flex-1 sm:flex-none">
+                                    <Plus className="h-4 w-4 mr-1 sm:mr-2" /> Add
+                                </Button>
+                            </RoleGate>
                         </div>
                     </div>
 
@@ -201,21 +218,26 @@ const BlogTab = ({
                             <Card key={post.id} className="p-4">
                                 <div className="flex justify-between items-start mb-2">
                                     <p className="font-medium text-sm line-clamp-2 flex-1 pr-2">{post.title}</p>
-                                    <Select
-                                        defaultValue={post.status}
-                                        onValueChange={(value) => handleStatusChange(post, value as "draft" | "published" | "scheduled")}
+                                    <RoleGate
+                                        allowedRoles={['admin', 'medical_staff']}
+                                        fallback={<div className="scale-90 origin-right">{getStatusBadge(post.status, post)}</div>}
                                     >
-                                        <SelectTrigger className="w-[110px] h-8">
-                                            <SelectValue>
-                                                {getStatusBadge(post.status, post)}
-                                            </SelectValue>
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="draft">Draft</SelectItem>
-                                            <SelectItem value="published">Published</SelectItem>
-                                            <SelectItem value="scheduled">Scheduled</SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                        <Select
+                                            defaultValue={post.status}
+                                            onValueChange={(value) => handleStatusChange(post, value as "draft" | "published" | "scheduled")}
+                                        >
+                                            <SelectTrigger className="w-[110px] h-8">
+                                                <SelectValue>
+                                                    {getStatusBadge(post.status, post)}
+                                                </SelectValue>
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="draft">Draft</SelectItem>
+                                                <SelectItem value="published">Published</SelectItem>
+                                                <SelectItem value="scheduled">Scheduled</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </RoleGate>
                                 </div>
                                 <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
                                     <Badge variant="outline" className="capitalize">{post.category}</Badge>
@@ -224,14 +246,16 @@ const BlogTab = ({
                                     <span>{post.date}</span>
                                 </div>
                                 <div className="flex gap-2">
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="flex-1"
-                                        onClick={() => navigate(`/admin/blog/${post.id}`)}
-                                    >
-                                        <Pencil className="h-3 w-3 mr-1" /> Edit
-                                    </Button>
+                                    <RoleGate allowedRoles={['admin', 'medical_staff']}>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="flex-1"
+                                            onClick={() => setEditingPost(post)}
+                                        >
+                                            <Pencil className="h-3 w-3 mr-1" /> Edit
+                                        </Button>
+                                    </RoleGate>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
                                             <Button variant="outline" size="sm">
@@ -245,9 +269,11 @@ const BlogTab = ({
                                             <DropdownMenuItem onClick={() => onSharePost(post, "copy")}>Copy Link</DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
-                                    <Button variant="ghost" size="sm" onClick={() => onDeletePost(post.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
+                                    <RoleGate allowedRoles={['admin', 'medical_staff']}>
+                                        <Button variant="ghost" size="sm" onClick={() => onDeletePost(post.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </RoleGate>
                                 </div>
                             </Card>
                         ))}
@@ -322,53 +348,62 @@ const BlogTab = ({
                                     <TableRow key={post.id} className={index % 2 === 1 ? "bg-muted/50" : ""}>
                                         <TableCell className="font-medium max-w-xs truncate">{post.title}</TableCell>
                                         <TableCell>
-                                            <Select
-                                                defaultValue={post.status}
-                                                onValueChange={(value) => handleStatusChange(post, value as "draft" | "published" | "scheduled")}
+                                            <RoleGate
+                                                allowedRoles={['admin', 'medical_staff']}
+                                                fallback={getStatusBadge(post.status, post)}
                                             >
-                                                <SelectTrigger className="w-[110px] h-8 border-none bg-transparent hover:bg-muted p-0 shadow-none">
-                                                    <SelectValue asChild>
-                                                        {getStatusBadge(post.status, post)}
-                                                    </SelectValue>
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="draft">Draft</SelectItem>
-                                                    <SelectItem value="published">Published</SelectItem>
-                                                    <SelectItem value="scheduled">Scheduled</SelectItem>
-                                                </SelectContent>
-                                            </Select>
+                                                <Select
+                                                    defaultValue={post.status}
+                                                    onValueChange={(value) => handleStatusChange(post, value as "draft" | "published" | "scheduled")}
+                                                >
+                                                    <SelectTrigger className="w-[110px] h-8 border-none bg-transparent hover:bg-muted p-0 shadow-none">
+                                                        <SelectValue asChild>
+                                                            {getStatusBadge(post.status, post)}
+                                                        </SelectValue>
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="draft">Draft</SelectItem>
+                                                        <SelectItem value="published">Published</SelectItem>
+                                                        <SelectItem value="scheduled">Scheduled</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </RoleGate>
                                         </TableCell>
                                         <TableCell>{post.category}</TableCell>
                                         <TableCell>{post.author}</TableCell>
                                         <TableCell>{post.date}</TableCell>
                                         <TableCell className="text-right">
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => onSetFeatured(post)}
-                                                title={post.is_featured ? "Featured Post" : "Set as Featured"}
-                                                className={post.is_featured ? "text-yellow-500 hover:text-yellow-600 hover:bg-yellow-50" : "text-muted-foreground hover:text-yellow-500"}
-                                            >
-                                                <Star className={`h-4 w-4 ${post.is_featured ? "fill-current" : ""}`} />
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => navigate(`/admin/blog/${post.id}`)}
-                                                title="Edit Post"
-                                            >
-                                                <Pencil className="h-4 w-4" />
-                                            </Button>
+                                            <RoleGate allowedRoles={['admin', 'medical_staff']}>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => onSetFeatured(post)}
+                                                    title={post.is_featured ? "Featured Post" : "Set as Featured"}
+                                                    className={post.is_featured ? "text-yellow-500 hover:text-yellow-600 hover:bg-yellow-50" : "text-muted-foreground hover:text-yellow-500"}
+                                                >
+                                                    <Star className={`h-4 w-4 ${post.is_featured ? "fill-current" : ""}`} />
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => setEditingPost(post)}
+                                                    title="Edit Post"
+                                                >
+                                                    <Pencil className="h-4 w-4" />
+                                                </Button>
+                                            </RoleGate>
                                             {(post.status === 'draft' || post.status === 'scheduled') && (
-                                                <ScheduleDialog
-                                                    onSchedule={(date) => handleStatusChange(post, 'scheduled', date)}
-                                                    initialDate={post.scheduledAt ? new Date(post.scheduledAt) : (post.scheduledDate ? new Date(post.scheduledDate) : undefined)}
-                                                    trigger={
-                                                        <Button variant="ghost" size="sm" title="Schedule Post">
-                                                            <CalendarIcon className="h-4 w-4" />
-                                                        </Button>
-                                                    }
-                                                />
+                                                <RoleGate allowedRoles={['admin', 'medical_staff']}>
+                                                    <ScheduleDialog
+                                                        onSchedule={(date) => handleStatusChange(post, 'scheduled', date)}
+                                                        initialDate={post.scheduledAt ? new Date(post.scheduledAt) : (post.scheduledDate ? new Date(post.scheduledDate) : undefined)}
+                                                        trigger={
+                                                            <Button variant="ghost" size="sm" title="Schedule Post">
+                                                                <CalendarIcon className="h-4 w-4" />
+                                                            </Button>
+                                                        }
+                                                    />
+                                                </RoleGate>
                                             )}
 
                                             {post.status === 'published' && (
@@ -411,9 +446,11 @@ const BlogTab = ({
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
                                             )}
-                                            <Button variant="ghost" size="sm" onClick={() => onDeletePost(post.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
+                                            <RoleGate allowedRoles={['admin', 'medical_staff']}>
+                                                <Button variant="ghost" size="sm" onClick={() => onDeletePost(post.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </RoleGate>
                                         </TableCell>
                                     </TableRow>
                                 ))}
