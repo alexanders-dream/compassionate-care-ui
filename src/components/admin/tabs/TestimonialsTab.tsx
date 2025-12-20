@@ -19,7 +19,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, ArrowUpDown } from "lucide-react";
+import { Plus, Pencil, Trash2, ArrowUpDown, MessageSquareQuote } from "lucide-react";
 import { Testimonial } from "@/contexts/SiteDataContext";
 import RoleGate from "@/components/auth/RoleGate";
 import AdminPagination from "../AdminPagination";
@@ -96,7 +96,10 @@ const TestimonialsTab = ({
     return (
         <>
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
-                <h2 className="text-lg md:text-xl font-semibold">Testimonials ({testimonials.length})</h2>
+                <h2 className="text-lg md:text-xl font-semibold flex items-center gap-2">
+                    <MessageSquareQuote className="h-5 w-5 text-primary" />
+                    Testimonials ({testimonials.length})
+                </h2>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <RoleGate allowedRoles={['admin', 'medical_staff']}>
                         <DialogTrigger asChild>
@@ -173,7 +176,7 @@ const TestimonialsTab = ({
             <div className="hidden md:block overflow-x-auto rounded-md border">
                 <Table>
                     <TableHeader>
-                        <TableRow className="bg-slate-200 hover:bg-slate-200">
+                        <TableRow className="bg-muted/50 hover:bg-muted/50 border-b-0">
                             <TableHead
                                 className="cursor-pointer hover:bg-muted/50 select-none"
                                 onClick={() => toggleSort("name")}

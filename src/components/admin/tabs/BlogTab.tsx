@@ -19,7 +19,7 @@ import {
     DropdownMenuTrigger,
     DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { Plus, Pencil, Trash2, Sparkles, Share2, Mail, ArrowLeft, Star, Calendar as CalendarIcon, ArrowUpDown } from "lucide-react";
+import { Plus, Pencil, Trash2, Sparkles, Share2, Mail, ArrowLeft, Star, Calendar as CalendarIcon, ArrowUpDown, FileText } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import RoleGate from "@/components/auth/RoleGate";
 import AIArticleGenerator from "@/components/admin/AIArticleGenerator";
@@ -168,7 +168,7 @@ const BlogTab = ({
                 <div className="space-y-4">
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
                         <div className="flex-1">
-                            <h2 className="text-lg md:text-xl font-semibold mb-2">AI Article Generator</h2>
+                            <h2 className="text-lg md:text-xl font-semibold">AI Article Generator</h2>
                             <p className="text-sm text-muted-foreground">
                                 Use AI to generate high-quality blog content. Configure your AI provider, select a topic, and let the AI create SEO-optimized articles for your blog. <span className="font-medium text-amber-600">AI can make mistakes—check responses before publishing.</span>
                             </p>
@@ -199,7 +199,10 @@ const BlogTab = ({
             ) : (
                 <>
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
-                        <h2 className="text-lg md:text-xl font-semibold">Blog Posts ({posts.length})</h2>
+                        <h2 className="text-lg md:text-xl font-semibold flex items-center gap-2">
+                            <FileText className="h-5 w-5 text-primary" />
+                            Blog Posts ({posts.length})
+                        </h2>
                         <div className="flex gap-2">
                             <RoleGate allowedRoles={['admin', 'medical_staff']}>
                                 <Button variant="outline" size="sm" onClick={() => setShowAIGenerator(true)} className="flex-1 sm:flex-none">
@@ -294,7 +297,7 @@ const BlogTab = ({
                     <div className="hidden md:block overflow-x-auto rounded-md border">
                         <Table>
                             <TableHeader>
-                                <TableRow className="bg-muted/50 hover:bg-muted/50">
+                                <TableRow className="bg-muted/50 hover:bg-muted/50 border-b-0">
                                     <TableHead
                                         className="cursor-pointer hover:bg-muted/50 select-none"
                                         onClick={() => toggleSort("title")}

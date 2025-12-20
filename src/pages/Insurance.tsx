@@ -83,7 +83,7 @@ const Insurance = () => {
         </div>
       </section>
 
-      {/* Insurance Providers Logo Grid */}
+      {/* Insurance Providers */}
       <section className="py-16 md:py-24 bg-background">
         <div className="container-main">
           <div className="text-center mb-12">
@@ -96,76 +96,66 @@ const Insurance = () => {
           </div>
 
           {hasProviders ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+            <div className={activeProviders.length === 1 ? "flex justify-center" : "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6"}>
               {activeProviders.map((provider) => (
                 <div
                   key={provider.id}
-                  className="group relative bg-card hover:bg-card/80 border rounded-xl p-6 flex flex-col items-center justify-center text-center transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
+                  className={`group relative bg-gradient-to-b from-card to-card/50 hover:from-card hover:to-card/80 border border-border/50 hover:border-primary/30 rounded-2xl p-6 flex flex-col items-center justify-center text-center transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-2 ${activeProviders.length === 1 ? 'w-full max-w-xs' : ''}`}
                 >
-                  {provider.logo_url ? (
-                    <img
-                      src={provider.logo_url}
-                      alt={provider.name}
-                      className="h-12 md:h-16 w-auto max-w-full object-contain mb-3 transition-transform group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="h-12 md:h-16 w-12 md:w-16 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-3">
-                      <Building2 className="h-6 md:h-8 w-6 md:w-8 text-primary" />
+                  {/* Decorative gradient overlay */}
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                  <div className="relative z-10 flex flex-col items-center w-full">
+                    {provider.logo_url ? (
+                      <div className="h-16 md:h-20 w-full flex items-center justify-center mb-4">
+                        <img
+                          src={provider.logo_url}
+                          alt={provider.name}
+                          className="h-full w-auto max-w-full object-contain transition-all duration-300 group-hover:scale-110"
+                        />
+                      </div>
+                    ) : (
+                      <div className="h-16 md:h-20 w-16 md:w-20 rounded-2xl bg-gradient-to-br from-primary/20 via-primary/10 to-primary/5 flex items-center justify-center mb-4 transition-all duration-300 group-hover:scale-110 group-hover:from-primary/30 group-hover:via-primary/20 group-hover:to-primary/10">
+                        <Building2 className="h-8 md:h-10 w-8 md:w-10 text-primary" />
+                      </div>
+                    )}
+                    <div className="space-y-2">
+                      <span className="font-semibold text-foreground text-sm md:text-base block">{provider.name}</span>
+                      {provider.description && (
+                        <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{provider.description}</p>
+                      )}
+                      {provider.payment_details && (
+                        <div className="pt-3 border-t border-border/50 mt-3">
+                          <p className="text-xs text-muted-foreground line-clamp-3 whitespace-pre-line leading-relaxed">{provider.payment_details}</p>
+                        </div>
+                      )}
                     </div>
-                  )}
-                  <span className="font-medium text-foreground text-sm">{provider.name}</span>
-                  {provider.description && (
-                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{provider.description}</p>
-                  )}
+                  </div>
+
+                  {/* Hover indicator */}
+                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="h-1 w-12 rounded-full bg-gradient-to-r from-transparent via-primary to-transparent" />
+                  </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="text-center py-12 bg-muted/30 rounded-xl border border-dashed">
-              <p className="text-muted-foreground">No insurance providers listed at the moment.</p>
+            <div className="text-center py-16 bg-gradient-to-br from-muted/40 via-muted/20 to-muted/40 rounded-2xl border-2 border-dashed border-border/50">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 mb-4">
+                <Building2 className="w-8 h-8 text-primary/50" />
+              </div>
+              <p className="text-muted-foreground font-medium">No insurance providers listed at the moment.</p>
+              <p className="text-sm text-muted-foreground/70 mt-2">Check back soon for updates.</p>
             </div>
           )}
 
-          <div className="text-center mt-8">
+          <div className="text-center mt-10">
             <p className="text-muted-foreground">
-              Don't see your insurance? <Link to="/contact" className="text-primary hover:underline font-medium">Contact us</Link> — we may still be able to help.
+              Don't see your insurance? <Link to="/contact" className="text-primary hover:underline font-semibold inline-flex items-center gap-1">Contact us<ArrowRight className="w-4 h-4" /></Link> — we may still be able to help.
             </p>
           </div>
         </div>
       </section>
-
-      {/* Coverage Details (if any providers have payment details) */}
-      {providersWithPaymentDetails.length > 0 && (
-        <section className="py-16 md:py-24 bg-muted/50">
-          <div className="container-main">
-            <div className="text-center mb-12">
-              <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-4">
-                Coverage Details
-              </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Learn more about coverage specifics for each insurance provider.
-              </p>
-            </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {providersWithPaymentDetails.map((provider) => (
-                <div key={provider.id} className="bg-card rounded-2xl p-6 shadow-soft border">
-                  <div className="flex items-center gap-3 mb-4">
-                    {provider.logo_url ? (
-                      <img src={provider.logo_url} alt={provider.name} className="h-10 w-auto object-contain" />
-                    ) : (
-                      <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <Building2 className="h-5 w-5 text-primary" />
-                      </div>
-                    )}
-                    <h3 className="font-semibold text-foreground">{provider.name}</h3>
-                  </div>
-                  <p className="text-sm text-muted-foreground whitespace-pre-line">{provider.payment_details}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* Billing Process */}
       <section className="py-16 md:py-24 bg-gradient-to-b from-background to-muted/30">
@@ -281,20 +271,20 @@ const Insurance = () => {
       </section>
 
       {/* CTA */}
-      <section className="py-16 md:py-24 bg-gradient-to-br from-primary via-primary to-primary/90">
+      <section className="py-16 md:py-24 bg-[#EBF4FA]">
         <div className="container-main text-center">
-          <h2 className="font-display text-2xl md:text-3xl font-bold text-primary-foreground mb-4">
+          <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-4">
             Ready to Get Started?
           </h2>
-          <p className="text-primary-foreground/80 max-w-2xl mx-auto mb-8">
+          <p className="text-muted-foreground max-w-2xl mx-auto mb-8">
             Don't let insurance concerns delay your care. Contact us today and we'll help you
             understand your coverage options.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" variant="secondary" asChild className="bg-white text-primary hover:bg-white/90">
+            <Button size="lg" asChild>
               <Link to="/request-visit">Request Consultation</Link>
             </Button>
-            <Button size="lg" variant="outline" asChild className="border-white text-white hover:bg-white/10">
+            <Button size="lg" variant="outline" asChild>
               <Link to="/contact">Contact Us</Link>
             </Button>
           </div>

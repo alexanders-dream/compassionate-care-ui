@@ -11,7 +11,7 @@ import {
     Microscope, Moon, Palette, Paperclip, PenTool, Percent, PersonStanding,
     Podcast, Puzzle, Radio, Ribbon, Rocket, Scale, Search, Settings,
     Share, ShieldCheck, Sparkles, Syringe, Target, Truck, Umbrella,
-    Verified, Wallet, Waves, Wifi, Wind, type LucideIcon
+    Verified, Wallet, Waves, Wifi, Wind, Scissors, Layers, type LucideIcon
 } from "lucide-react";
 
 export interface IconOption {
@@ -108,6 +108,8 @@ export const iconOptions: IconOption[] = [
     { name: "Waves", icon: Waves },
     { name: "Wifi", icon: Wifi },
     { name: "Wind", icon: Wind },
+    { name: "Scissors", icon: Scissors },
+    { name: "Layers", icon: Layers },
 ];
 
 export const getIconByName = (name: string): LucideIcon => {

@@ -153,13 +153,20 @@ const BlogPage = () => {
     };
 
     return (
-        <BlogTab
-            posts={posts}
-            onSaveArticle={handleSaveArticle}
-            onDeletePost={handleDeletePost}
-            onSharePost={handleSharePost}
-            onSetFeatured={handleSetFeatured}
-        />
+        <div className="space-y-6">
+            <div>
+                <h2 className="text-3xl font-bold tracking-tight">Blog</h2>
+                <p className="text-muted-foreground">Manage blog posts and articles</p>
+            </div>
+
+            <BlogTab
+                posts={posts}
+                onSaveArticle={handleSaveArticle}
+                onDeletePost={handleDeletePost}
+                onSharePost={handleSharePost}
+                onSetFeatured={handleSetFeatured}
+            />
+        </div>
     );
 };
 

@@ -79,17 +79,24 @@ const InsurancePage = () => {
     };
 
     return (
-        <InsuranceTab
-            insuranceProviders={insuranceProviders}
-            onSave={handleSaveProvider}
-            onDelete={handleDeleteProvider}
-            editingProvider={editingProvider}
-            setEditingProvider={setEditingProvider}
-            logoUrl={logoUrl}
-            setLogoUrl={setLogoUrl}
-            isActive={isActive}
-            setIsActive={setIsActive}
-        />
+        <div className="space-y-6">
+            <div>
+                <h2 className="text-3xl font-bold tracking-tight">Insurance</h2>
+                <p className="text-muted-foreground">Manage insurance providers</p>
+            </div>
+
+            <InsuranceTab
+                insuranceProviders={insuranceProviders}
+                onSave={handleSaveProvider}
+                onDelete={handleDeleteProvider}
+                editingProvider={editingProvider}
+                setEditingProvider={setEditingProvider}
+                logoUrl={logoUrl}
+                setLogoUrl={setLogoUrl}
+                isActive={isActive}
+                setIsActive={setIsActive}
+            />
+        </div>
     );
 };
 

@@ -20,12 +20,18 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, ArrowUpDown } from "lucide-react";
+import { Plus, Pencil, Trash2, ArrowUpDown, Briefcase } from "lucide-react";
 import IconPicker from "@/components/admin/IconPicker";
 import { Service } from "@/contexts/SiteDataContext";
 import { getIconByName } from "@/lib/icons";
 import RoleGate from "@/components/auth/RoleGate";
 import AdminPagination from "../AdminPagination";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ServicesTabProps {
     services: Service[];
@@ -104,7 +110,10 @@ const ServicesTab = ({
     return (
         <>
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
-                <h2 className="text-lg md:text-xl font-semibold">Services ({services.length})</h2>
+                <h2 className="text-lg md:text-xl font-semibold flex items-center gap-2">
+                    <Briefcase className="h-5 w-5 text-primary" />
+                    Services ({services.length})
+                </h2>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <RoleGate allowedRoles={['admin', 'medical_staff']}>
                         <DialogTrigger asChild>
@@ -142,12 +151,21 @@ const ServicesTab = ({
                     <Card key={service.id} className="p-4">
                         <div className="flex justify-between items-start mb-2">
                             <p className="font-medium">{service.title}</p>
-                            <div className="p-2 bg-primary/10 rounded-md">
-                                {(() => {
-                                    const Icon = getIconByName(service.icon);
-                                    return <Icon className="h-5 w-5 text-primary" />;
-                                })()}
-                            </div>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <div className="p-2 bg-primary/10 rounded-md cursor-help">
+                                            {(() => {
+                                                const Icon = getIconByName(service.icon);
+                                                return <Icon className="h-5 w-5 text-primary" />;
+                                            })()}
+                                        </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>{service.icon}</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
                         </div>
                         <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{service.description}</p>
                         <div className="flex gap-2">
@@ -179,7 +197,7 @@ const ServicesTab = ({
             <div className="hidden md:block overflow-x-auto rounded-md border">
                 <Table>
                     <TableHeader>
-                        <TableRow className="bg-slate-200 hover:bg-slate-200">
+                        <TableRow className="bg-muted/50 hover:bg-muted/50 border-b-0">
                             <TableHead
                                 className="cursor-pointer hover:bg-muted/50 select-none"
                                 onClick={() => toggleSort("title")}
@@ -220,9 +238,18 @@ const ServicesTab = ({
                                         const Icon = getIconByName(service.icon);
                                         return (
                                             <div className="flex items-center gap-2">
-                                                <div className="p-1.5 bg-primary/10 rounded-md">
-                                                    <Icon className="h-4 w-4 text-primary" />
-                                                </div>
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <div className="p-1.5 bg-primary/10 rounded-md cursor-help">
+                                                                <Icon className="h-4 w-4 text-primary" />
+                                                            </div>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p>{service.icon}</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
                                                 <span className="text-xs text-muted-foreground">{service.icon}</span>
                                             </div>
                                         );

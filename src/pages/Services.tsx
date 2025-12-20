@@ -6,6 +6,12 @@ import { ShieldCheck, Clock, Heart } from "lucide-react";
 import homeCareVisit from "@/assets/home-care-visit.jpg";
 import { useSiteData } from "@/contexts/SiteDataContext";
 import { getIconByName } from "@/lib/icons";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const benefits = [
   { icon: ShieldCheck, title: "Licensed Clinicians", description: "All care provided by certified wound care specialists" },
@@ -74,9 +80,18 @@ const Services = () => {
                   key={service.id || index}
                   className="bg-card rounded-2xl p-8 shadow-soft hover:shadow-elegant transition-shadow"
                 >
-                  <div className="w-14 h-14 rounded-xl bg-primary/15 flex items-center justify-center mb-6">
-                    <IconComponent className="w-7 h-7 text-primary" />
-                  </div>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="w-14 h-14 rounded-xl bg-primary/15 flex items-center justify-center mb-6 cursor-help">
+                          <IconComponent className="w-7 h-7 text-primary" />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{service.icon}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   <h3 className="font-display text-xl font-semibold text-foreground mb-3">
                     {service.title}
                   </h3>
