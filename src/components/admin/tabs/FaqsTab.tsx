@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { Plus, Pencil, Trash2, ArrowUpDown, HelpCircle } from "lucide-react";
 import { FAQ } from "@/contexts/SiteDataContext";
+import RoleGate from "@/components/auth/RoleGate";
 import AdminPagination from "../AdminPagination";
 
 interface FaqsTabProps {
@@ -98,11 +99,13 @@ const FaqsTab = ({
                     FAQs ({faqs.length})
                 </h2>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                    <DialogTrigger asChild>
-                        <Button onClick={() => handleOpenDialog(null)} className="w-full sm:w-auto">
-                            <Plus className="h-4 w-4 mr-2" /> Add FAQ
-                        </Button>
-                    </DialogTrigger>
+                    <RoleGate allowedRoles={['admin', 'medical_staff']}>
+                        <DialogTrigger asChild>
+                            <Button onClick={() => handleOpenDialog(null)} className="w-full sm:w-auto">
+                                <Plus className="h-4 w-4 mr-2" /> Add FAQ
+                            </Button>
+                        </DialogTrigger>
+                    </RoleGate>
                     <DialogContent className="max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
                             <DialogTitle>{editingFaq ? "Edit FAQ" : "New FAQ"}</DialogTitle>
@@ -135,12 +138,14 @@ const FaqsTab = ({
                             <Badge variant="outline" className="shrink-0">{faq.category}</Badge>
                         </div>
                         <div className="flex gap-2 mt-3">
-                            <Button variant="outline" size="sm" className="flex-1" onClick={() => handleOpenDialog(faq)}>
-                                <Pencil className="h-3 w-3 mr-1" /> Edit
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => onDelete(faq.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
+                            <RoleGate allowedRoles={['admin', 'medical_staff']}>
+                                <Button variant="outline" size="sm" className="flex-1" onClick={() => handleOpenDialog(faq)}>
+                                    <Pencil className="h-3 w-3 mr-1" /> Edit
+                                </Button>
+                                <Button variant="ghost" size="sm" onClick={() => onDelete(faq.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </RoleGate>
                         </div>
                     </Card>
                 ))}
@@ -189,12 +194,14 @@ const FaqsTab = ({
                                 <TableCell className="font-medium max-w-md truncate">{faq.question}</TableCell>
                                 <TableCell>{faq.category}</TableCell>
                                 <TableCell className="text-right">
-                                    <Button variant="ghost" size="sm" onClick={() => handleOpenDialog(faq)}>
-                                        <Pencil className="h-4 w-4" />
-                                    </Button>
-                                    <Button variant="ghost" size="sm" onClick={() => onDelete(faq.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
+                                    <RoleGate allowedRoles={['admin', 'medical_staff']}>
+                                        <Button variant="ghost" size="sm" onClick={() => handleOpenDialog(faq)}>
+                                            <Pencil className="h-4 w-4" />
+                                        </Button>
+                                        <Button variant="ghost" size="sm" onClick={() => onDelete(faq.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </RoleGate>
                                 </TableCell>
                             </TableRow>
                         ))}

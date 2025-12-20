@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { Plus, Pencil, Trash2, ArrowUpDown, Image as ImageIcon, X, Shield } from "lucide-react";
 import { InsuranceProvider } from "@/contexts/SiteDataContext";
+import RoleGate from "@/components/auth/RoleGate";
 import AdminPagination from "../AdminPagination";
 import { ImageInsertionDialog } from "../ImageInsertionDialog";
 
@@ -118,11 +119,13 @@ const InsuranceTab = ({
                     Insurance Providers ({insuranceProviders.length})
                 </h2>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                    <DialogTrigger asChild>
-                        <Button onClick={() => handleOpenDialog(null)} className="w-full sm:w-auto">
-                            <Plus className="h-4 w-4 mr-2" /> Add Provider
-                        </Button>
-                    </DialogTrigger>
+                    <RoleGate allowedRoles={['admin', 'medical_staff']}>
+                        <DialogTrigger asChild>
+                            <Button onClick={() => handleOpenDialog(null)} className="w-full sm:w-auto">
+                                <Plus className="h-4 w-4 mr-2" /> Add Provider
+                            </Button>
+                        </DialogTrigger>
+                    </RoleGate>
                     <DialogContent className="max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
                             <DialogTitle>{editingProvider ? "Edit Provider" : "New Provider"}</DialogTitle>
@@ -213,12 +216,14 @@ const InsuranceTab = ({
                             <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{provider.description}</p>
                         )}
                         <div className="flex gap-2">
-                            <Button variant="outline" size="sm" className="flex-1" onClick={() => handleOpenDialog(provider)}>
-                                <Pencil className="h-3 w-3 mr-1" /> Edit
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => onDelete(provider.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
+                            <RoleGate allowedRoles={['admin', 'medical_staff']}>
+                                <Button variant="outline" size="sm" className="flex-1" onClick={() => handleOpenDialog(provider)}>
+                                    <Pencil className="h-3 w-3 mr-1" /> Edit
+                                </Button>
+                                <Button variant="ghost" size="sm" onClick={() => onDelete(provider.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </RoleGate>
                         </div>
                     </Card>
                 ))}
@@ -291,12 +296,14 @@ const InsuranceTab = ({
                                     </span>
                                 </TableCell>
                                 <TableCell className="text-right">
-                                    <Button variant="ghost" size="sm" onClick={() => handleOpenDialog(provider)}>
-                                        <Pencil className="h-4 w-4" />
-                                    </Button>
-                                    <Button variant="ghost" size="sm" onClick={() => onDelete(provider.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
+                                    <RoleGate allowedRoles={['admin', 'medical_staff']}>
+                                        <Button variant="ghost" size="sm" onClick={() => handleOpenDialog(provider)}>
+                                            <Pencil className="h-4 w-4" />
+                                        </Button>
+                                        <Button variant="ghost" size="sm" onClick={() => onDelete(provider.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </RoleGate>
                                 </TableCell>
                             </TableRow>
                         ))}

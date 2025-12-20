@@ -36,7 +36,9 @@ import {
   VisitRequest, ProviderReferralSubmission
 } from "@/data/siteContent";
 import StatusCounts from "./StatusCounts";
+
 import AdminPagination from "./AdminPagination";
+import RoleGate from "@/components/auth/RoleGate";
 
 // Shared constants
 export const clinicians = [
@@ -1385,14 +1387,16 @@ const AppointmentScheduler = ({
                 </Button>
               </div>
               {/* Delete Button */}
-              <Button
-                variant="outline"
-                className="w-full h-11 border-red-300 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/30 flex items-center justify-center gap-2"
-                onClick={() => handleDeleteAppointment(apt.id)}
-              >
-                <Trash2 className="h-4 w-4" />
-                <span>Delete</span>
-              </Button>
+              <RoleGate allowedRoles={['admin']}>
+                <Button
+                  variant="outline"
+                  className="w-full h-11 border-red-300 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/30 flex items-center justify-center gap-2"
+                  onClick={() => handleDeleteAppointment(apt.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span>Delete</span>
+                </Button>
+              </RoleGate>
             </div>
           </Card>
         ))}
@@ -1595,9 +1599,11 @@ const AppointmentScheduler = ({
                   <Button variant="ghost" size="sm" onClick={() => handleEditAppointment(apt)}>
                     <Pencil className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" className="hover:bg-destructive/10" onClick={() => handleDeleteAppointment(apt.id)}>
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
+                  <RoleGate allowedRoles={['admin']}>
+                    <Button variant="ghost" size="sm" className="hover:bg-destructive/10" onClick={() => handleDeleteAppointment(apt.id)}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </RoleGate>
                 </TableCell>
               </TableRow>
             ))}

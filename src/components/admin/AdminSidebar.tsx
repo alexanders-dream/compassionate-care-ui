@@ -101,7 +101,7 @@ const SidebarContent = ({
   collapsed?: boolean;
   onItemClick?: () => void;
 }) => {
-  const { signOut } = useAuth();
+  const { signOut, isAdmin } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -113,7 +113,16 @@ const SidebarContent = ({
   return (
     <TooltipProvider>
       <nav className="p-2 space-y-1">
-        {menuItems.map((item) => (
+        {menuItems.filter(item => {
+          // RBAC Filtering for Menu Items
+          if (isAdmin) return true; // Admins see everything
+
+          // Restricted Items (Hidden for non-admins)
+          if (item.id === "team" || item.id === "site-copy") return false;
+
+          // medical_staff and front_office see the rest
+          return true;
+        }).map((item) => (
           <SidebarNavItem
             key={item.id}
             item={item}

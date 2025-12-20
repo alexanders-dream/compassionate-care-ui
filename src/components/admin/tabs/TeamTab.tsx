@@ -21,6 +21,16 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
     Select,
     SelectContent,
     SelectItem,
@@ -30,6 +40,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Pencil, Trash2, User, Shield, Key, Eye, EyeOff, ArrowUpDown, Users } from "lucide-react";
 import { TeamMember } from "@/contexts/SiteDataContext";
+import RoleGate from "@/components/auth/RoleGate";
 import { ImageInsertionDialog } from "@/components/admin/ImageInsertionDialog";
 import { Badge } from "@/components/ui/badge";
 import AdminPagination from "../AdminPagination";
@@ -53,6 +64,7 @@ interface TeamTabProps {
     setEditingTeamMember: (member: EnhancedTeamMember | null) => void;
     teamMemberImagePreview: string | null;
     onImageSelected: (url: string) => void;
+    onVisibilityChange: (id: string, newVisibility: boolean) => Promise<void>;
 }
 
 const TeamTab = ({
@@ -64,9 +76,11 @@ const TeamTab = ({
     setEditingTeamMember,
     teamMemberImagePreview,
     onImageSelected,
+    onVisibilityChange,
 }: TeamTabProps) => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState<EnhancedTeamMember | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [sortField, setSortField] = useState<"name" | "role" | "is_public" | "system_role">("name");
     const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -89,20 +103,49 @@ const TeamTab = ({
         }
     };
 
-    // Form State
+    // Form State (Controlled Inputs)
     const [activeTab, setActiveTab] = useState("public");
+    const [name, setName] = useState("");
+    const [role, setRole] = useState("");
+    const [bio, setBio] = useState("");
+    const [isPublic, setIsPublic] = useState(true);
+    const [email, setEmail] = useState("");
+    const [systemRole, setSystemRole] = useState("user");
+    const [password, setPassword] = useState("");
 
-    // Password Reset State (for existing users)
+    // Password Reset State
     const [resetPassword, setResetPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [showResetPassword, setShowResetPassword] = useState(false);
 
+    // Initialize State
+    useEffect(() => {
+        if (isDialogOpen) {
+            if (editingTeamMember) {
+                setName(editingTeamMember.name || "");
+                setRole(editingTeamMember.role || "");
+                setBio(editingTeamMember.bio || "");
+                setIsPublic(editingTeamMember.is_public ?? true);
+                setEmail(editingTeamMember.email || "");
+                setSystemRole(editingTeamMember.system_role || "user");
+            } else {
+                setName("");
+                setRole("");
+                setBio("");
+                setIsPublic(true);
+                setEmail("");
+                setSystemRole("user");
+                setPassword("");
+            }
+            setResetPassword("");
+            setShowPassword(false);
+            setShowResetPassword(false);
+        }
+    }, [isDialogOpen, editingTeamMember]);
+
     const handleOpenDialog = (member: EnhancedTeamMember | null) => {
         setEditingTeamMember(member);
         setActiveTab("public");
-        setResetPassword("");
-        setShowPassword(false);
-        setShowResetPassword(false);
         setIsDialogOpen(true);
     };
 
@@ -110,32 +153,22 @@ const TeamTab = ({
         e.preventDefault();
         setIsSaving(true);
         try {
-            const formData = new FormData(e.currentTarget);
-
-            // Construct data object
+            // Construct data object from State
             const data: any = {
-                // Public Data
-                name: formData.get("name"),
-                role: formData.get("role"), // Job Title
-                bio: formData.get("bio"),
+                name,
+                role,
+                bio,
                 image_url: teamMemberImagePreview || editingTeamMember?.image_url,
                 display_order: editingTeamMember?.display_order,
-                is_public: formData.get("is_public") === "on",
-
-                // System Data
-                email: formData.get("email"),
-                system_role: formData.get("system_role"),
-
-                // Meta
+                is_public: isPublic,
+                email,
+                system_role: systemRole,
                 id: editingTeamMember?.id,
                 user_id: editingTeamMember?.user_id
             };
 
-            const password = formData.get("password") as string; // For new users
-
             await onSave(data, !editingTeamMember, password);
 
-            // Handle separate password reset for existing users if provided
             if (editingTeamMember && resetPassword && onPasswordReset && editingTeamMember.user_id) {
                 await onPasswordReset(editingTeamMember.user_id, resetPassword);
             }
@@ -143,9 +176,15 @@ const TeamTab = ({
             setIsDialogOpen(false);
         } catch (error) {
             console.error("Failed to save:", error);
-            // Error handling usually done in parent
         } finally {
             setIsSaving(false);
+        }
+    };
+
+    const confirmDelete = async () => {
+        if (itemToDelete) {
+            await onDelete(itemToDelete.id, itemToDelete.user_id);
+            setItemToDelete(null);
         }
     };
 
@@ -183,17 +222,19 @@ const TeamTab = ({
                 </h2>
 
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                    <DialogTrigger asChild>
-                        <Button onClick={() => handleOpenDialog(null)} className="w-full sm:w-auto">
-                            <Plus className="h-4 w-4 mr-2" /> Add Member
-                        </Button>
-                    </DialogTrigger>
+                    <RoleGate allowedRoles={['admin']}>
+                        <DialogTrigger asChild>
+                            <Button onClick={() => handleOpenDialog(null)} className="w-full sm:w-auto">
+                                <Plus className="h-4 w-4 mr-2" /> Add Member
+                            </Button>
+                        </DialogTrigger>
+                    </RoleGate>
                     <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[600px]">
                         <DialogHeader>
                             <DialogTitle>{editingTeamMember ? "Edit User / Team Member" : "New User / Team Member"}</DialogTitle>
                         </DialogHeader>
 
-                        <form onSubmit={handleSubmit}>
+                        <form onSubmit={handleSubmit} autoComplete="off">
                             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                                 <TabsList className="grid w-full grid-cols-2 mb-4">
                                     <TabsTrigger value="public">Public Details</TabsTrigger>
@@ -205,22 +246,46 @@ const TeamTab = ({
                                     <div className="p-4 bg-muted/30 rounded-lg space-y-4 border">
                                         <div>
                                             <Label htmlFor="name">Display Name</Label>
-                                            <Input id="name" name="name" defaultValue={editingTeamMember?.name} required placeholder="e.g. Dr. Jane Smith" />
+                                            <Input
+                                                id="name"
+                                                name="name"
+                                                value={name}
+                                                onChange={(e) => setName(e.target.value)}
+                                                required
+                                                placeholder="e.g. Dr. Jane Smith"
+                                                autoComplete="off"
+                                            />
                                         </div>
                                         <div>
                                             <Label htmlFor="role">Job Title (Public)</Label>
-                                            <Input id="role" name="role" defaultValue={editingTeamMember?.role} required placeholder="e.g. Senior Wound Specialist" />
+                                            <Input
+                                                id="role"
+                                                name="role"
+                                                value={role}
+                                                onChange={(e) => setRole(e.target.value)}
+                                                required
+                                                placeholder="e.g. Senior Wound Specialist"
+                                                autoComplete="off"
+                                            />
                                         </div>
                                         <div>
                                             <Label htmlFor="bio">Bio</Label>
-                                            <Textarea id="bio" name="bio" defaultValue={editingTeamMember?.bio || ""} rows={3} placeholder="Short professional biography..." />
+                                            <Textarea
+                                                id="bio"
+                                                name="bio"
+                                                value={bio}
+                                                onChange={(e) => setBio(e.target.value)}
+                                                rows={3}
+                                                placeholder="Short professional biography..."
+                                            />
                                         </div>
 
                                         <div className="flex items-center space-x-2 border p-3 rounded-md bg-background">
                                             <Switch
                                                 id="is_public"
                                                 name="is_public"
-                                                defaultChecked={editingTeamMember ? editingTeamMember.is_public : true}
+                                                checked={isPublic}
+                                                onCheckedChange={setIsPublic}
                                             />
                                             <Label htmlFor="is_public" className="cursor-pointer">
                                                 Show on Website (About Us Page)
@@ -263,26 +328,28 @@ const TeamTab = ({
                                                 id="email"
                                                 name="email"
                                                 type="email"
-                                                defaultValue={editingTeamMember?.email}
-                                                // If editing existing user, email might be read-only depending on auth flow implementation
-                                                // For now, let's allow editing for display, backend handles logic
+                                                value={email}
+                                                onChange={(e) => setEmail(e.target.value)}
+                                                autoComplete="new-password" // Often works better to stop generic autofill
                                                 required
                                             />
                                         </div>
 
                                         <div>
                                             <Label htmlFor="system_role">System Role (RBAC)</Label>
-                                            <Select name="system_role" defaultValue={editingTeamMember?.system_role || "user"}>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select role" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="user">User (Standard)</SelectItem>
-                                                    <SelectItem value="admin">Administrator</SelectItem>
-                                                    <SelectItem value="medical_staff">Medical Staff</SelectItem>
-                                                    <SelectItem value="front_office">Front Office</SelectItem>
-                                                </SelectContent>
-                                            </Select>
+                                            <RoleGate allowedRoles={['admin']} fallback={<p className="text-sm text-foreground/80 py-2">{systemRole}</p>}>
+                                                <Select name="system_role" value={systemRole} onValueChange={setSystemRole}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select role" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="user">User (Standard)</SelectItem>
+                                                        <SelectItem value="admin">Administrator</SelectItem>
+                                                        <SelectItem value="medical_staff">Medical Staff</SelectItem>
+                                                        <SelectItem value="front_office">Front Office</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </RoleGate>
                                             <p className="text-xs text-muted-foreground mt-1">
                                                 Determines what sections of the dashboard they can access.
                                             </p>
@@ -301,10 +368,13 @@ const TeamTab = ({
                                                         <Input
                                                             id="password"
                                                             name="password"
+                                                            value={password}
+                                                            onChange={(e) => setPassword(e.target.value)}
                                                             type={showPassword ? "text" : "password"}
                                                             required
                                                             minLength={6}
                                                             className="pr-10"
+                                                            autoComplete="new-password"
                                                         />
                                                         <button
                                                             type="button"
@@ -329,6 +399,7 @@ const TeamTab = ({
                                                             minLength={6}
                                                             placeholder="Enter new password to reset"
                                                             className="pr-10"
+                                                            autoComplete="new-password"
                                                         />
                                                         <button
                                                             type="button"
@@ -423,33 +494,40 @@ const TeamTab = ({
                                 </TableCell>
                                 <TableCell>{member.role}</TableCell>
                                 <TableCell>
-                                    {member.is_public ? (
-                                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                                            <Eye className="w-3 h-3 mr-1" /> Visible
-                                        </Badge>
-                                    ) : (
-                                        <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-                                            <EyeOff className="w-3 h-3 mr-1" /> Hidden
-                                        </Badge>
-                                    )}
+                                    <div className="flex items-center space-x-2">
+                                        <Switch
+                                            checked={member.is_public}
+                                            onCheckedChange={(checked) => onVisibilityChange(member.id, checked)}
+                                        />
+                                        <span className={`text-xs ${member.is_public ? 'text-green-600' : 'text-muted-foreground'}`}>
+                                            {member.is_public ? 'Visible' : 'Hidden'}
+                                        </span>
+                                    </div>
                                 </TableCell>
                                 <TableCell>
-                                    <Badge variant={member.system_role === 'admin' ? "default" : "secondary"}>
-                                        {member.system_role || 'User'}
+                                    <Badge variant={
+                                        member.system_role === 'admin' ? "default" :
+                                            member.system_role === 'Public Only' ? "outline" :
+                                                "secondary"
+                                    } className="capitalize">
+                                        {member.system_role === 'Public Only' ? 'Public Only' :
+                                            (member.system_role || 'User').replace(/_/g, ' ')}
                                     </Badge>
                                 </TableCell>
                                 <TableCell className="text-right">
                                     <Button variant="ghost" size="sm" onClick={() => handleOpenDialog(member)}>
                                         <Pencil className="h-4 w-4" />
                                     </Button>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => onDelete(member.id, member.user_id)}
-                                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
+                                    <RoleGate allowedRoles={['admin']}>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => setItemToDelete(member)}
+                                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </RoleGate>
                                 </TableCell>
                             </TableRow>
                         ))}
@@ -486,15 +564,29 @@ const TeamTab = ({
                                 <div className="flex justify-between items-start">
                                     <div>
                                         <div className="flex items-center gap-2">
-                                            <h3 className="font-medium truncate">{member.name}</h3>
-                                            {!member.is_public && (
-                                                <Badge variant="outline" className="text-[10px] px-1 h-4 border-yellow-500 text-yellow-600">Hidden</Badge>
-                                            )}
                                         </div>
-                                        <p className="text-xs text-muted-foreground">{member.role}</p>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <p className="text-xs text-muted-foreground">{member.role}</p>
+                                            <div className="flex items-center gap-1.5 ml-2">
+                                                <Switch
+                                                    id={`mobile-vis-${member.id}`}
+                                                    className="h-5 w-9"
+                                                    checked={member.is_public}
+                                                    onCheckedChange={(checked) => onVisibilityChange(member.id, checked)}
+                                                />
+                                                <Label htmlFor={`mobile-vis-${member.id}`} className="text-[10px] text-muted-foreground font-normal">
+                                                    {member.is_public ? 'Visible' : 'Hidden'}
+                                                </Label>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <Badge variant={member.system_role === 'admin' ? "default" : "secondary"} className="text-[10px] px-1.5 py-0 h-5">
-                                        {member.system_role || 'User'}
+                                    <Badge variant={
+                                        member.system_role === 'admin' ? "default" :
+                                            member.system_role === 'Public Only' ? "outline" :
+                                                "secondary"
+                                    } className="text-[10px] px-1.5 py-0 h-5 capitalize">
+                                        {member.system_role === 'Public Only' ? 'Public Only' :
+                                            (member.system_role || 'User').replace(/_/g, ' ')}
                                     </Badge>
                                 </div>
 
@@ -502,9 +594,11 @@ const TeamTab = ({
                                     <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => handleOpenDialog(member)}>
                                         Edit
                                     </Button>
-                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive" onClick={() => onDelete(member.id, member.user_id)}>
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
+                                    <RoleGate allowedRoles={['admin']}>
+                                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive" onClick={() => setItemToDelete(member)}>
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </RoleGate>
                                 </div>
                             </div>
                         </div>
@@ -519,6 +613,26 @@ const TeamTab = ({
                     onItemsPerPageChange={setItemsPerPage}
                 />
             </div>
+
+            <AlertDialog open={!!itemToDelete} onOpenChange={(open) => !open && setItemToDelete(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will remove <span className="font-semibold">{itemToDelete?.name}</span> from the team.
+                            {itemToDelete?.user_id && " This will also delete their system access and user account."}
+                            <br />
+                            This action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                            Delete User
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </>
     );
 };

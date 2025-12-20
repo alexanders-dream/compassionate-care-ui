@@ -23,6 +23,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Pencil, Trash2, FileText, Upload, FolderOpen, Loader2, Check, ArrowUpDown } from "lucide-react";
 import IconPicker from "@/components/admin/IconPicker";
+import RoleGate from "@/components/auth/RoleGate";
 import { PatientResource } from "@/contexts/SiteDataContext";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import AdminPagination from "../AdminPagination";
@@ -134,11 +135,13 @@ const ResourcesTab = ({
                     Patient Resources ({resources.length})
                 </h2>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                    <DialogTrigger asChild>
-                        <Button onClick={() => handleOpenDialog(null)} className="w-full sm:w-auto">
-                            <Plus className="h-4 w-4 mr-2" /> Add Resource
-                        </Button>
-                    </DialogTrigger>
+                    <RoleGate allowedRoles={['admin', 'medical_staff']}>
+                        <DialogTrigger asChild>
+                            <Button onClick={() => handleOpenDialog(null)} className="w-full sm:w-auto">
+                                <Plus className="h-4 w-4 mr-2" /> Add Resource
+                            </Button>
+                        </DialogTrigger>
+                    </RoleGate>
                     <DialogContent className="max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
                             <DialogTitle>{editingResource ? "Edit Resource" : "New Resource"}</DialogTitle>
@@ -196,12 +199,14 @@ const ResourcesTab = ({
                             <Badge variant="outline" className="ml-2 shrink-0">Resource</Badge>
                         </div>
                         <div className="flex gap-2 mt-3">
-                            <Button variant="outline" size="sm" className="flex-1" onClick={() => handleOpenDialog(resource)}>
-                                <Pencil className="h-3 w-3 mr-1" /> Edit
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => onDelete(resource.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
+                            <RoleGate allowedRoles={['admin', 'medical_staff']}>
+                                <Button variant="outline" size="sm" className="flex-1" onClick={() => handleOpenDialog(resource)}>
+                                    <Pencil className="h-3 w-3 mr-1" /> Edit
+                                </Button>
+                                <Button variant="ghost" size="sm" onClick={() => onDelete(resource.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </RoleGate>
                         </div>
                     </Card>
                 ))}
@@ -264,12 +269,14 @@ const ResourcesTab = ({
                                     {resource.file_name || resource.file_url || "—"}
                                 </TableCell>
                                 <TableCell className="text-right">
-                                    <Button variant="ghost" size="sm" onClick={() => handleOpenDialog(resource)}>
-                                        <Pencil className="h-4 w-4" />
-                                    </Button>
-                                    <Button variant="ghost" size="sm" onClick={() => onDelete(resource.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
+                                    <RoleGate allowedRoles={['admin', 'medical_staff']}>
+                                        <Button variant="ghost" size="sm" onClick={() => handleOpenDialog(resource)}>
+                                            <Pencil className="h-4 w-4" />
+                                        </Button>
+                                        <Button variant="ghost" size="sm" onClick={() => onDelete(resource.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </RoleGate>
                                 </TableCell>
                             </TableRow>
                         ))}

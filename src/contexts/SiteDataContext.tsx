@@ -384,7 +384,12 @@ export const SiteDataProvider = ({ children }: SiteDataProviderProps) => {
       .select("*")
       .order("created_at", { ascending: false });
 
+    if (error) {
+      console.error("Error fetching visit requests:", error);
+    }
+
     if (!error && data) {
+      console.log("Fetched visit requests:", data.length);
       setVisitRequests(data.map((item: VisitRequestRecord) => {
         // Handle name splitting helper
         const [firstName, ...lastNameParts] = (item.patient_name || "").split(" ");
@@ -414,7 +419,12 @@ export const SiteDataProvider = ({ children }: SiteDataProviderProps) => {
       .select("*")
       .order("created_at", { ascending: false });
 
+    if (error) {
+      console.error("Error fetching referrals:", error);
+    }
+
     if (!error && data) {
+      console.log("Fetched referrals:", data.length);
       setReferrals(data.map((item: ProviderReferralRecord) => {
         // Handle name splitting
         const [pFirst, ...pLastParts] = (item.patient_name || "").split(" ");
@@ -462,7 +472,12 @@ export const SiteDataProvider = ({ children }: SiteDataProviderProps) => {
       .select("*")
       .order("appointment_date", { ascending: true });
 
+    if (error) {
+      console.error("Error fetching appointments:", error);
+    }
+
     if (!error && data) {
+      console.log("Fetched appointments:", data.length);
       const validAppointments: Appointment[] = (data || []).map(item => ({
         id: item.id,
         patientName: item.patient_name,
@@ -486,10 +501,11 @@ export const SiteDataProvider = ({ children }: SiteDataProviderProps) => {
     }
   };
 
-  // Initial data fetch
+  // Initial data fetch and auth listener
   useEffect(() => {
     const fetchAllData = async () => {
       setLoading(true);
+      console.log("Fetching all site data...");
       await Promise.all([
         refreshTestimonials(),
         refreshServices(),
@@ -505,9 +521,21 @@ export const SiteDataProvider = ({ children }: SiteDataProviderProps) => {
         refreshSiteCopy()
       ]);
       setLoading(false);
+      console.log("Finished fetching all site data.");
     };
 
     fetchAllData();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      console.log("Auth state changed:", event);
+      if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+        fetchAllData();
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   return (

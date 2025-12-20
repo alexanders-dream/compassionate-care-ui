@@ -34,6 +34,7 @@ import {
 import { VisitRequest } from "@/contexts/SiteDataContext";
 import StatusCounts from "../StatusCounts";
 import AdminPagination from "../AdminPagination";
+import RoleGate from "@/components/auth/RoleGate";
 
 interface VisitRequestsTabProps {
     visitRequests: VisitRequest[];
@@ -364,14 +365,16 @@ const VisitRequestsTab = ({
                                     <Eye className="h-4 w-4" />
                                     <span>View</span>
                                 </Button>
-                                <Button
-                                    variant="outline"
-                                    onClick={() => setItemToDelete(request.id)}
-                                    className="w-full h-11 border-red-300 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/30 flex items-center justify-center gap-2"
-                                >
-                                    <Trash2 className="h-4 w-4" />
-                                    <span>Delete</span>
-                                </Button>
+                                <RoleGate allowedRoles={['admin']}>
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => setItemToDelete(request.id)}
+                                        className="w-full h-11 border-red-300 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/30 flex items-center justify-center gap-2"
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                        <span>Delete</span>
+                                    </Button>
+                                </RoleGate>
                             </div>
                         </div>
                     </Card>
@@ -532,9 +535,11 @@ const VisitRequestsTab = ({
                                     <Button variant="ghost" size="sm" onClick={() => onEmail(request)} className="gap-1 text-muted-foreground hover:text-foreground">
                                         <Send className="h-3 w-3" /> {request.emailSent ? "Resend" : "Email"}
                                     </Button>
-                                    <Button variant="ghost" size="sm" onClick={() => setItemToDelete(request.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
+                                    <RoleGate allowedRoles={['admin']}>
+                                        <Button variant="ghost" size="sm" onClick={() => setItemToDelete(request.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </RoleGate>
                                     {request.emailSent && <CheckCircle2 className="h-4 w-4 text-blue-500 inline ml-1" />}
                                 </TableCell>
                             </TableRow>
