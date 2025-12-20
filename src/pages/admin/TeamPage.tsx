@@ -265,11 +265,11 @@ const TeamPage = () => {
 
             // 2. Delete System User (Auth & Roles) using Edge Function
             if (userId) {
-                const { error: funcError } = await supabase.functions.invoke('delete-user', {
+                const { data: resData, error: funcError } = await supabase.functions.invoke('delete-user', {
                     body: { userId }
                 });
 
-                if (funcError) {
+                if (funcError || resData?.error) {
                     console.error("Edge function delete error:", funcError);
                     // Fallback: If edge function fails (not deployed?), try to at least remove access role
                     // but warn user.
