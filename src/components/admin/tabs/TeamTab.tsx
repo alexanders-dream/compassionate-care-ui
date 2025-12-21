@@ -57,7 +57,7 @@ interface TeamTabProps {
     team: EnhancedTeamMember[];
     onSave: (memberData: any, isNew: boolean, password?: string) => Promise<void>;
     onDelete: (id: string, userId?: string) => Promise<void>;
-    onPasswordReset?: (userId: string, newPassword: string) => Promise<void>;
+    onCredentialsUpdate?: (userId: string, email?: string, newPassword?: string) => Promise<void>;
 
     // Legacy/State Props
     editingTeamMember: EnhancedTeamMember | null;
@@ -71,7 +71,7 @@ const TeamTab = ({
     team,
     onSave,
     onDelete,
-    onPasswordReset,
+    onCredentialsUpdate,
     editingTeamMember,
     setEditingTeamMember,
     teamMemberImagePreview,
@@ -168,9 +168,16 @@ const TeamTab = ({
             };
 
             await onSave(data, !editingTeamMember, password);
-
-            if (editingTeamMember && resetPassword && onPasswordReset && editingTeamMember.user_id) {
-                await onPasswordReset(editingTeamMember.user_id, resetPassword);
+            // Handle credential updates for existing users (email/password)
+            if (editingTeamMember && onCredentialsUpdate && editingTeamMember.user_id) {
+                const emailChanged = email !== editingTeamMember.email;
+                if (emailChanged || resetPassword) {
+                    await onCredentialsUpdate(
+                        editingTeamMember.user_id,
+                        emailChanged ? email : undefined,
+                        resetPassword || undefined
+                    );
+                }
             }
 
             setIsDialogOpen(false);

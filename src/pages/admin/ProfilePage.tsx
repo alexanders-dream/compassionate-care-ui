@@ -32,8 +32,10 @@ const ProfilePage = () => {
     const [role, setRole] = useState("user");
 
     // Password Change State
+    const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -132,8 +134,13 @@ const ProfilePage = () => {
     const handleChangePassword = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        if (!currentPassword) {
+            toast({ title: "Please enter your current password", variant: "destructive" });
+            return;
+        }
+
         if (newPassword !== confirmPassword) {
-            toast({ title: "Passwords do not match", variant: "destructive" });
+            toast({ title: "New passwords do not match", variant: "destructive" });
             return;
         }
 
@@ -144,6 +151,23 @@ const ProfilePage = () => {
 
         setSaving(true);
         try {
+            // 1. Verify current password by re-authenticating
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+                email: user?.email || "",
+                password: currentPassword
+            });
+
+            if (signInError) {
+                toast({
+                    title: "Current password is incorrect",
+                    description: "Please enter your correct current password.",
+                    variant: "destructive"
+                });
+                setSaving(false);
+                return;
+            }
+
+            // 2. Update to new password
             const { error } = await supabase.auth.updateUser({
                 password: newPassword
             });
@@ -151,6 +175,7 @@ const ProfilePage = () => {
             if (error) throw error;
 
             toast({ title: "Password updated successfully" });
+            setCurrentPassword("");
             setNewPassword("");
             setConfirmPassword("");
         } catch (error: any) {
@@ -242,6 +267,27 @@ const ProfilePage = () => {
                     <CardContent>
                         <form onSubmit={handleChangePassword} className="space-y-4">
                             <div className="space-y-2">
+                                <Label htmlFor="currentPassword">Current Password</Label>
+                                <div className="relative">
+                                    <Input
+                                        id="currentPassword"
+                                        type={showCurrentPassword ? "text" : "password"}
+                                        value={currentPassword}
+                                        onChange={(e) => setCurrentPassword(e.target.value)}
+                                        className="pr-10"
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                        tabIndex={-1}
+                                    >
+                                        {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="space-y-2">
                                 <Label htmlFor="newPassword">New Password</Label>
                                 <div className="relative">
                                     <Input
@@ -250,6 +296,7 @@ const ProfilePage = () => {
                                         value={newPassword}
                                         onChange={(e) => setNewPassword(e.target.value)}
                                         className="pr-10"
+                                        required
                                     />
                                     <button
                                         type="button"

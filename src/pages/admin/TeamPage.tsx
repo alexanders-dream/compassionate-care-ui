@@ -123,19 +123,40 @@ const TeamPage = () => {
         toast({ title: "Image selected" });
     };
 
-    const handleAdminResetPassword = async (userId: string, newPassword: string) => {
+    const handleAdminUpdateCredentials = async (userId: string, email?: string, newPassword?: string) => {
+        if (!email && !newPassword) return;
+
         try {
-            console.warn("Attempting password reset. NOTE: Direct admin password reset requires Edge Function.");
-            const { error } = await supabase.auth.admin.updateUserById(userId, { password: newPassword });
+            const { data: responseData, error: funcError } = await supabase.functions.invoke('update-user', {
+                body: {
+                    userId,
+                    email: email || undefined,
+                    password: newPassword || undefined
+                }
+            });
 
-            if (error) throw error;
+            if (funcError) throw funcError;
+            if (responseData?.error) throw new Error(responseData.error);
 
-            toast({ title: "Password updated via Admin API" });
+            if (responseData?.warning) {
+                toast({
+                    title: "Updated with warnings",
+                    description: responseData.warning + (responseData.errors ? " " + responseData.errors.join(", ") : ""),
+                    variant: "destructive"
+                });
+            } else {
+                const updates = [];
+                if (responseData?.emailUpdated) updates.push("email");
+                if (responseData?.passwordUpdated) updates.push("password");
+                toast({ title: `User ${updates.join(" and ")} updated successfully` });
+            }
+
+            fetchData(); // Refresh the list
         } catch (error: any) {
-            console.error("Password reset error:", error);
+            console.error("Credential update error:", error);
             toast({
-                title: "System Limitation",
-                description: "Direct password reset requires Server-Side Admin Role. Please use the 'Forgot Password' flow or deploy the admin edge function.",
+                title: "Update failed",
+                description: error.message || "Failed to update user credentials. Make sure the 'update-user' edge function is deployed.",
                 variant: "destructive"
             });
         }
@@ -161,7 +182,15 @@ const TeamPage = () => {
                 if (funcError) throw funcError;
                 if (responseData?.error) throw new Error(responseData.error);
 
-                toast({ title: "User created successfully", description: "Account created and linked to team member." });
+                if (responseData?.warning) {
+                    toast({
+                        title: "User created with warnings",
+                        description: responseData.warning + (responseData.errors ? " " + responseData.errors.join(", ") : ""),
+                        variant: "destructive" // Or default, but destructive grabs attention
+                    });
+                } else {
+                    toast({ title: "User created successfully", description: "Account created and linked to team member." });
+                }
                 fetchData();
                 setEditingTeamMember(null);
                 setTeamMemberImagePreview(null);
@@ -356,7 +385,7 @@ const TeamPage = () => {
                 team={unifiedTeam}
                 onSave={handleSaveUser}
                 onDelete={handleDelete}
-                onPasswordReset={handleAdminResetPassword}
+                onCredentialsUpdate={handleAdminUpdateCredentials}
                 editingTeamMember={editingTeamMember}
                 setEditingTeamMember={setEditingTeamMember}
                 teamMemberImagePreview={teamMemberImagePreview}
