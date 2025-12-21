@@ -13,9 +13,9 @@ serve(async (req) => {
     try {
         const { resourceType = 'image', nextCursor } = await req.json()
 
-        const cloudName = Deno.env.get('CLOUDINARY_CLOUD_NAME')
-        const apiKey = Deno.env.get('CLOUDINARY_API_KEY')
-        const apiSecret = Deno.env.get('CLOUDINARY_API_SECRET')
+        const cloudName = Deno.env.get('cloudinary_cloud_name')
+        const apiKey = Deno.env.get('cloudinary_api_key')
+        const apiSecret = Deno.env.get('cloudinary_api_secret')
 
         if (!cloudName || !apiKey || !apiSecret) {
             throw new Error('Cloudinary credentials not set')

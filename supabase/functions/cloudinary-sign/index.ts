@@ -13,10 +13,10 @@ serve(async (req) => {
 
     try {
         const { paramsToSign } = await req.json()
-        const apiSecret = Deno.env.get('CLOUDINARY_API_SECRET')
+        const apiSecret = Deno.env.get('cloudinary_api_secret')
 
         if (!apiSecret) {
-            throw new Error('CLOUDINARY_API_SECRET not set')
+            throw new Error('cloudinary_api_secret not set')
         }
 
         // Sort parameters by key
