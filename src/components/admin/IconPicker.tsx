@@ -63,7 +63,7 @@ export const IconPicker = ({ value, onChange, name }: IconPickerProps) => {
             />
           </div>
           <div
-            className="overflow-y-scroll"
+            className="overflow-y-auto"
             style={{
               height: '256px',
               WebkitOverflowScrolling: 'touch',

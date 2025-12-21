@@ -94,30 +94,34 @@ const StatusCounts = ({ statusCounts, activeFilter, onFilterChange }: StatusCoun
                         key={status}
                         onClick={() => onFilterChange(isActive ? "all" : status)}
                         className={cn(
-                            "transition-all duration-200 group",
+                            "transition-all duration-200 group rounded-full",
                             "focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0",
                             "outline-none ring-0 border-0",
-                            isActive ? "scale-105" : "hover:scale-105 active:scale-95"
+                            isActive ? "scale-105" : "hover:scale-[1.02] active:scale-95"
                         )}
                         style={{ outline: 'none', boxShadow: 'none' }}
                         title={`${isActive ? "Clear filter" : "Filter by"} ${label}`}
                     >
                         <Badge
-                            className="border-0 px-3 py-1.5 text-sm font-semibold cursor-pointer flex items-center gap-1.5 transition-all outline-none ring-0"
+                            className="border-0 px-3 py-1.5 text-sm font-semibold cursor-pointer flex items-center gap-1.5 transition-all outline-none ring-0 rounded-full"
                             style={{
                                 backgroundColor: bgColor,
                                 color: textColor,
                                 outline: 'none',
-                                boxShadow: isActive ? '0 10px 15px -3px rgb(0 0 0 / 0.1)' : '0 1px 2px 0 rgb(0 0 0 / 0.05)'
+                                boxShadow: isActive
+                                    ? '0 10px 20px -3px rgb(0 0 0 / 0.15), 0 4px 6px -2px rgb(0 0 0 / 0.1)'
+                                    : '0 1px 2px 0 rgb(0 0 0 / 0.05)'
                             }}
                             onMouseEnter={(e) => {
                                 if (!isActive) {
                                     e.currentTarget.style.backgroundColor = hoverBgColor;
+                                    e.currentTarget.style.boxShadow = '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.06)';
                                 }
                             }}
                             onMouseLeave={(e) => {
                                 if (!isActive) {
                                     e.currentTarget.style.backgroundColor = bgColor;
+                                    e.currentTarget.style.boxShadow = '0 1px 2px 0 rgb(0 0 0 / 0.05)';
                                 }
                             }}
                         >

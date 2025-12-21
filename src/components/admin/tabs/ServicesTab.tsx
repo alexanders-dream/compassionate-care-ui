@@ -32,10 +32,6 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
-import IconPicker from "@/components/admin/IconPicker";
-import { Service } from "@/contexts/SiteDataContext";
-import { getIconByName } from "@/lib/icons";
-import AdminPagination from "../AdminPagination";
 
 interface ServicesTabProps {
     services: Service[];
