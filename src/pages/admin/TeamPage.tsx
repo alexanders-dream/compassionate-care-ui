@@ -164,8 +164,9 @@ const TeamPage = () => {
 
     const handleSaveUser = async (data: any, isNew: boolean, password?: string) => {
         try {
-            // 0. EDGE FUNCTION: Use 'create-user' function if creating a new System User with password
-            if (isNew && data.email && password) {
+            // PATH 1: Create/Convert to System User (with account credentials)
+            if (data.email && password && !data.user_id) {
+                console.log("PATH 1: Creating system user with account");
                 const { data: responseData, error: funcError } = await supabase.functions.invoke('create-user', {
                     body: {
                         email: data.email,
@@ -175,7 +176,9 @@ const TeamPage = () => {
                         bio: data.bio,
                         image_url: data.image_url,
                         is_public: data.is_public ?? true,
-                        system_role: data.system_role
+                        system_role: data.system_role,
+                        // If this is an existing team member, pass its ID to update instead of creating duplicate
+                        team_member_id: (!isNew && data.id && !data.id.startsWith('temp_')) ? data.id : undefined
                     }
                 });
 
@@ -186,7 +189,7 @@ const TeamPage = () => {
                     toast({
                         title: "User created with warnings",
                         description: responseData.warning + (responseData.errors ? " " + responseData.errors.join(", ") : ""),
-                        variant: "destructive" // Or default, but destructive grabs attention
+                        variant: "destructive"
                     });
                 } else {
                     toast({ title: "User created successfully", description: "Account created and linked to team member." });
@@ -197,71 +200,75 @@ const TeamPage = () => {
                 return;
             }
 
-            // 1. Handle Public Team Data Update (Legacy / Update Flow)
-            let teamMemberId = data.id;
+            // PATH 2: Create/Update Public-Only Team Member (no account)
+            if (!data.user_id) {
+                console.log("PATH 2: Creating/updating public-only team member");
+                let teamMemberId = data.id;
 
-            if (isNew || (teamMemberId && teamMemberId.startsWith("temp_"))) {
-                const { data: newTeam, error } = await supabase
-                    .from("team_members")
-                    .insert({
-                        name: data.name,
-                        role: data.role,
-                        bio: data.bio,
-                        image_url: data.image_url,
-                        is_public: data.is_public ?? true,
-                        display_order: 100, // Default to end
-                        user_id: data.user_id // Link if authenticated user
-                    })
-                    .select()
-                    .single();
+                if (isNew || (teamMemberId && teamMemberId.startsWith("temp_"))) {
+                    // Create new public-only member
+                    const { data: newTeam, error } = await supabase
+                        .from("team_members")
+                        .insert({
+                            name: data.name,
+                            role: data.role,
+                            bio: data.bio,
+                            image_url: data.image_url,
+                            is_public: data.is_public ?? true,
+                            display_order: 100
+                        })
+                        .select()
+                        .single();
 
-                if (error) throw error;
-                teamMemberId = newTeam.id;
-            } else {
-                const { error } = await supabase
+                    if (error) throw error;
+                    toast({ title: "Team member created", description: "Public-only member added successfully." });
+                } else {
+                    // Update existing public-only member
+                    const { error } = await supabase
+                        .from("team_members")
+                        .update({
+                            name: data.name,
+                            role: data.role,
+                            bio: data.bio,
+                            image_url: data.image_url,
+                            is_public: data.is_public
+                        })
+                        .eq("id", teamMemberId);
+
+                    if (error) throw error;
+                    toast({ title: "Team member updated", description: "Public details updated successfully." });
+                }
+
+                fetchData();
+                setEditingTeamMember(null);
+                setTeamMemberImagePreview(null);
+                return;
+            }
+
+            // PATH 3: Update Existing System User's Public Details (has account, updating profile only)
+            if (data.user_id && !isNew) {
+                console.log("PATH 3: Updating existing system user's public details");
+
+                // Update team member public details
+                const { error: teamError } = await supabase
                     .from("team_members")
                     .update({
                         name: data.name,
                         role: data.role,
                         bio: data.bio,
                         image_url: data.image_url,
-                        is_public: data.is_public,
-                        // Ensure we update/link user_id if this member is now associated with a user
-                        ...(data.user_id ? { user_id: data.user_id } : {})
+                        is_public: data.is_public
                     })
-                    .eq("id", teamMemberId);
-                if (error) throw error;
-            }
+                    .eq("id", data.id);
 
-            // 2. Handle System User Creation
-            if (isNew && data.email && password) {
-                const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(data.email);
+                if (teamError) throw teamError;
 
-                if (inviteError) {
-                    console.warn("Invite failed (likely permissions), falling back to public warning.", inviteError);
-                    toast({
-                        title: "User Invite Warning",
-                        description: "Could not invite user automatically (Backend Admin API restricted). Please create user manually in Supabase Dashboard."
-                    });
-                } else {
-                    toast({ title: "Invitation sent to new user" });
-
-                    if (inviteData?.user?.id) {
-                        await supabase.from("user_roles").insert({
-                            user_id: inviteData.user.id,
-                            role: data.system_role
-                        });
-
-                        await supabase.from("profiles").insert({
-                            user_id: inviteData.user.id,
-                            full_name: data.name,
-                            email: data.email
-                        });
-                    }
-                }
-            } else if (!isNew && data.user_id) {
-                // Update System Role
-                const { data: existingRole } = await supabase.from("user_roles").select("*").eq("user_id", data.user_id).maybeSingle();
+                // Update system role if changed
+                const { data: existingRole } = await supabase
+                    .from("user_roles")
+                    .select("*")
+                    .eq("user_id", data.user_id)
+                    .maybeSingle();
 
                 if (existingRole) {
                     if (existingRole.role !== data.system_role) {
@@ -270,8 +277,15 @@ const TeamPage = () => {
                 } else {
                     await supabase.from("user_roles").insert({ user_id: data.user_id, role: data.system_role });
                 }
+
+                toast({ title: "User updated", description: "Profile details updated successfully." });
+                fetchData();
+                setEditingTeamMember(null);
+                setTeamMemberImagePreview(null);
+                return;
             }
 
+            // Fallback (should not reach here)
             toast({ title: "Saved successfully" });
             fetchData();
 

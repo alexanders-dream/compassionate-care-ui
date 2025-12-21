@@ -19,7 +19,7 @@ serve(async (req: Request) => {
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
         )
 
-        const { email, password, name, role, bio, image_url, is_public, system_role } = await req.json()
+        const { email, password, name, role, bio, image_url, is_public, system_role, team_member_id } = await req.json()
 
         // 1. Validation
         if (!email || !password) {
@@ -95,22 +95,45 @@ serve(async (req: Request) => {
                     if (roleError) throw new Error(`Role assignment failed: ${roleError.message}`)
                 }
 
-                // 5. Create Public Team Member Entry
-                const { data: teamMember, error: teamError } = await supabaseClient
-                    .from('team_members')
-                    .insert({
-                        user_id: userId,
-                        name: name,
-                        role: role || 'System User',
-                        bio: bio || '',
-                        image_url: image_url || null,
-                        is_public: is_public ?? true,
-                        display_order: 100 // Default to end
-                    })
-                    .select()
-                    .single()
+                // 5. Create or Update Public Team Member Entry
+                let teamMember;
+                if (team_member_id) {
+                    // Update existing team member record with the new user_id
+                    const { data: updatedTeam, error: teamError } = await supabaseClient
+                        .from('team_members')
+                        .update({
+                            user_id: userId,
+                            name: name,
+                            role: role || 'System User',
+                            bio: bio || '',
+                            image_url: image_url || null,
+                            is_public: is_public ?? true
+                        })
+                        .eq('id', team_member_id)
+                        .select()
+                        .single()
 
-                if (teamError) throw new Error(`Team member creation failed: ${teamError.message}`)
+                    if (teamError) throw new Error(`Team member update failed: ${teamError.message}`)
+                    teamMember = updatedTeam
+                } else {
+                    // Create new team member record
+                    const { data: newTeam, error: teamError } = await supabaseClient
+                        .from('team_members')
+                        .insert({
+                            user_id: userId,
+                            name: name,
+                            role: role || 'System User',
+                            bio: bio || '',
+                            image_url: image_url || null,
+                            is_public: is_public ?? true,
+                            display_order: 100 // Default to end
+                        })
+                        .select()
+                        .single()
+
+                    if (teamError) throw new Error(`Team member creation failed: ${teamError.message}`)
+                    teamMember = newTeam
+                }
 
                 // Success!
                 return new Response(

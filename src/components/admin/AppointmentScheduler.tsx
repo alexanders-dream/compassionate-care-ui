@@ -37,15 +37,69 @@ import {
 } from "@/data/siteContent";
 import StatusCounts from "./StatusCounts";
 
+import { supabase } from "@/integrations/supabase/client";
 import AdminPagination from "./AdminPagination";
 import RoleGate from "@/components/auth/RoleGate";
 
 // Shared constants
-export const clinicians = [
-  "Dr. Amanda Richards",
-  "James Thompson, RN",
-  "Lisa Chen"
-];
+export const useClinicians = () => {
+  const [clinicians, setClinicians] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchClinicians = async () => {
+      try {
+        // 1. Get User IDs with "medical_staff" role
+        const { data: roles } = await supabase
+          .from("user_roles")
+          .select("user_id")
+          .eq("role", "medical_staff");
+
+        if (!roles || roles.length === 0) {
+          setClinicians([]);
+          setLoading(false);
+          return;
+        }
+
+        const userIds = roles.map(r => r.user_id);
+
+        // 2. Get names from Team Members (preferred) and Profiles
+        const { data: teamMembers } = await supabase
+          .from("team_members")
+          .select("name, user_id")
+          .in("user_id", userIds);
+
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("full_name, user_id")
+          .in("user_id", userIds);
+
+        const nameMap = new Map<string, string>();
+
+        // Fill with profile names first
+        profiles?.forEach(p => {
+          if (p.full_name) nameMap.set(p.user_id, p.full_name);
+        });
+
+        // Overwrite with Team Member names (more formal usually)
+        teamMembers?.forEach(tm => {
+          if (tm.name) nameMap.set(tm.user_id, tm.name);
+        });
+
+        setClinicians(Array.from(nameMap.values()).sort());
+      } catch (error) {
+        console.error("Error fetching clinicians:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchClinicians();
+  }, []);
+
+  return { clinicians, loading };
+};
+
 
 export const appointmentTypes = [
   { value: "initial", label: "Initial Assessment" },
@@ -94,7 +148,7 @@ export const getDefaultFormData = (): AppointmentFormData => ({
   appointmentTime: "09:00",
   duration: 60,
   type: "initial",
-  clinician: clinicians[0],
+  clinician: "",
   location: "in-home",
   address: "",
   notes: "",
@@ -113,6 +167,7 @@ interface ScheduleDialogProps {
   existingAppointments?: Appointment[];
   visitRequests: VisitRequest[];
   referrals: ProviderReferralSubmission[];
+  availableClinicians: string[];
 }
 
 export const ScheduleDialog = ({
@@ -123,7 +178,8 @@ export const ScheduleDialog = ({
   editingAppointment,
   existingAppointments = [],
   visitRequests,
-  referrals
+  referrals,
+  availableClinicians
 }: ScheduleDialogProps) => {
   const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
@@ -142,7 +198,7 @@ export const ScheduleDialog = ({
           appointmentTime: editingAppointment.appointmentTime,
           duration: editingAppointment.duration,
           type: editingAppointment.type,
-          clinician: editingAppointment.clinician,
+          clinician: editingAppointment.clinician || availableClinicians[0] || "",
           location: (editingAppointment.location as Appointment["location"]) || "in-home",
           address: editingAppointment.address || "",
           notes: editingAppointment.notes || "",
@@ -182,14 +238,18 @@ export const ScheduleDialog = ({
         setSelectedDate(new Date());
         setFormData({
           ...getDefaultFormData(),
+          clinician: availableClinicians[0] || "",
           ...initialData
         });
       } else {
         setSelectedDate(new Date());
-        setFormData(getDefaultFormData());
+        setFormData({
+          ...getDefaultFormData(),
+          clinician: availableClinicians[0] || ""
+        });
       }
     }
-  }, [open, initialData, editingAppointment]);
+  }, [open, initialData, editingAppointment, availableClinicians]);
 
   // Helper to get all time slots blocked by an appointment based on its duration
   const getBlockedSlots = (startTime: string, duration: number): string[] => {
@@ -550,7 +610,7 @@ export const ScheduleDialog = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {clinicians.map(c => (
+                  {availableClinicians.map(c => (
                     <SelectItem key={c} value={c}>{c}</SelectItem>
                   ))}
                 </SelectContent>
@@ -628,6 +688,7 @@ const AppointmentScheduler = ({
   onDelete
 }: AppointmentSchedulerProps) => {
   const { toast } = useToast();
+  const { clinicians, loading } = useClinicians();
   const [internalAppointments, setInternalAppointments] = useState<Appointment[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);

@@ -44,6 +44,8 @@ import RoleGate from "@/components/auth/RoleGate";
 import { ImageInsertionDialog } from "@/components/admin/ImageInsertionDialog";
 import { Badge } from "@/components/ui/badge";
 import AdminPagination from "../AdminPagination";
+import { useToast } from "@/hooks/use-toast";
+
 
 // Extended Type for the Unified View
 export interface EnhancedTeamMember extends TeamMember {
@@ -78,6 +80,7 @@ const TeamTab = ({
     onImageSelected,
     onVisibilityChange,
 }: TeamTabProps) => {
+    const { toast } = useToast();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
     const [itemToDelete, setItemToDelete] = useState<EnhancedTeamMember | null>(null);
@@ -153,6 +156,19 @@ const TeamTab = ({
         e.preventDefault();
         setIsSaving(true);
         try {
+            // Validate: If creating a system user, both email and password are required
+            if (!editingTeamMember && (email || password)) {
+                if (!email || !password) {
+                    toast({
+                        title: "Incomplete Account Settings",
+                        description: "Both email and password are required to create a system user. Leave both blank for a public-only member.",
+                        variant: "destructive"
+                    });
+                    setIsSaving(false);
+                    return;
+                }
+            }
+
             // Construct data object from State
             const data: any = {
                 name,
@@ -330,7 +346,7 @@ const TeamTab = ({
                                         </div>
 
                                         <div>
-                                            <Label htmlFor="email">Email Address</Label>
+                                            <Label htmlFor="email">Email Address {email && <span className="text-red-500">*</span>}</Label>
                                             <Input
                                                 id="email"
                                                 name="email"
@@ -338,8 +354,9 @@ const TeamTab = ({
                                                 value={email}
                                                 onChange={(e) => setEmail(e.target.value)}
                                                 autoComplete="new-password" // Often works better to stop generic autofill
-                                                required
+                                                required={!!(email || password)} // Only required if creating a system user (any account field filled)
                                             />
+                                            <p className="text-xs text-muted-foreground mt-1">Leave blank to create a public-only team member without system access.</p>
                                         </div>
 
                                         <div>
@@ -370,7 +387,7 @@ const TeamTab = ({
 
                                             {!editingTeamMember ? (
                                                 <div className="space-y-2">
-                                                    <Label htmlFor="password">Initial Password</Label>
+                                                    <Label htmlFor="password">Initial Password {password && <span className="text-red-500">*</span>}</Label>
                                                     <div className="relative">
                                                         <Input
                                                             id="password"
@@ -378,7 +395,7 @@ const TeamTab = ({
                                                             value={password}
                                                             onChange={(e) => setPassword(e.target.value)}
                                                             type={showPassword ? "text" : "password"}
-                                                            required
+                                                            required={!!(email || password)} // Only required if creating a system user
                                                             minLength={6}
                                                             className="pr-10"
                                                             autoComplete="new-password"
@@ -392,7 +409,7 @@ const TeamTab = ({
                                                             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                                         </button>
                                                     </div>
-                                                    <p className="text-xs text-muted-foreground">Set a temporary password for the new user.</p>
+                                                    <p className="text-xs text-muted-foreground">Leave blank for public-only member. Required if email is provided.</p>
                                                 </div>
                                             ) : (
                                                 <div className="space-y-2">

@@ -4,7 +4,7 @@ import ReferralsTab from "@/components/admin/tabs/ReferralsTab";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
-import { ScheduleDialog, AppointmentFormData } from "@/components/admin/AppointmentScheduler";
+import { ScheduleDialog, AppointmentFormData, useClinicians } from "@/components/admin/AppointmentScheduler";
 import { useAppointmentMutations } from "@/hooks/useAppointmentMutations";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -22,10 +22,12 @@ const SubmissionsPage = () => {
         referrals,
         appointments,
         refreshVisitRequests,
-        refreshReferrals
+        refreshReferrals,
+        refreshAppointments
     } = useSiteData();
     const { toast } = useToast();
     const { createAppointment } = useAppointmentMutations();
+    const { clinicians } = useClinicians();
 
     const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
     const [scheduleInitialData, setScheduleInitialData] = useState<Partial<AppointmentFormData> | undefined>(undefined);
@@ -87,22 +89,30 @@ const SubmissionsPage = () => {
     };
 
     const deleteVisitRequest = async (id: string) => {
+        // Also delete any linked appointment
+        await supabase.from("appointments").delete().eq("visit_request_id", id);
+
         const { error } = await supabase.from("visit_requests").delete().eq("id", id);
         if (error) {
             toast({ title: "Failed to delete request", variant: "destructive" });
         } else {
             toast({ title: "Visit request deleted" });
             refreshVisitRequests();
+            refreshAppointments();
         }
     };
 
     const deleteReferral = async (id: string) => {
+        // Also delete any linked appointment
+        await supabase.from("appointments").delete().eq("provider_referral_id", id);
+
         const { error } = await supabase.from("provider_referrals").delete().eq("id", id);
         if (error) {
             toast({ title: "Failed to delete referral" });
         } else {
             toast({ title: "Referral deleted" });
             refreshReferrals();
+            refreshAppointments();
         }
     };
 
@@ -227,6 +237,7 @@ const SubmissionsPage = () => {
                 existingAppointments={appointments} // We could pass appointments if needed for conflict checking
                 visitRequests={visitRequests}
                 referrals={referrals}
+                availableClinicians={clinicians}
             />
 
 
