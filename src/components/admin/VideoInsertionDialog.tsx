@@ -6,8 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, Upload, Link as LinkIcon, Image as ImageIcon, Video as VideoIcon, RefreshCw, Trash2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { uploadToCloudinary, listCloudinaryResources } from "@/lib/cloudinary";
 
 interface VideoInsertionDialogProps {
     open: boolean;
@@ -38,27 +38,13 @@ export function VideoInsertionDialog({ open, onOpenChange, onVideoSelected }: Vi
     const fetchGalleryVideos = async () => {
         setIsLoadingGallery(true);
         try {
-            // Fetch all files
-            const { data, error } = await supabase.storage
-                .from('blog-media')
-                .list('', {
-                    limit: 100,
-                    offset: 0,
-                    sortBy: { column: 'created_at', order: 'desc' },
-                });
+            const { resources } = await listCloudinaryResources('video');
 
-            if (error) throw error;
-
-            // Filter for videos (simple extension check) and map
-            const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov'];
-            const videos = data
-                ?.filter(file => videoExtensions.some(ext => file.name.toLowerCase().endsWith(ext)))
-                .map(file => {
-                    const { data: { publicUrl } } = supabase.storage
-                        .from('blog-media')
-                        .getPublicUrl(file.name);
-                    return { name: file.name, url: publicUrl, created_at: file.created_at };
-                }) || [];
+            const videos = resources.map(res => ({
+                name: res.public_id,
+                url: res.secure_url,
+                created_at: res.created_at
+            }));
 
             setGalleryVideos(videos);
         } catch (error: any) {
@@ -73,27 +59,16 @@ export function VideoInsertionDialog({ open, onOpenChange, onVideoSelected }: Vi
         const file = e.target.files?.[0];
         if (!file) return;
 
-        if (file.size > 50 * 1024 * 1024) { // 50MB limit
-            toast({ title: "File too large", description: "Video must be less than 50MB", variant: "destructive" });
+        if (file.size > 100 * 1024 * 1024) { // 100MB limit
+            toast({ title: "File too large", description: "Video must be less than 100MB", variant: "destructive" });
             return;
         }
 
         setIsUploading(true);
         try {
-            const fileExt = file.name.split('.').pop();
-            const fileName = `video_${Math.random().toString(36).substring(7)}_${Date.now()}.${fileExt}`;
+            const uploadResult = await uploadToCloudinary(file, 'video');
 
-            const { error: uploadError } = await supabase.storage
-                .from('blog-media')
-                .upload(fileName, file);
-
-            if (uploadError) throw uploadError;
-
-            const { data: { publicUrl } } = supabase.storage
-                .from('blog-media')
-                .getPublicUrl(fileName);
-
-            onVideoSelected(publicUrl, 'video');
+            onVideoSelected(uploadResult.secure_url, 'video');
             onOpenChange(false);
             toast({ title: "Video uploaded successfully" });
 
@@ -120,20 +95,7 @@ export function VideoInsertionDialog({ open, onOpenChange, onVideoSelected }: Vi
 
     const handleDeleteVideo = async (e: React.MouseEvent, videoName: string) => {
         e.stopPropagation();
-        if (!confirm("Are you sure you want to delete this video?")) return;
-
-        try {
-            const { error } = await supabase.storage
-                .from('blog-media')
-                .remove([videoName]);
-
-            if (error) throw error;
-
-            toast({ title: "Video deleted" });
-            fetchGalleryVideos();
-        } catch (error: any) {
-            toast({ title: "Delete failed", description: error.message, variant: "destructive" });
-        }
+        toast({ title: "Deletion not supported", description: "Please delete videos from Cloudinary dashboard.", variant: "destructive" });
     };
 
     return (

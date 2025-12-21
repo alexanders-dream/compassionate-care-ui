@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, RotateCw, Image as ImageIcon, Check, Crop as CropIcon, ZoomIn, ZoomOut, RotateCcw, Trash2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import Cropper from "react-easy-crop";
 import getCroppedImg from "@/lib/canvasUtils";
 import { Slider } from "@/components/ui/slider";
+import { uploadToCloudinary, listCloudinaryResources } from "@/lib/cloudinary";
 
 interface ImageInsertionDialogProps {
     open: boolean;
@@ -39,24 +39,12 @@ export function ImageInsertionDialog({ open, onOpenChange, onImageSelected }: Im
     const fetchGalleryImages = async () => {
         setIsLoadingGallery(true);
         try {
-            const { data, error } = await supabase.storage
-                .from('blog-media')
-                .list('', {
-                    limit: 100,
-                    offset: 0,
-                    sortBy: { column: 'created_at', order: 'desc' },
-                });
+            const { resources } = await listCloudinaryResources('image');
 
-            if (error) throw error;
-
-            const images = data
-                ?.filter(file => file.name !== '.emptyFolderPlaceholder')
-                .map(file => {
-                    const { data: { publicUrl } } = supabase.storage
-                        .from('blog-media')
-                        .getPublicUrl(file.name);
-                    return { name: file.name, url: publicUrl };
-                }) || [];
+            const images = resources.map(res => ({
+                name: res.public_id, // Use public_id as name
+                url: res.secure_url
+            }));
 
             setGalleryImages(images);
         } catch (error: any) {
@@ -107,22 +95,13 @@ export function ImageInsertionDialog({ open, onOpenChange, onImageSelected }: Im
 
             if (!croppedBlob) throw new Error("Failed to crop image");
 
-            const fileName = `cropped-${Date.now()}.jpg`;
-            const { error: uploadError } = await supabase.storage
-                .from('blog-media')
-                .upload(fileName, croppedBlob);
-
-            if (uploadError) throw uploadError;
-
-            const { data } = supabase.storage
-                .from('blog-media')
-                .getPublicUrl(fileName);
+            const uploadResult = await uploadToCloudinary(croppedBlob, 'image');
 
             // Refresh gallery after upload
             await fetchGalleryImages();
 
             // Select and close
-            onImageSelected(data.publicUrl);
+            onImageSelected(uploadResult.secure_url);
             onOpenChange(false);
             toast({ title: "Image cropped and uploaded!" });
 
@@ -146,33 +125,10 @@ export function ImageInsertionDialog({ open, onOpenChange, onImageSelected }: Im
 
     // Delete Image Handler
     const handleDeleteImage = async (e: React.MouseEvent, imageName: string) => {
-        e.stopPropagation(); // Prevent selection when clicking delete
-
-        // Removed confirmation as requested
-        // if (!window.confirm("Are you sure you want to delete this image? This cannot be undone.")) {
-        //     return;
-        // }
-
-        try {
-            const { error } = await supabase.storage
-                .from('blog-media')
-                .remove([imageName]);
-
-            if (error) throw error;
-
-            toast({ title: "Image deleted" });
-            fetchGalleryImages(); // Refresh gallery
-
-            // If the deleted image was selected, deselect it
-            const { data } = supabase.storage.from('blog-media').getPublicUrl(imageName);
-            if (selectedGalleryImage === data.publicUrl) {
-                setSelectedGalleryImage(null);
-            }
-
-        } catch (error: any) {
-            console.error("Error deleting image:", error);
-            toast({ title: "Failed to delete image", description: error.message, variant: "destructive" });
-        }
+        e.stopPropagation();
+        // Cloudinary deletion requires Admin API which is risky on client or another Edge Function.
+        // For now, we will disable deletion from this UI or implement it later if strictly needed.
+        toast({ title: "Deletion not supported", description: "Please delete images from Cloudinary dashboard.", variant: "destructive" });
     };
 
     // Gallery Select Handlers

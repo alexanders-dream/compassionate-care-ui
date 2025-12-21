@@ -3,8 +3,7 @@ import { useState } from "react";
 import ResourcesTab from "@/components/admin/tabs/ResourcesTab";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-
-const BUCKET_NAME = "patient-resources";
+import { uploadToCloudinary } from "@/lib/cloudinary";
 
 const ResourcesPage = () => {
     const { patientResources, setPatientResources } = useSiteData();
@@ -31,21 +30,11 @@ const ResourcesPage = () => {
 
     const uploadFileToStorage = async (file: File): Promise<{ url: string; fileName: string; fileSize: string } | null> => {
         try {
-            const fileExt = file.name.split('.').pop();
-            const uniqueName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-
-            const { error: uploadError } = await supabase.storage
-                .from(BUCKET_NAME)
-                .upload(uniqueName, file);
-
-            if (uploadError) throw uploadError;
-
-            const { data } = supabase.storage
-                .from(BUCKET_NAME)
-                .getPublicUrl(uniqueName);
+            // Use 'raw' for PDFs and other documents, or 'auto' to let Cloudinary decide
+            const uploadResult = await uploadToCloudinary(file, 'auto');
 
             return {
-                url: data.publicUrl,
+                url: uploadResult.secure_url,
                 fileName: file.name,
                 fileSize: formatFileSize(file.size)
             };
@@ -137,12 +126,17 @@ const ResourcesPage = () => {
 
         try {
             // If the file was uploaded to our storage bucket, delete it
-            if (resource?.file_url?.includes(BUCKET_NAME)) {
-                const urlParts = resource.file_url.split('/');
-                const fileName = urlParts[urlParts.length - 1];
-                if (fileName) {
-                    await supabase.storage.from(BUCKET_NAME).remove([fileName]);
-                }
+            // Cloudinary deletion not implemented from client
+            if (resource?.file_url?.includes('cloudinary')) {
+                // Optional: Call a backend function to delete from Cloudinary
+                console.log("Skipping Cloudinary deletion from client");
+            } else if (resource?.file_url?.includes('patient-resources')) {
+                // Legacy Supabase deletion (optional, if you want to keep cleaning up old files)
+                // const urlParts = resource.file_url.split('/');
+                // const fileName = urlParts[urlParts.length - 1];
+                // if (fileName) {
+                //     await supabase.storage.from('patient-resources').remove([fileName]);
+                // }
             }
 
             const { error } = await supabase
