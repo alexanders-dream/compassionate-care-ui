@@ -1,21 +1,28 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+
+// Valid roles in the system
+export type UserRole = "admin" | "medical_staff" | "front_office" | "user";
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
+  userRole: UserRole;
   isAdmin: boolean;
   loading: boolean;
   signOut: () => Promise<void>;
+  hasRole: (allowedRoles: UserRole[]) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   session: null,
+  userRole: "user",
   isAdmin: false,
   loading: true,
   signOut: async () => { },
+  hasRole: () => false,
 });
 
 export const useAuth = () => {
@@ -29,35 +36,48 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [userRole, setUserRole] = useState<UserRole>("user");
   const [loading, setLoading] = useState(true);
 
-  const checkAdminRole = async (userId: string) => {
+  // Derived state for backward compatibility
+  const isAdmin = userRole === "admin";
+
+  const fetchUserRole = async (userId: string): Promise<UserRole> => {
     try {
       const { data, error } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", userId)
-        .eq("role", "admin")
         .maybeSingle();
 
       if (error) {
-        console.error("Error checking admin role:", error);
-        return false;
+        console.error("Error fetching user role:", error);
+        return "user";
       }
-      return !!data;
+
+      // Validate the role is a known type
+      const role = data?.role as UserRole;
+      if (role && ["admin", "medical_staff", "front_office", "user"].includes(role)) {
+        return role;
+      }
+      return "user";
     } catch (error) {
-      console.error("Error checking admin role:", error);
-      return false;
+      console.error("Error fetching user role:", error);
+      return "user";
     }
   };
 
-  // Handle admin role checking as a reaction to user changes
+  // Helper function to check if user has one of the allowed roles
+  const hasRole = useCallback((allowedRoles: UserRole[]): boolean => {
+    return allowedRoles.includes(userRole);
+  }, [userRole]);
+
+  // Handle user role fetching as a reaction to user changes
   useEffect(() => {
     if (user) {
-      checkAdminRole(user.id).then(setIsAdmin);
+      fetchUserRole(user.id).then(setUserRole);
     } else {
-      setIsAdmin(false);
+      setUserRole("user");
     }
   }, [user]);
 
@@ -85,11 +105,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
-    setIsAdmin(false);
+    setUserRole("user");
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, isAdmin, loading, signOut }}>
+    <AuthContext.Provider value={{ user, session, userRole, isAdmin, loading, signOut, hasRole }}>
       {children}
     </AuthContext.Provider>
   );

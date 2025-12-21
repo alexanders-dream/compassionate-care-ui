@@ -44,7 +44,7 @@ export const defaultSiteCopy: SiteCopySection[] = [
     fields: [
       { key: "title", label: "Section Title", value: "How It Works", type: "text" },
       { key: "description", label: "Description", value: "Getting the wound care you need is simple. Our streamlined process ensures you receive expert treatment quickly.", type: "textarea" },
-      { key: "step1Title", label: "Step 1 Title", value: "Request a Visit", type: "text" },
+      { key: "step1Title", label: "Step 1 Title", value: "Request Consultation", type: "text" },
       { key: "step1Description", label: "Step 1 Description", value: "Fill out our simple form or call us to schedule your initial consultation.", type: "textarea" },
       { key: "step2Title", label: "Step 2 Title", value: "Assessment", type: "text" },
       { key: "step2Description", label: "Step 2 Description", value: "Our clinician evaluates your wound and creates a personalized treatment plan.", type: "textarea" },
@@ -107,7 +107,7 @@ export const defaultSiteCopy: SiteCopySection[] = [
     fields: [
       { key: "title", label: "Page Title", value: "Contact Us", type: "text" },
       { key: "subtitle", label: "Subtitle", value: "We're Here to Help", type: "text" },
-      { key: "description", label: "Description", value: "Have questions or ready to schedule a visit? Reach out to our team and we'll get back to you promptly.", type: "textarea" },
+      { key: "description", label: "Description", value: "Have questions or ready to schedule a consultation? Reach out to our team and we'll get back to you promptly.", type: "textarea" },
     ]
   },
   {
@@ -125,7 +125,7 @@ export const defaultSiteCopy: SiteCopySection[] = [
     page: "Request Visit",
     section: "Page Content",
     fields: [
-      { key: "title", label: "Page Title", value: "Request a Visit", type: "text" },
+      { key: "title", label: "Page Title", value: "Request Consultation", type: "text" },
       { key: "description", label: "Description", value: "Take the first step toward healing. Fill out the form below and our care team will contact you within 24 hours.", type: "textarea" },
       { key: "sidebarImage", label: "Sidebar Image", value: "/src/assets/wound-care-supplies.jpg", type: "image" },
     ]
@@ -285,7 +285,7 @@ export const defaultSiteCopy: SiteCopySection[] = [
     fields: [
       { key: "stat1Value", label: "Satisfaction Rate", value: "98%", type: "text" },
       { key: "stat1Label", label: "Satisfaction Label", value: "Patient Satisfaction", type: "text" },
-      { key: "stat2Value", label: "Patients Served", value: "5,000+", type: "text" },
+      { key: "stat2Value", label: "Patients Served", value: "10,000+", type: "text" },
       { key: "stat2Label", label: "Patients Label", value: "Patients Served", type: "text" },
       { key: "stat3Value", label: "Average Rating", value: "4.9", type: "text" },
       { key: "stat3Label", label: "Rating Label", value: "Average Rating", type: "text" },

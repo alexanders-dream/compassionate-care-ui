@@ -3,95 +3,101 @@
 @tailwind utilities;
 
 /* AR Advanced Woundcare Solutions Design System
-   Warm, human-centered healthcare palette
-   Colors: Teal, Regal Navy, Pearl Aqua, Lavender Blush, Black
+   Professional, trustworthy clinic palette
+   Colors: Crayola Blue, Honey Bronze, White, Icy Blue, Ink Black
 */
 
 @layer base {
   :root {
     /* Approved Color Palette (HSL format)
-       Teal #008080 = 180 100% 25%
-       Regal Navy #083d77 = 211 87% 25%
-       Pearl Aqua #a6ece0 = 170 64% 79%
-       Lavender Blush #ffeaec = 354 100% 96%
-       Black #000000 = 0 0% 0%
+       Crayola Blue #3777ff = 221 100% 61% (Primary)
+       Honey Bronze #eabc5e = 37 89% 67% (CTA/Complement)
+       White #ffffff = 0 0% 100% (White backgrounds)
+       Icy Blue #b1e5f7 = 199 92% 85% (Blue backgrounds)
+       Ink Black #00243a = 205 100% 7% (Dark mode)
     */
 
     --background: 0 0% 100%;
-    --foreground: 0 0% 0%;
+    --foreground: 205 100% 7%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 0%;
+    --card-foreground: 205 100% 7%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%;
+    --popover-foreground: 205 100% 7%;
 
-    /* Primary: Teal - main brand color for buttons, CTAs */
-    --primary: 180 100% 25%;
+    /* Primary: Crayola Blue - main brand color for navigation, headers, trust elements */
+    --primary: 221 100% 61%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary: Regal Navy - navigation, headers, strong accents */
-    --secondary: 211 87% 25%;
+    /* Secondary: Ink Black - dark elements, strong contrasts */
+    --secondary: 205 100% 7%;
     --secondary-foreground: 0 0% 100%;
 
-    /* Muted: Pearl Aqua tinted - soft backgrounds */
-    --muted: 170 30% 95%;
-    --muted-foreground: 211 50% 30%;
+    /* Muted: Icy Blue tinted - soft backgrounds */
+    --muted: 199 50% 96%;
+    --muted-foreground: 205 60% 25%;
 
-    /* Accent: Pearl Aqua - soft highlight sections */
-    --accent: 170 64% 79%;
-    --accent-foreground: 211 87% 25%;
+    /* Accent: Icy Blue - soft highlight sections, blue backgrounds */
+    --accent: 199 92% 85%;
+    --accent-foreground: 205 100% 7%;
 
-    /* Warm: Lavender Blush - gentle, warm sections */
-    --warm: 354 100% 96%;
-    --warm-foreground: 211 87% 25%;
+    /* CTA: Honey Bronze - warm accent for buttons, CTAs, action elements */
+    --cta: 37 89% 67%;
+    --cta-foreground: 205 100% 7%;
+
+    /* Warm: Honey Bronze tinted - gentle warm highlights */
+    --warm: 37 85% 94%;
+    --warm-foreground: 205 100% 7%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 170 20% 90%;
-    --input: 170 20% 90%;
-    --ring: 180 100% 25%;
+    --border: 199 40% 88%;
+    --input: 199 40% 88%;
+    --ring: 221 100% 61%;
 
     --radius: 0.75rem;
 
-    /* Custom accent colors */
-    --teal: 180 100% 25%;
-    --navy: 211 87% 25%;
-    --aqua: 170 64% 79%;
-    --blush: 354 100% 96%;
+    /* Custom brand colors */
+    --crayola-blue: 221 100% 61%;
+    --honey-bronze: 37 89% 67%;
+    --icy-blue: 199 92% 85%;
+    --ink-black: 205 100% 7%;
 
-    /* Shadows with teal tint */
-    --shadow-soft: 0 4px 20px -4px hsl(180 100% 25% / 0.1);
-    --shadow-card: 0 2px 12px -2px hsl(180 100% 25% / 0.08);
-    --shadow-elevated: 0 8px 30px -6px hsl(211 87% 25% / 0.15);
+    /* Shadows with blue tint */
+    --shadow-soft: 0 4px 20px -4px hsl(221 100% 61% / 0.12);
+    --shadow-card: 0 2px 12px -2px hsl(221 100% 61% / 0.1);
+    --shadow-elevated: 0 8px 30px -6px hsl(205 100% 7% / 0.18);
 
     /* Sidebar */
-    --sidebar-background: 354 100% 98%;
-    --sidebar-foreground: 211 87% 25%;
-    --sidebar-primary: 180 100% 25%;
+    --sidebar-background: 199 50% 98%;
+    --sidebar-foreground: 205 100% 7%;
+    --sidebar-primary: 221 100% 61%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 170 64% 79%;
-    --sidebar-accent-foreground: 211 87% 25%;
-    --sidebar-border: 170 20% 90%;
-    --sidebar-ring: 180 100% 25%;
+    --sidebar-accent: 199 92% 85%;
+    --sidebar-accent-foreground: 205 100% 7%;
+    --sidebar-border: 199 40% 88%;
+    --sidebar-ring: 221 100% 61%;
   }
 
   .dark {
-    --background: 211 87% 8%;
+    /* Dark mode uses Ink Black as base */
+    --background: 205 100% 7%;
     --foreground: 0 0% 98%;
 
-    --card: 211 87% 12%;
+    --card: 205 90% 10%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 211 87% 12%;
+    --popover: 205 90% 10%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 180 80% 40%;
+    /* Crayola Blue brightened for dark mode visibility */
+    --primary: 221 100% 70%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 211 60% 50%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 199 60% 70%;
+    --secondary-foreground: 205 100% 7%;
 
     --muted: 211 40% 20%;
     --muted-foreground: 170 30% 70%;
@@ -99,29 +105,30 @@
     --accent: 170 40% 30%;
     --accent-foreground: 170 64% 85%;
 
-    --warm: 354 40% 20%;
-    --warm-foreground: 354 80% 90%;
+    --warm: 37 60% 18%;
+    --warm-foreground: 37 80% 85%;
 
-    --destructive: 0 62% 40%;
+    --destructive: 0 62% 45%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 211 40% 20%;
-    --input: 211 40% 20%;
-    --ring: 180 80% 40%;
+    --border: 205 60% 18%;
+    --input: 205 60% 18%;
+    --ring: 221 100% 70%;
 
-    --teal: 180 80% 40%;
-    --navy: 211 60% 50%;
-    --aqua: 170 40% 30%;
-    --blush: 354 40% 20%;
+    /* Custom brand colors for dark mode */
+    --crayola-blue: 221 100% 70%;
+    --honey-bronze: 37 85% 55%;
+    --icy-blue: 199 60% 25%;
+    --ink-black: 205 100% 7%;
 
-    --sidebar-background: 211 87% 10%;
+    --sidebar-background: 205 100% 5%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 180 80% 40%;
+    --sidebar-primary: 221 100% 70%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 170 40% 30%;
-    --sidebar-accent-foreground: 170 64% 85%;
-    --sidebar-border: 211 40% 20%;
-    --sidebar-ring: 180 80% 40%;
+    --sidebar-accent: 199 60% 25%;
+    --sidebar-accent-foreground: 199 80% 90%;
+    --sidebar-border: 205 60% 18%;
+    --sidebar-ring: 221 100% 70%;
   }
 }
 
@@ -140,8 +147,13 @@
     scroll-behavior: smooth;
   }
 
-  /* Headlines use navy for trust and authority */
-  h1, h2, h3, h4, h5, h6 {
+  /* Headlines use ink black for trust and authority */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-display font-semibold tracking-tight text-secondary;
   }
 
@@ -165,8 +177,8 @@
     @apply leading-relaxed text-foreground/90;
   }
 
-  /* Links use teal for action */
-  a:not(.no-link-style) {
+  /* Links use crayola blue for action - exclude button links */
+  a:not(.no-link-style):not([class*="bg-"]):not([class*="text-white"]) {
     @apply text-primary transition-colors hover:text-primary/80;
   }
 }
@@ -209,21 +221,24 @@
     @apply bg-warm;
   }
 
-  .section-navy {
-    @apply bg-secondary text-secondary-foreground;
-  }
-
-  .section-teal {
+  /* Crayola Blue sections - for blue backgrounds */
+  .section-ocean {
     @apply bg-primary text-primary-foreground;
   }
 
-  /* Gradient backgrounds for special sections */
-  .gradient-navy {
-    background: linear-gradient(135deg, hsl(var(--secondary)) 0%, hsl(211 87% 20%) 100%);
+  /* Ink Black sections - for dark headers/footers */
+  .section-ink {
+    @apply bg-secondary text-secondary-foreground;
   }
 
-  .gradient-teal {
-    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(180 100% 20%) 100%);
+  /* Icy Blue sections - for light blue backgrounds */
+  .section-icy {
+    @apply bg-accent;
+  }
+
+  /* CTA sections with Honey Bronze */
+  .section-cta {
+    @apply bg-cta text-cta-foreground;
   }
 
   /* Focus states for accessibility */
@@ -322,38 +337,6 @@
 
 .status-contacted {
   background-color: hsl(var(--accent) / 0.5) !important;
-}
-
-.dark .status-contacted {
-  background-color: hsl(var(--accent) / 0.3) !important;
-}
-
-.status-scheduled {
-  background-color: hsl(var(--primary) / 0.15) !important;
-}
-
-.dark .status-scheduled {
-  background-color: hsl(var(--primary) / 0.3) !important;
-}
-
-.status-completed {
-  background-color: hsl(142 76% 90%) !important;
-}
-
-.dark .status-completed {
-  background-color: hsl(142 70% 20% / 0.4) !important;
-}
-
-.status-confirmed {
-  background-color: hsl(var(--accent) / 0.7) !important;
-}
-
-.dark .status-confirmed {
-  background-color: hsl(var(--accent) / 0.4) !important;
-}
-
-.status-cancelled {
-  background-color: hsl(var(--warm)) !important;
 }
 
 .dark .status-cancelled {

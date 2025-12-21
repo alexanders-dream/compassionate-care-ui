@@ -1,25 +1,32 @@
 import {
   ClipboardList, CalendarDays, Settings2, Type, BookOpen,
-  FileText, Star, Briefcase, Users, HelpCircle, ChevronLeft, ChevronRight, Menu
+  FileText, Star, Briefcase, Users, HelpCircle, ChevronLeft, ChevronRight, Menu, LogOut, Home, User, Shield
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { useState, useEffect } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export type AdminSection =
   | "submissions"
   | "appointments"
-  | "forms"
   | "site-copy"
   | "resources"
   | "blog"
   | "testimonials"
   | "services"
   | "team"
-  | "faqs";
+  | "faqs"
+  | "insurance";
 
 interface AdminSidebarProps {
   collapsed: boolean;
@@ -29,7 +36,6 @@ interface AdminSidebarProps {
 const menuItems: { id: AdminSection; label: string; icon: React.ElementType; path: string }[] = [
   { id: "submissions", label: "Submissions", icon: ClipboardList, path: "/admin/submissions" },
   { id: "appointments", label: "Appointments", icon: CalendarDays, path: "/admin/appointments" },
-  { id: "forms", label: "Forms", icon: Settings2, path: "/admin/forms" },
   { id: "site-copy", label: "Site Copy", icon: Type, path: "/admin/site-copy" },
   { id: "resources", label: "Resources", icon: BookOpen, path: "/admin/resources" },
   { id: "blog", label: "Blog", icon: FileText, path: "/admin/blog" },
@@ -37,7 +43,56 @@ const menuItems: { id: AdminSection; label: string; icon: React.ElementType; pat
   { id: "services", label: "Services", icon: Briefcase, path: "/admin/services" },
   { id: "team", label: "Team", icon: Users, path: "/admin/team" },
   { id: "faqs", label: "FAQs", icon: HelpCircle, path: "/admin/faqs" },
+  { id: "insurance", label: "Insurance", icon: Shield, path: "/admin/insurance" },
 ];
+
+const SidebarNavItem = ({
+  item,
+  collapsed,
+  onItemClick
+}: {
+  item: { label: string; icon: React.ElementType; path: string };
+  collapsed: boolean;
+  onItemClick?: () => void;
+}) => {
+  const Icon = item.icon;
+
+  const navLink = (
+    <NavLink
+      to={item.path}
+      onClick={onItemClick}
+      className={({ isActive }) => cn(
+        "w-full flex items-center gap-3 px-4 py-2 mx-1 rounded-full text-sm font-medium transition-all duration-200",
+        isActive
+          ? "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-100 shadow-sm"
+          : "text-muted-foreground hover:bg-slate-200/80 dark:hover:bg-slate-700/60 hover:text-foreground hover:shadow-md hover:scale-[1.02]",
+        collapsed && "justify-center px-2"
+      )}
+    >
+      <Icon className="h-4 w-4 shrink-0" />
+      {!collapsed && <span>{item.label}</span>}
+    </NavLink>
+  );
+
+  if (collapsed) {
+    return (
+      <Tooltip delayDuration={0}>
+        <TooltipTrigger asChild>
+          {navLink}
+        </TooltipTrigger>
+        <TooltipContent
+          side="right"
+          className="bg-slate-900 text-white font-medium px-3 py-1.5 rounded-full shadow-lg border-0"
+          sideOffset={8}
+        >
+          {item.label}
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  return navLink;
+};
 
 const SidebarContent = ({
   collapsed = false,
@@ -45,32 +100,132 @@ const SidebarContent = ({
 }: {
   collapsed?: boolean;
   onItemClick?: () => void;
-}) => (
-  <nav className="p-2 space-y-1">
-    {menuItems.map((item) => {
-      const Icon = item.icon;
+}) => {
+  const { signOut, isAdmin } = useAuth();
+  const navigate = useNavigate();
 
-      return (
-        <NavLink
-          key={item.id}
-          to={item.path}
-          onClick={onItemClick}
-          className={({ isActive }) => cn(
-            "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
-            isActive
-              ? "bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 hover:border-primary/30"
-              : "text-muted-foreground hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-foreground",
-            collapsed && "justify-center px-2"
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/auth");
+    if (onItemClick) onItemClick();
+  };
+
+  return (
+    <TooltipProvider>
+      <nav className="p-2 space-y-1">
+        {menuItems.filter(item => {
+          // RBAC Filtering for Menu Items
+          if (isAdmin) return true; // Admins see everything
+
+          // Restricted Items (Hidden for non-admins)
+          if (item.id === "team" || item.id === "site-copy") return false;
+
+          // medical_staff and front_office see the rest
+          return true;
+        }).map((item) => (
+          <SidebarNavItem
+            key={item.id}
+            item={item}
+            collapsed={collapsed}
+            onItemClick={onItemClick}
+          />
+        ))}
+
+        <div className="my-2 border-t border-border/50" />
+
+        {/* Exit to Home */}
+        <SidebarNavItem
+          item={{ label: "Home", icon: Home, path: "/" }}
+          collapsed={collapsed}
+          onItemClick={onItemClick}
+        />
+
+        <div className="mt-auto pt-4 border-t border-border/50 space-y-1">
+          {/* Profile Link */}
+          {collapsed ? (
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger asChild>
+                <NavLink
+                  to="/admin/profile"
+                  onClick={onItemClick}
+                  className={({ isActive }) => cn(
+                    "w-full flex items-center gap-3 px-3 py-2.5 mx-1 rounded-full text-sm font-medium transition-all duration-200",
+                    isActive
+                      ? "bg-blue-100 dark:bg-blue-900/40 text-foreground shadow-sm"
+                      : "text-muted-foreground hover:bg-slate-200/80 dark:hover:bg-slate-700/60 hover:text-foreground hover:shadow-md hover:scale-[1.02]",
+                    collapsed && "justify-center px-2"
+                  )}
+                >
+                  <User className="h-4 w-4 shrink-0" />
+                </NavLink>
+              </TooltipTrigger>
+              <TooltipContent
+                side="right"
+                className="bg-slate-900 text-white font-medium px-3 py-1.5 rounded-full shadow-lg border-0"
+                sideOffset={8}
+              >
+                My Profile
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            <NavLink
+              to="/admin/profile"
+              onClick={onItemClick}
+              className={({ isActive }) => cn(
+                "w-full flex items-center gap-3 px-3 py-2.5 mx-1 rounded-full text-sm font-medium transition-all duration-200",
+                isActive
+                  ? "bg-blue-100 dark:bg-blue-900/40 text-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-slate-200/80 dark:hover:bg-slate-700/60 hover:text-foreground hover:shadow-md hover:scale-[1.02]",
+                collapsed && "justify-center px-2"
+              )}
+            >
+              <User className="h-4 w-4 shrink-0" />
+              <span>My Profile</span>
+            </NavLink>
           )}
-          title={collapsed ? item.label : undefined}
-        >
-          <Icon className="h-4 w-4 shrink-0" />
-          {!collapsed && <span>{item.label}</span>}
-        </NavLink>
-      );
-    })}
-  </nav>
-);
+
+          {/* Logout */}
+          {collapsed ? (
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  onClick={handleLogout}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2.5 mx-1 rounded-full text-sm font-medium justify-center h-auto transition-all duration-200",
+                    "text-muted-foreground hover:bg-slate-200/80 dark:hover:bg-slate-700/60 hover:text-foreground hover:shadow-md hover:scale-[1.02]"
+                  )}
+                >
+                  <LogOut className="h-4 w-4 shrink-0" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent
+                side="right"
+                className="bg-slate-900 text-white font-medium px-3 py-1.5 rounded-full shadow-lg border-0"
+                sideOffset={8}
+              >
+                Logout
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            <Button
+              variant="ghost"
+              onClick={handleLogout}
+              className={cn(
+                "w-full flex items-center gap-3 px-3 py-2.5 mx-1 rounded-full text-sm font-medium justify-start h-auto transition-all duration-200",
+                "text-muted-foreground hover:bg-slate-200/80 dark:hover:bg-slate-700/60 hover:text-foreground hover:shadow-md hover:scale-[1.02]"
+              )}
+            >
+              <LogOut className="h-4 w-4 shrink-0" />
+              <span>Logout</span>
+            </Button>
+          )}
+        </div>
+
+      </nav>
+    </TooltipProvider>
+  );
+};
 
 const AdminSidebar = ({ collapsed, onToggleCollapse }: AdminSidebarProps) => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -84,7 +239,7 @@ const AdminSidebar = ({ collapsed, onToggleCollapse }: AdminSidebarProps) => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Mobile: Sheet drawer
+  // Mobile: Floating hamburger button with sheet drawer
   if (isMobile) {
     return (
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
@@ -92,7 +247,7 @@ const AdminSidebar = ({ collapsed, onToggleCollapse }: AdminSidebarProps) => {
           <Button
             variant="ghost"
             size="icon"
-            className="fixed top-4 left-4 z-50 md:hidden bg-background border shadow-sm"
+            className="fixed top-4 right-4 z-50 h-10 w-10 shrink-0 md:hidden bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-700 shadow-md border border-border"
           >
             <Menu className="h-5 w-5" />
           </Button>

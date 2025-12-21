@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -26,7 +26,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Plus, Pencil, Trash2, CalendarIcon, Clock, MapPin, User, Phone, Mail, FileText, AlertCircle, Send, CheckCircle2, ArrowUpDown, Filter, Search, Eye } from "lucide-react";
+import { Plus, Pencil, Trash2, CalendarIcon, Clock, MapPin, User, Phone, Mail, FileText, AlertCircle, Send, CheckCircle2, ArrowUpDown, Filter, Search, Eye, ChevronDown, ArrowDown, ArrowUp } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -35,6 +35,10 @@ import {
   Appointment,
   VisitRequest, ProviderReferralSubmission
 } from "@/data/siteContent";
+import StatusCounts from "./StatusCounts";
+
+import AdminPagination from "./AdminPagination";
+import RoleGate from "@/components/auth/RoleGate";
 
 // Shared constants
 export const clinicians = [
@@ -328,7 +332,7 @@ export const ScheduleDialog = ({
         <div className="space-y-4">
           {/* Submission Summary Card */}
           {hasSubmissionData && (
-            <Card className="bg-muted/50 border-primary/20">
+            <Card className="bg-muted/30 border-transparent shadow-none">
               <CardContent className="pt-4">
                 <div className="flex items-start gap-3">
                   <FileText className="h-5 w-5 text-primary mt-0.5" />
@@ -446,12 +450,12 @@ export const ScheduleDialog = ({
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full justify-start text-left font-normal",
+                      "w-full justify-start text-left font-normal overflow-hidden",
                       !selectedDate && "text-muted-foreground"
                     )}
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
+                    <CalendarIcon className="mr-1 h-4 w-4 shrink-0" />
+                    <span className="truncate">{selectedDate ? format(selectedDate, "PPP") : "Pick a date"}</span>
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -594,7 +598,7 @@ export const ScheduleDialog = ({
             />
           </div>
 
-          <Button onClick={handleSave} className="w-full">
+          <Button onClick={handleSave} className="w-full bg-blue-600 text-white hover:bg-blue-700 shadow-sm">
             {editingAppointment ? "Update Appointment" : "Schedule Appointment"}
           </Button>
         </div>
@@ -644,23 +648,22 @@ const AppointmentScheduler = ({
 
   // Filtering and sorting state
   const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [sortField, setSortField] = useState<"name" | "date" | "status">("date");
+  const [sortField, setSortField] = useState<"name" | "date" | "status" | "type" | "clinician" | "location">("date");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Helper function for status row background colors
-  const getStatusRowClass = (status: string) => {
-    const statusClasses: Record<string, string> = {
-      scheduled: "status-scheduled",
-      completed: "status-completed",
-      cancelled: "status-cancelled",
-      "no_show": "status-no-show"
-    };
-    return statusClasses[status] || "";
-  };
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterStatus, searchQuery, sortField, sortDirection]);
+  // Removed status row background coloring - now using badges with alternating rows
 
   // Helper for toggling sort direction
-  const toggleSort = (field: "name" | "date" | "status") => {
+  const toggleSort = (field: "name" | "date" | "status" | "type" | "clinician" | "location") => {
     if (field === sortField) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
@@ -699,9 +702,24 @@ const AppointmentScheduler = ({
         case "status":
           comparison = a.status.localeCompare(b.status);
           break;
+        case "type":
+          comparison = a.type.localeCompare(b.type);
+          break;
+        case "clinician":
+          comparison = a.clinician.localeCompare(b.clinician);
+          break;
+        case "location":
+          comparison = a.location.localeCompare(b.location);
+          break;
       }
       return sortDirection === "asc" ? comparison : -comparison;
     });
+
+  // Paginate the filtered results
+  const paginatedAppointments = filteredAppointments.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   // Wrapper to update appointments and notify parent
   const setAppointments = (updater: Appointment[] | ((prev: Appointment[]) => Appointment[])) => {
@@ -879,14 +897,20 @@ const AppointmentScheduler = ({
     setEmailAppointment(null);
   };
 
-  const getStatusBadge = (status: Appointment["status"]) => {
-    const styles: Record<Appointment["status"], string> = {
-      scheduled: "bg-blue-500",
-      completed: "bg-gray-500",
-      cancelled: "bg-red-500",
-      "no_show": "bg-amber-500"
+  const getStatusBadge = (status: Appointment["status"], showIcon: boolean = false) => {
+    const styles: Record<Appointment["status"], { bg: string; text: string; label: string }> = {
+      scheduled: { bg: "bg-indigo-100", text: "text-indigo-700", label: "Scheduled" },
+      completed: { bg: "bg-green-100", text: "text-green-700", label: "Completed" },
+      cancelled: { bg: "bg-red-100", text: "text-red-700", label: "Cancelled" },
+      "no_show": { bg: "bg-gray-200", text: "text-gray-700", label: "No Show" }
     };
-    return <Badge className={styles[status]}>{status}</Badge>;
+    const style = styles[status];
+    return (
+      <Badge className={`${style.bg} ${style.text} hover:${style.bg} border-0 px-3 py-1.5 text-sm font-semibold ${showIcon ? 'flex items-center gap-1.5' : ''}`}>
+        {style.label}
+        {showIcon && <ChevronDown className="h-3.5 w-3.5" />}
+      </Badge>
+    );
   };
 
   const getTypeBadge = (type: Appointment["type"]) => {
@@ -938,16 +962,65 @@ const AppointmentScheduler = ({
 
   const internalFullyBookedDates = getFullyBookedDatesInternal(formData.clinician);
 
+  // Calculate status counts
+  const statusCounts = useMemo(() => [
+    {
+      status: "scheduled",
+      count: appointments.filter(apt => apt.status === "scheduled").length,
+      label: "Scheduled",
+      colorClasses: {
+        bg: "bg-indigo-100",
+        text: "text-indigo-700",
+        activeBg: "bg-indigo-200",
+        activeText: "text-indigo-900"
+      }
+    },
+    {
+      status: "completed",
+      count: appointments.filter(apt => apt.status === "completed").length,
+      label: "Completed",
+      colorClasses: {
+        bg: "bg-green-100",
+        text: "text-green-700",
+        activeBg: "bg-green-200",
+        activeText: "text-green-900"
+      }
+    },
+    {
+      status: "cancelled",
+      count: appointments.filter(apt => apt.status === "cancelled").length,
+      label: "Cancelled",
+      colorClasses: {
+        bg: "bg-red-100",
+        text: "text-red-700",
+        activeBg: "bg-red-200",
+        activeText: "text-red-900"
+      }
+    },
+    {
+      status: "no_show",
+      count: appointments.filter(apt => apt.status === "no_show").length,
+      label: "No Show",
+      colorClasses: {
+        bg: "bg-gray-200",
+        text: "text-gray-700",
+        activeBg: "bg-gray-300",
+        activeText: "text-gray-900"
+      }
+    },
+  ], [appointments]);
+
   return (
     <div className="space-y-4 md:space-y-6">
       <div className="flex flex-col gap-3">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-          <h2 className="text-lg md:text-xl font-semibold">
+          <h2 className="text-lg md:text-xl font-semibold flex items-center gap-2">
+            <CalendarIcon className="h-5 w-5 text-primary" />
             Appointments ({filteredAppointments.length}{filterStatus !== "all" || searchQuery ? ` of ${appointments.length}` : ""})
           </h2>
           <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
             <DialogTrigger asChild>
-              <Button onClick={() => resetForm()} className="w-full sm:w-auto">
+              <Button onClick={() => resetForm()} className="w-full sm:w-auto bg-blue-600 text-white hover:bg-blue-700 border-transparent shadow-sm">
                 <Plus className="h-4 w-4 mr-2" /> Schedule Appointment
               </Button>
             </DialogTrigger>
@@ -1016,12 +1089,12 @@ const AppointmentScheduler = ({
                         <Button
                           variant="outline"
                           className={cn(
-                            "w-full justify-start text-left font-normal",
+                            "w-full justify-start text-left font-normal overflow-hidden",
                             !selectedDate && "text-muted-foreground"
                           )}
                         >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
+                          <CalendarIcon className="mr-1 h-4 w-4 shrink-0" />
+                          <span className="truncate">{selectedDate ? format(selectedDate, "PPP") : "Pick a date"}</span>
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
@@ -1164,7 +1237,7 @@ const AppointmentScheduler = ({
                   />
                 </div>
 
-                <Button onClick={handleSaveAppointment} className="w-full">
+                <Button onClick={handleSaveAppointment} className="w-full bg-blue-600 text-white hover:bg-blue-700 shadow-sm">
                   {editingAppointment ? "Update Appointment" : "Schedule Appointment"}
                 </Button>
               </div>
@@ -1172,143 +1245,158 @@ const AppointmentScheduler = ({
           </Dialog>
         </div>
 
-        {/* Filter Controls */}
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative flex-1 md:flex-none md:w-48">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        {/* Search Controls - Simplified */}
+        <div className="flex flex-col md:flex-row gap-3">
+          <div className="relative w-full md:min-w-[280px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search..."
+              placeholder="Search patients..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8 h-9"
+              className="pl-9 h-10 bg-background"
             />
           </div>
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-32 h-9">
-              <Filter className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="scheduled">Scheduled</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
-              <SelectItem value="no_show">No Show</SelectItem>
-            </SelectContent>
-          </Select>
+          {/* Mobile-only sort control */}
+          <div className="md:hidden">
+            <Select
+              value={`${sortField}-${sortDirection}`}
+              onValueChange={(value) => {
+                const [field, direction] = value.split('-') as ["name" | "date" | "status", "asc" | "desc"];
+                setSortField(field);
+                setSortDirection(direction);
+              }}
+            >
+              <SelectTrigger className="w-full h-10 bg-background">
+                {sortDirection === "asc" ? <ArrowUp className="h-4 w-4 mr-2 text-muted-foreground" /> : <ArrowDown className="h-4 w-4 mr-2 text-muted-foreground" />}
+                <SelectValue placeholder="Sort" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="name-asc">Name (A-Z)</SelectItem>
+                <SelectItem value="name-desc">Name (Z-A)</SelectItem>
+                <SelectItem value="date-asc">Date (Old-New)</SelectItem>
+                <SelectItem value="date-desc">Date (New-Old)</SelectItem>
+                <SelectItem value="status-asc">Status (A-Z)</SelectItem>
+                <SelectItem value="status-desc">Status (Z-A)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
+      {/* Interactive Status Counters */}
+      <StatusCounts
+        statusCounts={statusCounts}
+        activeFilter={filterStatus}
+        onFilterChange={setFilterStatus}
+      />
+
       {/* Mobile Cards */}
-      <div className="md:hidden space-y-3">
-        {filteredAppointments.map(apt => (
-          <Card key={apt.id} className={`p-4 ${getStatusRowClass(apt.status)}`}>
-            <div className="flex justify-between items-start mb-3">
-              <div className="flex items-center gap-2">
-                <User className="h-4 w-4 text-muted-foreground" />
+      <div className="md:hidden space-y-4">
+        {paginatedAppointments.map(apt => (
+          <Card key={apt.id} className="overflow-hidden shadow-lg ring-1 ring-slate-900/5 dark:ring-slate-100/10 rounded-xl bg-white dark:bg-slate-800">
+            {/* Header */}
+            <div className="px-4 py-3">
+              <div className="flex justify-between items-start mb-2">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <User className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <div className="min-w-0">
+                    <p className="font-semibold truncate">{apt.patientName}</p>
+                    {/* Clickable contact links */}
+                    <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
+                      {apt.patientPhone && (
+                        <a
+                          href={`tel:${apt.patientPhone}`}
+                          className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline flex items-center gap-1"
+                        >
+                          <Phone className="h-3 w-3" />
+                          {apt.patientPhone}
+                        </a>
+                      )}
+                      {apt.patientEmail && (
+                        <a
+                          href={`mailto:${apt.patientEmail}`}
+                          className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline flex items-center gap-1"
+                        >
+                          <Mail className="h-3 w-3" />
+                          <span className="truncate max-w-[120px]">{apt.patientEmail}</span>
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                {(() => {
+                  const todayStr = format(new Date(), "yyyy-MM-dd");
+                  const isPastDue = apt.status === "scheduled" && apt.appointmentDate < todayStr;
+                  if (isPastDue) {
+                    return (
+                      <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100 border-0 px-3 py-1.5 text-sm font-semibold flex items-center gap-1.5">
+                        <AlertCircle className="h-3.5 w-3.5" />
+                        Update Appointment
+                      </Badge>
+                    );
+                  }
+                  return getStatusBadge(apt.status);
+                })()}
+              </div>
+            </div>
+
+            {/* Appointment Info */}
+            <div className="px-4 py-3">
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <CalendarIcon className="h-4 w-4 shrink-0" />
+                  <span>{format(new Date(apt.appointmentDate), "MMM d")}</span>
+                </div>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Clock className="h-4 w-4 shrink-0" />
+                  <span>{apt.appointmentTime} ({apt.duration}m)</span>
+                </div>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <MapPin className="h-4 w-4 shrink-0" />
+                  <span className="capitalize">{apt.location.replace("-", " ")}</span>
+                </div>
                 <div>
-                  <p className="font-medium">{apt.patientName}</p>
-                  <p className="text-xs text-muted-foreground">{apt.patientPhone}</p>
+                  {getTypeBadge(apt.type)}
                 </div>
               </div>
-              {getStatusBadge(apt.status)}
+              <p className="text-xs text-muted-foreground mt-3">{apt.clinician}</p>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 text-sm mb-3">
-              <div className="flex items-center gap-1.5">
-                <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
-                <span>{format(new Date(apt.appointmentDate), "MMM d")}</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                <span>{apt.appointmentTime} ({apt.duration}m)</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="capitalize">{apt.location.replace("-", " ")}</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                {getTypeBadge(apt.type)}
-              </div>
-            </div>
-
-            <p className="text-xs text-muted-foreground mb-3">{apt.clinician}</p>
-
-            <div className="flex items-center justify-between">
-
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div>
-                      <Select
-                        value={apt.status}
-                        onValueChange={(value) => handleUpdateStatus(apt.id, value as Appointment["status"])}
-                      >
-                        <SelectTrigger className="w-28 h-8 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="scheduled">Scheduled</SelectItem>
-                          <SelectItem value="confirmed">Confirmed</SelectItem>
-                          <SelectItem value="completed">Completed</SelectItem>
-                          <SelectItem value="cancelled">Cancelled</SelectItem>
-                          <SelectItem value="no_show">No Show</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </TooltipTrigger>
-                  {apt.status === "scheduled" && (
-                    <TooltipContent>
-                      <div className="flex items-center gap-2">
-                        <CalendarIcon className="h-4 w-4" />
-                        <span>
-                          {format(new Date(apt.appointmentDate), "MMM d, yyyy")} @ {apt.appointmentTime}
-                        </span>
-                      </div>
-                    </TooltipContent>
-                  )}
-                </Tooltip>
-              </TooltipProvider>
-              <div className="flex gap-1">
+            {/* Action Buttons */}
+            <div className="px-4 py-4 space-y-3">
+              {/* View and Edit Row */}
+              <div className="grid grid-cols-2 gap-3">
                 <Button
                   variant="outline"
-                  size="sm"
-                  className="h-8 w-8 p-0"
+                  className="w-full h-11 border-slate-300 text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800 flex items-center justify-center gap-2"
                   onClick={() => {
                     setViewAppointment(apt);
                     setIsViewDialogOpen(true);
                   }}
-                  title="View Details"
                 >
-                  <Eye className="h-3 w-3" />
+                  <Eye className="h-4 w-4" />
+                  <span>View</span>
                 </Button>
                 <Button
                   variant="outline"
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                  onClick={() => window.location.href = `tel:${apt.patientPhone}`}
-                  disabled={!apt.patientPhone}
-                  title="Call Patient"
+                  className="w-full h-11 border-slate-300 text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800 flex items-center justify-center gap-2"
+                  onClick={() => handleEditAppointment(apt)}
                 >
-                  <Phone className="h-3 w-3" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => openEmailDialog(apt)}
-                  disabled={!apt.patientEmail}
-                  className="h-8 px-2"
-                >
-                  <Send className="h-3 w-3" />
-                  {emailsSent[apt.id] && <CheckCircle2 className="h-3 w-3 text-green-500 ml-1" />}
-                </Button>
-                <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => handleEditAppointment(apt)}>
                   <Pencil className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => handleDeleteAppointment(apt.id)}>
-                  <Trash2 className="h-4 w-4 text-destructive" />
+                  <span>Edit</span>
                 </Button>
               </div>
+              {/* Delete Button */}
+              <RoleGate allowedRoles={['admin']}>
+                <Button
+                  variant="outline"
+                  className="w-full h-11 border-red-300 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/30 flex items-center justify-center gap-2"
+                  onClick={() => handleDeleteAppointment(apt.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span>Delete</span>
+                </Button>
+              </RoleGate>
             </div>
           </Card>
         ))}
@@ -1317,21 +1405,29 @@ const AppointmentScheduler = ({
             {appointments.length === 0 ? "No appointments scheduled" : "No results match your filters"}
           </p>
         )}
+        {/* Mobile Pagination */}
+        <AdminPagination
+          currentPage={currentPage}
+          totalItems={filteredAppointments.length}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+          onItemsPerPageChange={setItemsPerPage}
+        />
       </div>
 
 
       {/* Desktop Table */}
-      <div className="hidden md:block overflow-x-auto">
+      <div className="hidden md:block overflow-x-auto rounded-md border">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="bg-muted/50 hover:bg-muted/50 border-b-0">
               <TableHead
                 className="cursor-pointer hover:bg-muted/50 select-none"
                 onClick={() => toggleSort("name")}
               >
                 <div className="flex items-center gap-1">
                   Patient
-                  <ArrowUpDown className={`h-3.5 w-3.5 ${sortField === "name" ? "text-primary" : "text-muted-foreground"}`} />
+                  <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
                 </div>
               </TableHead>
               <TableHead
@@ -1340,56 +1436,64 @@ const AppointmentScheduler = ({
               >
                 <div className="flex items-center gap-1">
                   Date & Time
-                  <ArrowUpDown className={`h-3.5 w-3.5 ${sortField === "date" ? "text-primary" : "text-muted-foreground"}`} />
+                  <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
                 </div>
               </TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Clinician</TableHead>
-              <TableHead>Location</TableHead>
+              <TableHead
+                className="cursor-pointer hover:bg-muted/50 select-none"
+                onClick={() => toggleSort("type")}
+              >
+                <div className="flex items-center gap-1">
+                  Type
+                  <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
+                </div>
+              </TableHead>
+              <TableHead
+                className="cursor-pointer hover:bg-muted/50 select-none"
+                onClick={() => toggleSort("clinician")}
+              >
+                <div className="flex items-center gap-1">
+                  Clinician
+                  <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
+                </div>
+              </TableHead>
+              <TableHead
+                className="cursor-pointer hover:bg-muted/50 select-none"
+                onClick={() => toggleSort("location")}
+              >
+                <div className="flex items-center gap-1">
+                  Location
+                  <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
+                </div>
+              </TableHead>
               <TableHead
                 className="cursor-pointer hover:bg-muted/50 select-none"
                 onClick={() => toggleSort("status")}
               >
                 <div className="flex items-center gap-1">
                   Status
-                  <ArrowUpDown className={`h-3.5 w-3.5 ${sortField === "status" ? "text-primary" : "text-muted-foreground"}`} />
+                  <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
                 </div>
               </TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredAppointments.map(apt => (
-              <TableRow key={apt.id} className={getStatusRowClass(apt.status)}>
+            {paginatedAppointments.map((apt, index) => (
+              <TableRow key={apt.id} className={index % 2 === 1 ? "bg-muted/50" : ""}>
                 <TableCell>
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <div className="font-medium">{apt.patientName}</div>
-                      <div className="text-sm text-muted-foreground">{apt.patientPhone}</div>
-                    </div>
-                  </div>
+                  <div className="font-bold">{apt.patientName}</div>
+                  <div className="text-sm text-muted-foreground">{apt.patientPhone}</div>
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-2">
-                    <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <div>{format(new Date(apt.appointmentDate), "MMM d, yyyy")}</div>
-                      <div className="text-sm text-muted-foreground flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {apt.appointmentTime} ({apt.duration}min)
-                      </div>
-                    </div>
+                  <div>{format(new Date(apt.appointmentDate), "MMM d, yyyy")}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {apt.appointmentTime} ({apt.duration}min)
                   </div>
                 </TableCell>
                 <TableCell>{getTypeBadge(apt.type)}</TableCell>
                 <TableCell>{apt.clinician}</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3 text-muted-foreground" />
-                    <span className="capitalize">{apt.location.replace("-", " ")}</span>
-                  </div>
-                </TableCell>
+                <TableCell className="capitalize">{apt.location.replace("-", " ")}</TableCell>
                 <TableCell>
                   <TooltipProvider>
                     <Tooltip>
@@ -1399,15 +1503,47 @@ const AppointmentScheduler = ({
                             value={apt.status}
                             onValueChange={(value) => handleUpdateStatus(apt.id, value as Appointment["status"])}
                           >
-                            <SelectTrigger className="w-28">
-                              <SelectValue />
+                            <SelectTrigger className="w-auto min-w-[130px] border-0 bg-transparent hover:bg-muted/50 h-auto p-0 [&>svg]:hidden">
+                              {(() => {
+                                const todayStr = format(new Date(), "yyyy-MM-dd");
+                                const isPastDue = apt.status === "scheduled" && apt.appointmentDate < todayStr;
+                                if (isPastDue) {
+                                  return (
+                                    <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100 border-0 px-3 py-1.5 text-sm font-semibold flex items-center gap-1.5">
+                                      <AlertCircle className="h-3.5 w-3.5" />
+                                      Update Appointment
+                                      <ChevronDown className="h-3.5 w-3.5" />
+                                    </Badge>
+                                  );
+                                }
+                                return getStatusBadge(apt.status, true);
+                              })()}
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="scheduled">Scheduled</SelectItem>
-                              <SelectItem value="confirmed">Confirmed</SelectItem>
-                              <SelectItem value="completed">Completed</SelectItem>
-                              <SelectItem value="cancelled">Cancelled</SelectItem>
-                              <SelectItem value="no-show">No Show</SelectItem>
+                              <SelectItem value="scheduled" className="text-sm font-medium">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
+                                  <span className="text-indigo-700">Scheduled</span>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="completed" className="text-sm font-medium">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                                  <span className="text-green-700">Completed</span>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="cancelled" className="text-sm font-medium">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                                  <span className="text-red-700">Cancelled</span>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="no_show" className="text-sm font-medium">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-3 h-3 rounded-full bg-gray-500"></div>
+                                  <span className="text-gray-700">No Show</span>
+                                </div>
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -1427,9 +1563,9 @@ const AppointmentScheduler = ({
                 </TableCell>
                 <TableCell className="text-right space-x-1">
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="icon"
-                    className="h-8 w-8"
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
                     onClick={() => {
                       setViewAppointment(apt);
                       setIsViewDialogOpen(true);
@@ -1439,9 +1575,9 @@ const AppointmentScheduler = ({
                     <Eye className="h-3 w-3" />
                   </Button>
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="icon"
-                    className="h-8 w-8"
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
                     onClick={() => window.location.href = `tel:${apt.patientPhone}`}
                     disabled={!apt.patientPhone}
                     title="Call Patient"
@@ -1449,23 +1585,25 @@ const AppointmentScheduler = ({
                     <Phone className="h-3 w-3" />
                   </Button>
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     onClick={() => openEmailDialog(apt)}
-                    className="gap-1"
+                    className="gap-1 text-muted-foreground hover:text-foreground"
                     disabled={!apt.patientEmail}
                     title={apt.patientEmail ? "Send email" : "No email address"}
                   >
                     <Send className="h-3 w-3" />
                     {emailsSent[apt.id] ? "Resend" : "Email"}
-                    {emailsSent[apt.id] && <CheckCircle2 className="h-3 w-3 text-green-500" />}
+                    {emailsSent[apt.id] && <CheckCircle2 className="h-3 w-3 text-blue-500" />}
                   </Button>
                   <Button variant="ghost" size="sm" onClick={() => handleEditAppointment(apt)}>
                     <Pencil className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => handleDeleteAppointment(apt.id)}>
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
+                  <RoleGate allowedRoles={['admin']}>
+                    <Button variant="ghost" size="sm" className="hover:bg-destructive/10" onClick={() => handleDeleteAppointment(apt.id)}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </RoleGate>
                 </TableCell>
               </TableRow>
             ))}
@@ -1478,6 +1616,17 @@ const AppointmentScheduler = ({
             )}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Desktop Pagination */}
+      <div className="hidden md:block">
+        <AdminPagination
+          currentPage={currentPage}
+          totalItems={filteredAppointments.length}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+          onItemsPerPageChange={setItemsPerPage}
+        />
       </div>
 
 
@@ -1564,7 +1713,7 @@ const AppointmentScheduler = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </div >
   );
 };
 

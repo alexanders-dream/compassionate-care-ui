@@ -1,22 +1,37 @@
 import { Helmet } from "react-helmet-async";
 import { useParams, Link, Navigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
-import { blogPosts } from "@/data/blogPosts";
+import { useSiteData } from "@/contexts/SiteDataContext";
 import { Calendar, Clock, User, ArrowLeft, ArrowRight, Share2, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import DOMPurify from "dompurify";
+import { cn } from "@/lib/utils";
 
 const BlogPost = () => {
   const { slug } = useParams<{ slug: string }>();
-  const post = blogPosts.find(p => p.id === slug);
+  const { blogPosts, loading } = useSiteData();
+
+  // Find post by ID or Slug for backward compatibility
+  const post = blogPosts.find(p => p.id === slug || p.slug === slug);
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      </Layout>
+    );
+  }
 
   if (!post) {
     return <Navigate to="/blog" replace />;
   }
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "";
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -24,15 +39,21 @@ const BlogPost = () => {
     });
   };
 
-  // Get related posts from same category
+  // Helper filter function
+  const isPublished = (p: typeof blogPosts[0]) =>
+    p.status === 'published' ||
+    (p.status === 'scheduled' && p.scheduledAt && new Date(p.scheduledAt) <= new Date());
+
+  // Get related posts from same category, excluding current post
   const relatedPosts = blogPosts
-    .filter(p => p.category === post.category && p.id !== post.id)
+    .filter(p => p.category === post.category && p.id !== post.id && isPublished(p))
     .slice(0, 3);
 
-  // Get next and previous posts
-  const currentIndex = blogPosts.findIndex(p => p.id === post.id);
-  const prevPost = currentIndex > 0 ? blogPosts[currentIndex - 1] : null;
-  const nextPost = currentIndex < blogPosts.length - 1 ? blogPosts[currentIndex + 1] : null;
+  // Get next and previous posts (from filtered published list)
+  const publishedPosts = blogPosts.filter(isPublished);
+  const currentIndex = publishedPosts.findIndex(p => p.id === post.id);
+  const prevPost = currentIndex > 0 ? publishedPosts[currentIndex - 1] : null;
+  const nextPost = currentIndex < publishedPosts.length - 1 ? publishedPosts[currentIndex + 1] : null;
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -57,95 +78,141 @@ const BlogPost = () => {
         <meta name="description" content={post.excerpt} />
       </Helmet>
 
-      {/* Article Header */}
-      <section className="bg-[#EBF4FA] py-16 md:py-24">
-        <div className="container-main">
-          <div className="max-w-4xl mx-auto">
-            <Link
-              to="/blog"
-              className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors mb-8 group"
-            >
-              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-              Back to Blog
-            </Link>
-
-            <Badge variant="secondary" className="capitalize text-sm px-4 py-1.5 mb-6">
-              {post.category}
-            </Badge>
-
-            <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-8 leading-tight">
-              {post.title}
-            </h1>
-
-            <div className="flex flex-wrap items-center gap-4 text-muted-foreground">
-              <div className="flex items-center gap-3 bg-card/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm">
-                <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                  <User className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <p className="font-medium text-foreground text-sm">{post.author}</p>
-                  <p className="text-xs text-muted-foreground">Author</p>
-                </div>
+      <div className="bg-[#f8fafc] dark:bg-background min-h-screen pb-20">
+        {/* Article Header Background */}
+        <section className="bg-gradient-to-br from-[#EBF4FA] via-white to-[#EBF4FA] dark:from-secondary/10 dark:via-background dark:to-secondary/5 pt-24 pb-32 md:pb-48 px-4 relative overflow-hidden">
+          {post.imageUrl && (
+            <>
+              <div className="absolute inset-0 z-0">
+                <img
+                  src={post.imageUrl}
+                  alt={post.title}
+                  className="w-full h-full object-cover opacity-20 dark:opacity-10 blur-sm scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/80 to-[#EBF4FA] dark:from-background/80 dark:via-background/90 dark:to-background" />
               </div>
-              <span className="flex items-center gap-2 bg-card/80 backdrop-blur-sm px-4 py-2.5 rounded-full shadow-sm">
-                <Calendar className="w-4 h-4 text-primary" />
-                {formatDate(post.date)}
-              </span>
-              <span className="flex items-center gap-2 bg-card/80 backdrop-blur-sm px-4 py-2.5 rounded-full shadow-sm">
-                <Clock className="w-4 h-4 text-primary" />
-                {post.readTime}
-              </span>
-              <button
-                onClick={handleShare}
-                className="flex items-center gap-2 bg-card/80 backdrop-blur-sm px-4 py-2.5 rounded-full shadow-sm hover:bg-primary hover:text-primary-foreground transition-colors"
+            </>
+          )}
+          <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-primary/5 to-transparent pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-1/3 h-full bg-gradient-to-r from-secondary/5 to-transparent pointer-events-none" />
+
+          <div className="container-main relative z-10">
+            <div className="max-w-4xl mx-auto text-center">
+              <Link
+                to="/blog"
+                className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors mb-8 group no-underline text-sm font-medium"
               >
-                <Share2 className="w-4 h-4" />
-                Share
-              </button>
+                <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                Back to Blog
+              </Link>
+
+              <div className="mb-6 flex justify-center">
+                <Badge variant="secondary" className="capitalize text-sm px-4 py-1.5 shadow-sm hover:bg-secondary/80 transition-colors cursor-default">
+                  {post.category}
+                </Badge>
+              </div>
+
+              <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-secondary mb-8 leading-[1.15] tracking-tight">
+                {post.title}
+              </h1>
+
+              <div className="flex flex-wrap items-center justify-center gap-6 text-muted-foreground text-sm md:text-base">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                    <User className="w-4 h-4 text-primary" />
+                  </div>
+                  <span className="font-medium text-foreground">{post.author}</span>
+                </div>
+                <div className="w-1 h-1 rounded-full bg-border" />
+                <span className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-primary" />
+                  {formatDate(post.publishedAt)}
+                </span>
+                {post.readTime && (
+                  <>
+                    <div className="w-1 h-1 rounded-full bg-border" />
+                    <span className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-primary" />
+                      {post.readTime}
+                    </span>
+                  </>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Article Content */}
-      <section className="py-12 md:py-16">
-        <div className="container-main">
-          <div className="max-w-3xl mx-auto">
-            {/* Article Body */}
-            <article
-              className="prose prose-lg max-w-none
-                prose-headings:font-display prose-headings:text-foreground prose-headings:font-bold
-                prose-h2:text-2xl prose-h2:md:text-3xl prose-h2:mt-12 prose-h2:mb-6 prose-h2:pb-3 prose-h2:border-b prose-h2:border-border/50
-                prose-h3:text-xl prose-h3:md:text-2xl prose-h3:mt-8 prose-h3:mb-4
-                prose-p:text-muted-foreground prose-p:leading-relaxed prose-p:text-base prose-p:md:text-lg
-                prose-ul:text-muted-foreground prose-ol:text-muted-foreground
-                prose-li:my-2 prose-li:text-base prose-li:md:text-lg
-                prose-strong:text-foreground prose-strong:font-semibold
-                prose-a:text-primary prose-a:no-underline hover:prose-a:underline
-                prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:bg-muted/30 prose-blockquote:py-4 prose-blockquote:px-6 prose-blockquote:rounded-r-lg prose-blockquote:not-italic prose-blockquote:text-muted-foreground"
-              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
-            />
+        {/* Article Sheet Container */}
+        <div className="container-main -mt-20 md:-mt-32 relative z-20">
+          <div className="max-w-[800px] mx-auto">
+            {/* The "Paper" Sheet */}
+            <div className="bg-card rounded-2xl shadow-xl shadow-secondary/5 border border-border/50 overflow-hidden">
+              <div className="p-8 md:p-12 lg:p-16">
+                {/* Article Body */}
+                <article
+                  className={cn(
+                    "tiptap prose prose-lg max-w-none mx-auto",
+                    "prose-headings:font-display prose-headings:text-secondary prose-headings:font-bold",
+                    "prose-h2:text-2xl prose-h2:md:text-3xl prose-h2:mt-10 prose-h2:mb-6",
+                    "prose-h3:text-xl prose-h3:md:text-2xl",
+                    "prose-p:text-foreground/80 prose-p:leading-8",
+                    "prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-a:font-medium",
+                    "prose-li:text-foreground/80 prose-li:my-2",
+                    "prose-strong:text-foreground prose-strong:font-semibold",
+                    "prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:bg-primary/5 prose-blockquote:py-4 prose-blockquote:px-6 prose-blockquote:rounded-r-lg prose-blockquote:not-italic prose-blockquote:text-muted-foreground prose-blockquote:my-8",
+                    "prose-img:rounded-xl prose-img:shadow-md"
+                  )}
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(post.content, {
+                      ADD_TAGS: ["iframe"],
+                      ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "style", "title"],
+                    })
+                  }}
+                />
+
+                {/* Share Section */}
+                <div className="mt-16 pt-8 border-t border-dashed flex items-center justify-between">
+                  <p className="font-display font-semibold text-secondary">Share this article</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleShare}
+                    className="gap-2 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all"
+                  >
+                    <Share2 className="w-4 h-4" />
+                    Share
+                  </Button>
+                </div>
+              </div>
+            </div>
 
             {/* Post Navigation */}
-            <div className="mt-16 pt-8 border-t border-border grid md:grid-cols-2 gap-4">
+            <div className="mt-8 grid md:grid-cols-2 gap-4">
               {prevPost ? (
                 <Link
                   to={`/blog/${prevPost.id}`}
-                  className="group p-5 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors"
+                  className="group p-6 rounded-xl bg-white dark:bg-card border border-border/50 hover:border-primary/50 hover:shadow-lg transition-all text-left"
                 >
-                  <span className="text-xs text-muted-foreground uppercase tracking-wide">Previous</span>
-                  <p className="font-medium text-foreground mt-1 group-hover:text-primary transition-colors line-clamp-1">
+                  <span className="flex items-center gap-2 text-xs text-muted-foreground uppercase tracking-wider mb-2 font-medium">
+                    <ArrowLeft className="w-3 h-3 group-hover:-translate-x-1 transition-transform" />
+                    Previous Article
+                  </span>
+                  <p className="font-display font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2">
                     {prevPost.title}
                   </p>
                 </Link>
               ) : <div />}
+
               {nextPost && (
                 <Link
                   to={`/blog/${nextPost.id}`}
-                  className="group p-5 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors text-right"
+                  className="group p-6 rounded-xl bg-white dark:bg-card border border-border/50 hover:border-primary/50 hover:shadow-lg transition-all text-right"
                 >
-                  <span className="text-xs text-muted-foreground uppercase tracking-wide">Next</span>
-                  <p className="font-medium text-foreground mt-1 group-hover:text-primary transition-colors line-clamp-1">
+                  <span className="flex items-center justify-end gap-2 text-xs text-muted-foreground uppercase tracking-wider mb-2 font-medium">
+                    Next Article
+                    <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                  </span>
+                  <p className="font-display font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2">
                     {nextPost.title}
                   </p>
                 </Link>
@@ -154,93 +221,108 @@ const BlogPost = () => {
 
             {/* CTA Card */}
             <div className="mt-12">
-              <Card className="border-0 shadow-xl bg-[#EBF4FA] overflow-hidden">
-                <div className="absolute inset-0" />
-                <CardContent className="relative p-8 md:p-10 text-center">
-                  <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <BookOpen className="w-8 h-8 text-primary" />
+              <div className="bg-secondary rounded-2xl p-8 md:p-12 text-center text-secondary-foreground shadow-xl relative overflow-hidden">
+                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&q=80')] opacity-10 bg-cover bg-center mix-blend-overlay" />
+                <div className="relative z-10">
+                  <div className="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-6">
+                    <BookOpen className="w-8 h-8 text-white" />
                   </div>
-                  <h3 className="font-display text-2xl font-bold text-foreground mb-3">
-                    Need Professional Wound Care?
+                  <h3 className="font-display text-2xl md:text-3xl font-bold mb-4 text-white">
+                    Need Specialized Wound Care?
                   </h3>
-                  <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-                    Our expert clinicians provide personalized wound care in the comfort of your home.
+                  <p className="text-white/90 mb-8 max-w-lg mx-auto text-lg">
+                    Our expert clinicians provide personalized care in the comfort of your home. Get in touch today.
                   </p>
                   <div className="flex flex-wrap justify-center gap-4">
-                    <Button asChild size="lg">
+                    <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground border-0 shadow-lg shadow-primary/20 no-link-style">
                       <Link to="/request-visit">
                         Request a Visit
                         <ArrowRight className="ml-2 w-4 h-4" />
                       </Link>
                     </Button>
-                    <Button asChild variant="outline" size="lg">
+                    <Button asChild variant="outline" size="lg" className="bg-transparent border-white/20 !text-white hover:bg-white/10 hover:!text-white">
                       <Link to="/contact">Contact Us</Link>
                     </Button>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </section>
 
-      {/* Related Posts */}
-      {relatedPosts.length > 0 && (
-        <section className="py-16 md:py-20 bg-muted/30">
-          <div className="container-main">
-            <div className="max-w-5xl mx-auto">
-              <div className="flex items-center justify-between mb-10">
-                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-                  Related Articles
-                </h2>
-                <Link
-                  to="/blog"
-                  className="text-primary font-medium inline-flex items-center gap-1 hover:gap-2 transition-all"
-                >
-                  View All
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
-              <div className="grid md:grid-cols-3 gap-6">
-                {relatedPosts.map((relatedPost) => (
-                  <Card
-                    key={relatedPost.id}
-                    className="group overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+        {/* Related Posts */}
+        {relatedPosts.length > 0 && (
+          <section className="py-20 mt-12 border-t border-border/50">
+            <div className="container-main">
+              <div className="max-w-5xl mx-auto">
+                <div className="flex items-center justify-between mb-10">
+                  <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">
+                    Related Articles
+                  </h2>
+                  <Link
+                    to="/blog"
+                    className="text-primary font-medium inline-flex items-center gap-1 hover:gap-2 transition-all"
                   >
-                    <div className="h-32 bg-[#EBF4FA] flex items-center justify-center">
-                      <Badge variant="secondary" className="capitalize">
-                        {relatedPost.category}
-                      </Badge>
-                    </div>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-lg font-display line-clamp-2 group-hover:text-primary transition-colors">
-                        <Link to={`/blog/${relatedPost.id}`}>
-                          {relatedPost.title}
-                        </Link>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                        {relatedPost.excerpt}
-                      </p>
-                      <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span>{relatedPost.readTime}</span>
-                        <Link
-                          to={`/blog/${relatedPost.id}`}
-                          className="text-primary font-medium inline-flex items-center gap-1 group-hover:gap-2 transition-all"
-                        >
-                          Read
-                          <ArrowRight className="w-3 h-3" />
-                        </Link>
+                    View All
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
+                <div className="grid md:grid-cols-3 gap-8">
+                  {relatedPosts.map((relatedPost) => (
+                    <Card
+                      key={relatedPost.id}
+                      className="group overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-card h-full flex flex-col"
+                    >
+                      <div className="h-40 bg-muted flex items-center justify-center relative overflow-hidden">
+                        {relatedPost.imageUrl ? (
+                          <div className="absolute inset-0">
+                            <img
+                              src={relatedPost.imageUrl}
+                              alt={relatedPost.title}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            />
+                            <div className="absolute inset-0 bg-black/10" />
+                          </div>
+                        ) : (
+                          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5" />
+                        )}
+                        <Badge variant="secondary" className="capitalize relative z-10 shadow-sm hover:bg-secondary/80 transition-colors backdrop-blur-sm bg-white/90 dark:bg-slate-800/90">
+                          {relatedPost.category}
+                        </Badge>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-xl font-display line-clamp-2 group-hover:text-primary transition-colors">
+                          <Link to={`/blog/${relatedPost.id}`}>
+                            {relatedPost.title}
+                          </Link>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="flex-1 flex flex-col">
+                        <p className="text-sm text-muted-foreground line-clamp-3 mb-6 flex-1">
+                          {relatedPost.excerpt}
+                        </p>
+                        <div className="flex items-center justify-between text-xs text-muted-foreground pt-4 border-t border-border/50">
+                          <span className="flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5" />
+                            {relatedPost.readTime}
+                          </span>
+                          <Link
+                            to={`/blog/${relatedPost.id}`}
+                            className="text-primary font-medium inline-flex items-center gap-1 group-hover:gap-2 transition-all"
+                          >
+                            Read Article
+                            <ArrowRight className="w-3 h-3" />
+                          </Link>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-        </section>
-      )}
+          </section>
+        )}
+      </div>
     </Layout>
   );
 };

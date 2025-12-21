@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { supabase } from "@/integrations/supabase/client";
 
 import { defaultSiteCopy, SiteCopySection } from "@/data/siteCopy";
-import { defaultFormConfigs } from "@/data/formConfig";
+
 
 // Types based on Supabase schema
 export interface Testimonial {
@@ -29,6 +29,8 @@ export interface TeamMember {
   bio?: string | null;
   image_url?: string | null;
   display_order: number;
+  is_public: boolean;
+  user_id?: string | null;
 }
 
 export interface FAQ {
@@ -50,15 +52,16 @@ export interface PatientResource {
   download_count: number;
 }
 
-
-export interface FormConfig {
+export interface InsuranceProvider {
   id: string;
-  form_name: string;
-  config: any; // eslint-disable-line @typescript-eslint/no-explicit-any
-  // Legacy support for admin UI
-  name?: string;
-  fields?: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
+  name: string;
+  logo_url?: string | null;
+  description?: string | null;
+  payment_details?: string | null;
+  is_active: boolean;
+  display_order: number;
 }
+
 
 export interface VisitRequest {
   id: string;
@@ -162,6 +165,7 @@ export interface BlogPost {
   scheduledAt?: string;
   tags?: string[];
   slug: string;
+  is_featured?: boolean;
 }
 
 
@@ -191,7 +195,8 @@ interface SiteDataContextType {
   patientResources: PatientResource[];
   visitRequests: VisitRequest[];
   referrals: ProviderReferralSubmission[];
-  formConfigs: FormConfig[];
+  insuranceProviders: InsuranceProvider[];
+
   appointments: Appointment[];
   blogPosts: BlogPost[];
   siteCopy: SiteCopySection[];
@@ -205,7 +210,8 @@ interface SiteDataContextType {
   refreshPatientResources: () => Promise<void>;
   refreshVisitRequests: () => Promise<void>;
   refreshReferrals: () => Promise<void>;
-  refreshFormConfigs: () => Promise<void>;
+  refreshInsuranceProviders: () => Promise<void>;
+
   refreshAppointments: () => Promise<void>;
   refreshBlogPosts: () => Promise<void>;
   refreshSiteCopy: () => Promise<void>;
@@ -218,7 +224,8 @@ interface SiteDataContextType {
   setPatientResources: React.Dispatch<React.SetStateAction<PatientResource[]>>;
   setVisitRequests: React.Dispatch<React.SetStateAction<VisitRequest[]>>;
   setReferrals: React.Dispatch<React.SetStateAction<ProviderReferralSubmission[]>>;
-  setFormConfigs: React.Dispatch<React.SetStateAction<FormConfig[]>>;
+  setInsuranceProviders: React.Dispatch<React.SetStateAction<InsuranceProvider[]>>;
+
   setAppointments: React.Dispatch<React.SetStateAction<Appointment[]>>;
   setBlogPosts: React.Dispatch<React.SetStateAction<BlogPost[]>>;
   setSiteCopy: React.Dispatch<React.SetStateAction<SiteCopySection[]>>;
@@ -246,7 +253,8 @@ export const SiteDataProvider = ({ children }: SiteDataProviderProps) => {
   const [patientResources, setPatientResources] = useState<PatientResource[]>([]);
   const [visitRequests, setVisitRequests] = useState<VisitRequest[]>([]);
   const [referrals, setReferrals] = useState<ProviderReferralSubmission[]>([]);
-  const [formConfigs, setFormConfigs] = useState<FormConfig[]>([]);
+  const [insuranceProviders, setInsuranceProviders] = useState<InsuranceProvider[]>([]);
+
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [siteCopy, setSiteCopy] = useState<SiteCopySection[]>([]);
@@ -274,7 +282,8 @@ export const SiteDataProvider = ({ children }: SiteDataProviderProps) => {
         publishedAt: post.published_at || undefined,
         scheduledAt: post.scheduled_at || undefined,
         tags: post.tags || [],
-        slug: post.slug
+        slug: post.slug,
+        is_featured: (post as any).is_featured || false
       })));
     }
   };
@@ -338,7 +347,12 @@ export const SiteDataProvider = ({ children }: SiteDataProviderProps) => {
       .order("display_order", { ascending: true });
 
     if (!error && data) {
-      setTeamMembers(data);
+      // Ensure is_public is present (default true if missing from DB response yet)
+      const mappedData: TeamMember[] = data.map((item: any) => ({
+        ...item,
+        is_public: item.is_public ?? true
+      }));
+      setTeamMembers(mappedData);
     }
   };
 
@@ -370,7 +384,12 @@ export const SiteDataProvider = ({ children }: SiteDataProviderProps) => {
       .select("*")
       .order("created_at", { ascending: false });
 
+    if (error) {
+      console.error("Error fetching visit requests:", error);
+    }
+
     if (!error && data) {
+      console.log("Fetched visit requests:", data.length);
       setVisitRequests(data.map((item: VisitRequestRecord) => {
         // Handle name splitting helper
         const [firstName, ...lastNameParts] = (item.patient_name || "").split(" ");
@@ -400,7 +419,12 @@ export const SiteDataProvider = ({ children }: SiteDataProviderProps) => {
       .select("*")
       .order("created_at", { ascending: false });
 
+    if (error) {
+      console.error("Error fetching referrals:", error);
+    }
+
     if (!error && data) {
+      console.log("Fetched referrals:", data.length);
       setReferrals(data.map((item: ProviderReferralRecord) => {
         // Handle name splitting
         const [pFirst, ...pLastParts] = (item.patient_name || "").split(" ");
@@ -429,31 +453,16 @@ export const SiteDataProvider = ({ children }: SiteDataProviderProps) => {
     }
   };
 
-  const refreshFormConfigs = async () => {
-    const { data, error } = await supabase
-      .from("form_configs")
-      .select("*");
 
-    if (!error && data && data.length > 0) {
-      setFormConfigs(data.map(item => {
-        const config = item.config as any;
-        return {
-          id: item.id,
-          form_name: item.form_name,
-          config: item.config,
-          name: item.form_name,
-          fields: config?.fields || []
-        };
-      }));
-    } else {
-      // Fallback to defaults if DB is empty
-      setFormConfigs(defaultFormConfigs.map(c => ({
-        id: c.id,
-        form_name: c.name,
-        config: { description: c.description, fields: c.fields },
-        name: c.name,
-        fields: c.fields
-      })));
+
+  const refreshInsuranceProviders = async () => {
+    const { data, error } = await (supabase as any)
+      .from("insurance_providers")
+      .select("*")
+      .order("display_order", { ascending: true });
+
+    if (!error && data) {
+      setInsuranceProviders(data as InsuranceProvider[]);
     }
   };
 
@@ -463,7 +472,12 @@ export const SiteDataProvider = ({ children }: SiteDataProviderProps) => {
       .select("*")
       .order("appointment_date", { ascending: true });
 
+    if (error) {
+      console.error("Error fetching appointments:", error);
+    }
+
     if (!error && data) {
+      console.log("Fetched appointments:", data.length);
       const validAppointments: Appointment[] = (data || []).map(item => ({
         id: item.id,
         patientName: item.patient_name,
@@ -487,10 +501,11 @@ export const SiteDataProvider = ({ children }: SiteDataProviderProps) => {
     }
   };
 
-  // Initial data fetch
+  // Initial data fetch and auth listener
   useEffect(() => {
     const fetchAllData = async () => {
       setLoading(true);
+      console.log("Fetching all site data...");
       await Promise.all([
         refreshTestimonials(),
         refreshServices(),
@@ -499,15 +514,28 @@ export const SiteDataProvider = ({ children }: SiteDataProviderProps) => {
         refreshPatientResources(),
         refreshVisitRequests(),
         refreshReferrals(),
-        refreshFormConfigs(),
+        refreshInsuranceProviders(),
+
         refreshAppointments(),
         refreshBlogPosts(),
         refreshSiteCopy()
       ]);
       setLoading(false);
+      console.log("Finished fetching all site data.");
     };
 
     fetchAllData();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      console.log("Auth state changed:", event);
+      if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+        fetchAllData();
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   return (
@@ -520,7 +548,8 @@ export const SiteDataProvider = ({ children }: SiteDataProviderProps) => {
         patientResources,
         visitRequests,
         referrals,
-        formConfigs,
+        insuranceProviders,
+
         appointments,
         blogPosts,
         siteCopy,
@@ -532,7 +561,8 @@ export const SiteDataProvider = ({ children }: SiteDataProviderProps) => {
         refreshPatientResources,
         refreshVisitRequests,
         refreshReferrals,
-        refreshFormConfigs,
+        refreshInsuranceProviders,
+
         refreshAppointments,
         refreshBlogPosts,
         refreshSiteCopy,
@@ -543,7 +573,8 @@ export const SiteDataProvider = ({ children }: SiteDataProviderProps) => {
         setPatientResources,
         setVisitRequests,
         setReferrals,
-        setFormConfigs,
+        setInsuranceProviders,
+
         setAppointments,
         setBlogPosts,
         setSiteCopy,

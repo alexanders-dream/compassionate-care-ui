@@ -1,26 +1,35 @@
 import { useState, useEffect } from "react";
+import RichEditor from "@/components/admin/RichEditor";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { ImageInsertionDialog } from "@/components/admin/ImageInsertionDialog";
+import { SchedulePopover } from "@/components/admin/SchedulePopover";
 import {
-  Sparkles, Search, Loader2, Plus, X, Image, Youtube, Save, Send, Settings,
-  Lightbulb, RefreshCw, Wand2, Eye, EyeOff, Check
+  Sparkles, Search, Loader2, Plus, X, Image as ImageIcon, Youtube, Save, Send, Settings,
+  Lightbulb, RefreshCw, Wand2, Eye, EyeOff, Check, ChevronDown, Calendar as CalendarIcon
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { aiProviders, getProviderById } from "@/data/aiProviders";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { aiProviders, getProviderById, AIModel } from "@/data/aiProviders";
 import { BlogPost, categories, blogPosts } from "@/data/blogPosts";
 import { supabase } from "@/integrations/supabase/client";
-import { getAIConfig, saveAIConfig, AIConfig } from "@/lib/ai/config";
-import { fetchModels, generateTopics, researchKeywords, generateArticleContent } from "@/lib/ai/service";
-import DOMPurify from "dompurify";
+import { getAIConfig, AIConfig } from "@/lib/ai/config";
+import { generateTopics, researchKeywords, generateArticleContent } from "@/lib/ai/service";
+import { AISidebar } from "@/components/admin/ai/AISidebar";
+import { useAIEditor } from "@/hooks/use-ai-editor";
+import { useAIConfig } from "@/hooks/use-ai-config";
+import { Editor } from "@tiptap/react";
 
 interface AIArticleGeneratorProps {
-  onSaveArticle: (article: BlogPost & { status: "draft" | "published" | "scheduled"; scheduledDate?: string; media?: ArticleMedia[] }) => void;
+  onSaveArticle: (article: BlogPost & { status: "draft" | "published" | "scheduled"; scheduledDate?: string; scheduledAt?: string; media?: ArticleMedia[] }) => void;
   editingArticle?: BlogPost | null;
 }
 
@@ -32,11 +41,10 @@ export interface ArticleMedia {
 
 const AIArticleGenerator = ({ onSaveArticle, editingArticle }: AIArticleGeneratorProps) => {
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
-  // --- AI Config State ---
-  const [config, setConfig] = useState<AIConfig>({ provider: "", apiKey: "", model: "" });
-  const [showApiKey, setShowApiKey] = useState(false);
-  const [isConfigExpanded, setIsConfigExpanded] = useState(false);
+  // --- AI Config State (for Strategy & Editor) ---
+  const { config, setConfig } = useAIConfig();
 
   // --- Strategy State ---
   const [topic, setTopic] = useState("");
@@ -57,44 +65,30 @@ const AIArticleGenerator = ({ onSaveArticle, editingArticle }: AIArticleGenerato
   // --- Generation State ---
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationStep, setGenerationStep] = useState<string>("");
+  const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
+
+  // --- Editor Instance for Quick Actions ---
+  const [editor, setEditor] = useState<Editor | null>(null);
+
+  // --- Config UI State ---
+  const [isConfigExpanded, setIsConfigExpanded] = useState(false);
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [isLoadingModels, setIsLoadingModels] = useState(false);
+  const [availableModels, setAvailableModels] = useState<AIModel[]>([]);
 
   // --- Effects ---
-  useEffect(() => {
-    const loadConfig = async () => {
-      const savedConfig = await getAIConfig(supabase);
-      if (savedConfig) {
-        setConfig(savedConfig);
-      } else {
-        setIsConfigExpanded(true); // Open config if none exists
-      }
-    };
-    loadConfig();
-  }, []);
+  // No longer needed, useAIConfig handles loading
 
-  // --- Handlers: Configuration ---
-  const handleSaveConfig = async () => {
-    if (!config.provider || !config.apiKey) {
-      toast({ title: "Provider and API Key are required", variant: "destructive" });
-      return;
-    }
-    const success = await saveAIConfig(supabase, config);
-    if (success) {
-      toast({ title: "Settings saved", description: "Your API key has been stored securely." });
-      setIsConfigExpanded(false);
-    } else {
-      toast({ title: "Failed to save settings", variant: "destructive" });
-    }
-  };
+  // Use AI Hook
+  const { isProcessing, applyAIAction, applyCustomPrompt } = useAIEditor({ editor, config });
 
-  const handleProviderChange = (providerId: string) => {
-    setConfig(prev => ({ ...prev, provider: providerId, model: "" }));
-  };
+  // Combine processing states for UI
+  const isBusy = isProcessing || isGenerating;
 
   // --- Handlers: Strategy ---
   const handleSuggestTopics = async () => {
     if (!config.apiKey) {
       toast({ title: "Please configure AI settings first", variant: "destructive" });
-      setIsConfigExpanded(true);
       return;
     }
     setIsSuggesting(true);
@@ -119,7 +113,6 @@ const AIArticleGenerator = ({ onSaveArticle, editingArticle }: AIArticleGenerato
   const handleGenerate = async () => {
     if (!config.apiKey) {
       toast({ title: "Configure AI first", variant: "destructive" });
-      setIsConfigExpanded(true);
       return;
     }
     if (!topic.trim()) {
@@ -157,14 +150,49 @@ const AIArticleGenerator = ({ onSaveArticle, editingArticle }: AIArticleGenerato
     }
   };
 
+  // --- Handlers: Config ---
+  const handleProviderChange = (providerId: string) => {
+    setConfig(prev => ({ ...prev, provider: providerId, model: "" }));
+    setAvailableModels([]);
+  };
+
+  const handleRefreshModels = async () => {
+    if (!config.apiKey || !config.provider) {
+      toast({ title: "Please enter API key first", variant: "destructive" });
+      return;
+    }
+    setIsLoadingModels(true);
+    try {
+      const provider = getProviderById(config.provider);
+      if (provider?.models) {
+        setAvailableModels(provider.models);
+        toast({ title: "Models loaded" });
+      }
+    } catch (error: any) {
+      toast({ title: "Error loading models", description: error.message, variant: "destructive" });
+    } finally {
+      setIsLoadingModels(false);
+    }
+  };
+
+  const handleSaveConfig = async () => {
+    try {
+      // Save to localStorage or database
+      localStorage.setItem('ai_config', JSON.stringify(config));
+      toast({ title: "Settings saved" });
+    } catch (error: any) {
+      toast({ title: "Error saving settings", description: error.message, variant: "destructive" });
+    }
+  };
+
   // --- Handlers: Saving ---
-  const handleSave = (status: "draft" | "published") => {
+  const handleSave = (status: "draft" | "published" | "scheduled", scheduledDate?: Date) => {
     if (!title) {
       toast({ title: "Title is required", variant: "destructive" });
       return;
     }
-    const article: BlogPost & { status: "draft" | "published" | "scheduled"; scheduledDate?: string; media?: ArticleMedia[] } = {
-      id: editingArticle?.id || title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+    const article: BlogPost & { status: "draft" | "published" | "scheduled"; scheduledDate?: string; scheduledAt?: string; media?: ArticleMedia[]; slug?: string } = {
+      id: editingArticle?.id || "",
       title,
       excerpt,
       content,
@@ -173,8 +201,12 @@ const AIArticleGenerator = ({ onSaveArticle, editingArticle }: AIArticleGenerato
       date: new Date().toISOString().split('T')[0],
       readTime,
       image: featuredImage || undefined,
+      imageUrl: featuredImage || undefined,
       status,
       media: media.length > 0 ? media : undefined,
+      slug: title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      scheduledDate: scheduledDate?.toISOString(),
+      scheduledAt: scheduledDate?.toISOString(),
     };
     onSaveArticle(article);
     toast({ title: status === "published" ? "Published!" : "Draft Saved" });
@@ -182,208 +214,234 @@ const AIArticleGenerator = ({ onSaveArticle, editingArticle }: AIArticleGenerato
 
   const currentProvider = getProviderById(config.provider);
 
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-100px)]">
+  const StrategyCard = (
+    <Card className="border-primary/20 bg-primary/5">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm font-medium flex items-center gap-2">
+          <Lightbulb className="h-4 w-4 text-primary" /> Content Strategy
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4 pt-0">
+        <div className="space-y-2">
+          <Label className="text-xs">Category</Label>
+          <div className="flex gap-2">
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="h-8 text-xs flex-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.filter(c => c.id !== 'all').map(c => (
+                  <SelectItem key={c.id} value={c.id}>{c.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button size="sm" variant="outline" className="h-8 text-xs" onClick={handleSuggestTopics} disabled={isSuggesting}>
+              {isSuggesting ? <Loader2 className="h-3 w-3 animate-spin" /> : "Suggest"}
+            </Button>
+          </div>
+        </div>
 
-      {/* --- Sidebar (Left) --- */}
-      <div className="lg:col-span-4 space-y-4 overflow-y-auto pr-2">
+        {suggestedTopics.length > 0 && (
+          <div className="space-y-1 bg-background p-2 rounded border max-h-32 overflow-y-auto">
+            <p className="text-xs font-semibold text-muted-foreground mb-2">Suggestions:</p>
+            {suggestedTopics.map((t, i) => (
+              <div
+                key={i}
+                className="text-xs p-1.5 hover:bg-muted rounded cursor-pointer transition-colors flex justify-between group"
+                onClick={() => selectTopic(t)}
+              >
+                <span className="line-clamp-2">{t}</span>
+                <Plus className="h-3 w-3 opacity-0 group-hover:opacity-100" />
+              </div>
+            ))}
+          </div>
+        )}
 
-        {/* AI Config Card */}
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between cursor-pointer" onClick={() => setIsConfigExpanded(!isConfigExpanded)}>
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Settings className="h-4 w-4" /> AI Configuration
-              </CardTitle>
-              {isConfigExpanded ? <X className="h-4 w-4 text-muted-foreground" /> : <Settings className="h-4 w-4 text-muted-foreground" />}
-            </div>
-          </CardHeader>
-          {isConfigExpanded && (
-            <CardContent className="space-y-3 pt-0">
-              <div className="space-y-1">
-                <Label className="text-xs">Provider</Label>
-                <Select value={config.provider} onValueChange={handleProviderChange}>
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue placeholder="Select Provider" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {aiProviders.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              {config.provider && (
-                <div className="space-y-1">
-                  <Label className="text-xs">Model</Label>
-                  <Select value={config.model} onValueChange={(v) => setConfig(prev => ({ ...prev, model: v }))}>
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="Select Model" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {currentProvider?.models.map(m => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-              <div className="space-y-1">
-                <Label className="text-xs">API Key</Label>
-                <div className="flex gap-1">
-                  <Input
-                    type={showApiKey ? "text" : "password"}
-                    value={config.apiKey}
-                    onChange={e => setConfig(prev => ({ ...prev, apiKey: e.target.value }))}
-                    className="h-8 text-xs"
-                    placeholder={currentProvider?.apiKeyPlaceholder || "API Key"}
-                  />
-                  <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setShowApiKey(!showApiKey)}>
-                    {showApiKey ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-                  </Button>
-                </div>
-              </div>
-              <Button size="sm" onClick={handleSaveConfig} className="w-full h-8 text-xs">Save Settings</Button>
-            </CardContent>
+        <Separator />
+
+        <div className="space-y-2">
+          <Label className="text-xs">Topic / Title</Label>
+          <Textarea
+            placeholder="What do you want to write about?"
+            className="h-20 text-sm resize-none"
+            value={topic}
+            onChange={(e) => setTopic(e.target.value)}
+          />
+        </div>
+
+        <Button
+          className="w-full bg-primary hover:bg-primary/90 text-xs"
+          onClick={handleGenerate}
+          disabled={isGenerating || !topic}
+        >
+          {isGenerating ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              {generationStep || "Working..."}
+            </>
+          ) : (
+            <>
+              <Sparkles className="h-4 w-4 mr-2" /> Generate Draft
+            </>
           )}
-        </Card>
+        </Button>
 
-        {/* Strategy Card */}
-        <Card className="border-primary/20 bg-primary/5">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Lightbulb className="h-4 w-4 text-primary" /> Content Strategy
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 pt-0">
-            <div className="space-y-2">
-              <Label className="text-xs">Category</Label>
-              <div className="flex gap-2">
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger className="h-8 text-xs flex-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.filter(c => c.id !== 'all').map(c => (
-                      <SelectItem key={c.id} value={c.id}>{c.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button size="sm" variant="outline" className="h-8 text-xs" onClick={handleSuggestTopics} disabled={isSuggesting}>
-                  {isSuggesting ? <Loader2 className="h-3 w-3 animate-spin" /> : "Suggest"}
+        {keywords.length > 0 && (
+          <div className="pt-2">
+            <p className="text-xs text-muted-foreground mb-1">Target Keywords:</p>
+            <div className="flex flex-wrap gap-1">
+              {keywords.slice(0, 5).map((k, i) => (
+                <Badge key={i} variant="secondary" className="text-[10px] px-1 py-0">{k}</Badge>
+              ))}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+
+  const EditorArea = (
+    <Card className="flex-1 flex flex-col border-0 sm:border rounded-none sm:rounded-lg shadow-none sm:shadow">
+      <CardHeader className="py-3 border-b flex flex-row items-center justify-between space-y-0 px-4">
+        <div className="flex items-center gap-2">
+          <CardTitle className="text-base">Editor</CardTitle>
+          {isGenerating && <span className="text-xs text-muted-foreground animate-pulse">AI is writing...</span>}
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => handleSave("draft")}>
+            <Save className="h-4 w-4 mr-2" /> Save Draft
+          </Button>
+          <SchedulePopover
+            onSchedule={(date) => handleSave("scheduled", date)}
+            trigger={
+              <Button variant="outline" size="sm" className="gap-2 border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 hover:text-amber-800">
+                <CalendarIcon className="h-4 w-4" />
+                Schedule
+              </Button>
+            }
+          />
+          <Button size="sm" onClick={() => handleSave("published")}>
+            <Send className="h-4 w-4 mr-2" /> Publish
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="flex-1 flex flex-col p-4 gap-4">
+        <div className="space-y-1">
+          <Label className="text-xs text-muted-foreground">Featured Image</Label>
+          <div className="flex gap-2">
+            {featuredImage && (
+              <div className="relative h-20 w-32 shrink-0 overflow-hidden rounded-md border">
+                <img src={featuredImage} alt="Featured" className="h-full w-full object-cover" />
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  className="absolute right-1 top-1 h-5 w-5"
+                  onClick={() => setFeaturedImage("")}
+                >
+                  <X className="h-3 w-3" />
                 </Button>
               </div>
-            </div>
-
-            {suggestedTopics.length > 0 && (
-              <div className="space-y-1 bg-background p-2 rounded border">
-                <p className="text-xs font-semibold text-muted-foreground mb-2">Suggestions:</p>
-                {suggestedTopics.map((t, i) => (
-                  <div
-                    key={i}
-                    className="text-xs p-1.5 hover:bg-muted rounded cursor-pointer transition-colors flex justify-between group"
-                    onClick={() => selectTopic(t)}
-                  >
-                    <span className="line-clamp-2">{t}</span>
-                    <Plus className="h-3 w-3 opacity-0 group-hover:opacity-100" />
-                  </div>
-                ))}
-              </div>
             )}
-
-            <Separator />
-
-            <div className="space-y-2">
-              <Label className="text-xs">Topic / Title</Label>
-              <Textarea
-                placeholder="What do you want to write about?"
-                className="h-20 text-sm resize-none"
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-              />
-            </div>
-
             <Button
-              className="w-full bg-primary hover:bg-primary/90"
-              onClick={handleGenerate}
-              disabled={isGenerating || !topic}
+              variant="outline"
+              className="h-20 w-full border-dashed"
+              onClick={() => setIsImageDialogOpen(true)}
             >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  {generationStep || "Working..."}
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-4 w-4 mr-2" /> GenerateDraft
-                </>
-              )}
+              <ImageIcon className="h-4 w-4 mr-2" />
+              {featuredImage ? "Change Image" : "Add Featured Image"}
             </Button>
+          </div>
+        </div>
 
-            {keywords.length > 0 && (
-              <div className="pt-2">
-                <p className="text-xs text-muted-foreground mb-1">Target Keywords:</p>
-                <div className="flex flex-wrap gap-1">
-                  {keywords.slice(0, 5).map((k, i) => (
-                    <Badge key={i} variant="secondary" className="text-[10px] px-1 py-0">{k}</Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <div className="space-y-1">
+          <Label className="text-xs text-muted-foreground">Title</Label>
+          <Input
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            className="font-bold text-lg border-none shadow-none px-0 focus-visible:ring-0"
+            placeholder="Article Title..."
+            autoComplete="off"
+            data-1p-ignore
+            name="article_title_field"
+            data-lpignore="true"
+          />
+        </div>
+
+        <div className="space-y-1">
+          <Label className="text-xs text-muted-foreground">Excerpt</Label>
+          <Textarea
+            value={excerpt}
+            onChange={e => setExcerpt(e.target.value)}
+            className="h-16 resize-none bg-muted/30"
+            placeholder="Short summary..."
+          />
+        </div>
+
+        <div className="flex-1 space-y-1 flex flex-col min-h-[300px]">
+          <Label className="text-xs text-muted-foreground flex justify-between">
+            <span>Content</span>
+            <span className="font-normal">{content.length} chars</span>
+          </Label>
+          <RichEditor
+            content={content}
+            onChange={setContent}
+            className="flex-1 border rounded-md"
+            placeholder="Write something amazing..."
+            onEditorReady={setEditor}
+          />
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  if (isMobile) {
+    return (
+      <Tabs defaultValue="editor" className="flex flex-col bg-background pb-20 h-full">
+        <TabsList className="grid w-full grid-cols-2 mb-2 sticky top-0 z-10 bg-background/95">
+          <TabsTrigger value="editor">Editor</TabsTrigger>
+          <TabsTrigger value="settings">Setup & AI</TabsTrigger>
+        </TabsList>
+        <TabsContent value="editor" className="mt-0 flex-1 overflow-auto">
+          {EditorArea}
+        </TabsContent>
+        <TabsContent value="settings" className="mt-0 flex-1 overflow-auto">
+          <AISidebar
+            config={config}
+            setConfig={setConfig}
+            isProcessing={isBusy}
+            onAction={applyAIAction}
+            onCustomPrompt={applyCustomPrompt}
+            additionalContent={StrategyCard}
+          />
+        </TabsContent>
+      </Tabs>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 border rounded-lg overflow-hidden bg-background shadow-sm p-4">
+      {/* --- Main Editor (Left/Center) --- */}
+      <div className="lg:col-span-8 flex flex-col">
+        {EditorArea}
       </div>
 
-      {/* --- Main Editor (Right) --- */}
-      <div className="lg:col-span-8 flex flex-col h-full space-y-4">
-        <Card className="flex-1 flex flex-col overflow-hidden">
-          <CardHeader className="py-3 border-b flex flex-row items-center justify-between space-y-0">
-            <div className="flex items-center gap-2">
-              <CardTitle className="text-base">Editor</CardTitle>
-              {isGenerating && <span className="text-xs text-muted-foreground animate-pulse">AI is writing...</span>}
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => handleSave("draft")}>
-                <Save className="h-4 w-4 mr-2" /> Save Draft
-              </Button>
-              <Button size="sm" onClick={() => handleSave("published")}>
-                <Send className="h-4 w-4 mr-2" /> Publish
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="flex-1 flex flex-col p-4 gap-4 overflow-y-auto">
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Title</Label>
-              <Input
-                value={title}
-                onChange={e => setTitle(e.target.value)}
-                className="font-bold text-lg border-none shadow-none px-0 focus-visible:ring-0"
-                placeholder="Article Title..."
-              />
-            </div>
-
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Excerpt</Label>
-              <Textarea
-                value={excerpt}
-                onChange={e => setExcerpt(e.target.value)}
-                className="h-16 resize-none bg-muted/30"
-                placeholder="Short summary..."
-              />
-            </div>
-
-            <div className="flex-1 space-y-1 flex flex-col min-h-[300px]">
-              <Label className="text-xs text-muted-foreground flex justify-between">
-                <span>Content (HTML)</span>
-                <span className="font-normal">{content.length} chars</span>
-              </Label>
-              <Textarea
-                value={content}
-                onChange={e => setContent(e.target.value)}
-                className="flex-1 font-mono text-sm leading-relaxed p-4"
-                placeholder="<p>Write something amazing...</p>"
-              />
-            </div>
-          </CardContent>
-        </Card>
+      {/* --- Sidebar (Right) --- */}
+      <div className="lg:col-span-4 bg-muted/10">
+        <AISidebar
+          config={config}
+          setConfig={setConfig}
+          isProcessing={isBusy}
+          onAction={applyAIAction}
+          onCustomPrompt={applyCustomPrompt}
+          additionalContent={StrategyCard}
+        />
       </div>
 
+      <ImageInsertionDialog
+        open={isImageDialogOpen}
+        onOpenChange={setIsImageDialogOpen}
+        onImageSelected={setFeaturedImage}
+      />
     </div>
   );
 };

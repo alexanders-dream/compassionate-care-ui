@@ -71,13 +71,20 @@ const FaqsPage = () => {
     };
 
     return (
-        <FaqsTab
-            faqs={faqs}
-            onSave={handleSaveFaq}
-            onDelete={handleDeleteFaq}
-            editingFaq={editingFaq}
-            setEditingFaq={setEditingFaq}
-        />
+        <div className="space-y-6">
+            <div>
+                <h2 className="text-3xl font-bold tracking-tight">FAQs</h2>
+                <p className="text-muted-foreground">Manage frequently asked questions</p>
+            </div>
+
+            <FaqsTab
+                faqs={faqs}
+                onSave={handleSaveFaq}
+                onDelete={handleDeleteFaq}
+                editingFaq={editingFaq}
+                setEditingFaq={setEditingFaq}
+            />
+        </div>
     );
 };
 

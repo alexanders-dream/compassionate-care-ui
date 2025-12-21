@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Menu, X, Phone } from "lucide-react";
 
 const Header = () => {
@@ -19,11 +20,11 @@ const Header = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full gradient-navy">
+      <header className="sticky top-0 z-50 w-full bg-primary dark:bg-background shadow-md dark:shadow-[0_4px_20px_rgba(55,119,255,0.15)]">
         <div className="container-main">
-          <div className="flex h-16 md:h-20 items-center justify-between">
-            {/* Logo */}
-            <Link to="/" className="no-link-style flex items-center gap-2">
+          <div className="relative flex h-16 md:h-20 items-center justify-between">
+            {/* Logo - positioned at the start */}
+            <Link to="/" className="no-link-style flex items-center gap-2 z-10">
               <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
                 <span className="text-primary-foreground font-bold text-lg">AR</span>
               </div>
@@ -33,28 +34,28 @@ const Header = () => {
               </div>
             </Link>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center gap-8">
+            {/* Desktop Navigation - absolutely centered */}
+            <nav className="hidden lg:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   to={link.href}
-                  className={`no-link-style text-sm font-medium transition-colors hover:text-white ${
-                    isActive(link.href) ? "text-white" : "text-white/80"
-                  }`}
+                  className={`no-link-style text-base font-medium transition-colors hover:text-white ${isActive(link.href) ? "text-white font-semibold" : "text-white"
+                    }`}
                 >
                   {link.label}
                 </Link>
               ))}
             </nav>
 
-            {/* CTA Buttons */}
-            <div className="hidden md:flex items-center gap-3">
+            {/* CTA Buttons - positioned at the end */}
+            <div className="hidden md:flex items-center gap-3 z-10">
+              <ThemeToggle />
               <Button variant="ghost" asChild className="border-2 border-white/80 text-white hover:bg-white/10 hover:text-white">
                 <Link to="/refer" className="no-link-style">Refer a Patient</Link>
               </Button>
-              <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
-                <Link to="/request-visit" className="no-link-style">Book a Visit</Link>
+              <Button asChild className="bg-white text-primary dark:!text-[#00243a] hover:bg-white/90 font-semibold">
+                <Link to="/request-visit" className="no-link-style">Book Consultation</Link>
               </Button>
             </div>
 
@@ -72,16 +73,15 @@ const Header = () => {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="lg:hidden border-t border-white/20 gradient-navy">
+          <div className="lg:hidden border-t border-white/20 bg-primary">
             <nav className="container-main py-4 flex flex-col gap-2">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   to={link.href}
                   onClick={() => setIsMenuOpen(false)}
-                  className={`no-link-style py-3 text-base font-medium transition-colors ${
-                    isActive(link.href) ? "text-white" : "text-white/80"
-                  }`}
+                  className={`no-link-style py-3 text-base font-medium transition-colors ${isActive(link.href) ? "text-white font-semibold" : "text-white"
+                    }`}
                 >
                   {link.label}
                 </Link>
@@ -92,9 +92,9 @@ const Header = () => {
                     Refer a Patient
                   </Link>
                 </Button>
-                <Button asChild className="w-full justify-center bg-primary text-primary-foreground hover:bg-primary/90">
+                <Button asChild className="w-full justify-center bg-white text-primary dark:!text-[#00243a] hover:bg-white/90 font-semibold">
                   <Link to="/request-visit" onClick={() => setIsMenuOpen(false)} className="no-link-style">
-                    Book a Visit
+                    Book Consultation
                   </Link>
                 </Button>
               </div>

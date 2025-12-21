@@ -72,13 +72,20 @@ const TestimonialsPage = () => {
     };
 
     return (
-        <TestimonialsTab
-            testimonials={testimonials}
-            onSave={handleSaveTestimonial}
-            onDelete={handleDeleteTestimonial}
-            editingTestimonial={editingTestimonial}
-            setEditingTestimonial={setEditingTestimonial}
-        />
+        <div className="space-y-6">
+            <div>
+                <h2 className="text-3xl font-bold tracking-tight">Testimonials</h2>
+                <p className="text-muted-foreground">Manage patient testimonials</p>
+            </div>
+
+            <TestimonialsTab
+                testimonials={testimonials}
+                onSave={handleSaveTestimonial}
+                onDelete={handleDeleteTestimonial}
+                editingTestimonial={editingTestimonial}
+                setEditingTestimonial={setEditingTestimonial}
+            />
+        </div>
     );
 };
 

@@ -1,21 +1,17 @@
 import { Helmet } from "react-helmet-async";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Link } from "react-router-dom";
-import { Stethoscope, Heart, Bandage, Users, ShieldCheck, Clock, Home, Scissors } from "lucide-react";
+import { ShieldCheck, Clock, Heart } from "lucide-react";
 import homeCareVisit from "@/assets/home-care-visit.jpg";
 import { useSiteData } from "@/contexts/SiteDataContext";
-
-const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  Stethoscope,
-  Heart,
-  Bandage,
-  Users,
-  ShieldCheck,
-  Clock,
-  Home,
-  Scissors,
-};
+import { getIconByName } from "@/lib/icons";
 
 const benefits = [
   { icon: ShieldCheck, title: "Licensed Clinicians", description: "All care provided by certified wound care specialists" },
@@ -33,7 +29,7 @@ const Services = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="bg-white py-16 md:py-24">
+      <section className="bg-background py-16 md:py-24">
         <div className="container-main">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
@@ -46,7 +42,7 @@ const Services = () => {
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button size="lg" className="no-link-style" asChild>
-                  <Link to="/request-visit">Schedule a Visit</Link>
+                  <Link to="/request-visit">Schedule Consultation</Link>
                 </Button>
                 <Button size="lg" variant="outline" asChild>
                   <Link to="/refer">Provider Referral</Link>
@@ -65,7 +61,7 @@ const Services = () => {
       </section>
 
       {/* Services Grid */}
-      <section className="py-16 md:py-24">
+      <section className="py-16 md:py-24 bg-muted">
         <div className="container-main">
           <div className="text-center mb-12">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
@@ -78,15 +74,24 @@ const Services = () => {
 
           <div className="grid md:grid-cols-2 gap-8">
             {services.map((service, index) => {
-              const IconComponent = iconMap[service.icon] || Heart;
+              const IconComponent = getIconByName(service.icon);
               return (
                 <div
                   key={service.id || index}
                   className="bg-card rounded-2xl p-8 shadow-soft hover:shadow-elegant transition-shadow"
                 >
-                  <div className="w-14 h-14 rounded-xl bg-primary/15 flex items-center justify-center mb-6">
-                    <IconComponent className="w-7 h-7 text-primary" />
-                  </div>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="w-14 h-14 rounded-xl bg-primary/15 flex items-center justify-center mb-6">
+                          <IconComponent className="w-7 h-7 text-primary" />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{service.icon}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   <h3 className="font-display text-xl font-semibold text-foreground mb-3">
                     {service.title}
                   </h3>
@@ -101,23 +106,23 @@ const Services = () => {
       </section>
 
       {/* Benefits Section */}
-      <section className="py-16 md:py-24 bg-[#0B2545]">
+      <section className="py-16 md:py-24 bg-primary dark:bg-muted/30">
         <div className="container-main">
           <div className="text-center mb-12">
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-secondary-foreground mb-4">
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-white dark:text-foreground mb-4">
               Why Choose AR Advanced Woundcare?
             </h2>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
             {benefits.map((benefit, index) => (
               <div key={index} className="text-center">
-                <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4">
-                  <benefit.icon className="w-8 h-8 text-secondary-foreground" />
+                <div className="w-16 h-16 rounded-full bg-white/20 dark:bg-primary/15 flex items-center justify-center mx-auto mb-4">
+                  <benefit.icon className="w-8 h-8 text-white dark:text-primary" />
                 </div>
-                <h3 className="font-display text-lg font-semibold text-secondary-foreground mb-2">
+                <h3 className="font-display text-lg font-semibold text-white dark:text-foreground mb-2">
                   {benefit.title}
                 </h3>
-                <p className="text-secondary-foreground/80">
+                <p className="text-white/80 dark:text-muted-foreground">
                   {benefit.description}
                 </p>
               </div>
@@ -137,7 +142,7 @@ const Services = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="no-link-style" asChild>
-              <Link to="/request-visit">Book a Visit</Link>
+              <Link to="/request-visit">Book Consultation</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
               <Link to="/contact">Contact Us</Link>

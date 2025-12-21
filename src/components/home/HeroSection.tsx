@@ -6,9 +6,7 @@ import heroImage from "@/assets/hero-clinician.jpg";
 const HeroSection = () => {
   return (
     <section className="relative overflow-hidden bg-background min-h-[calc(100vh-80px)] flex items-center">
-      {/* Subtle background accent */}
-      <div className="absolute inset-0 bg-gradient-to-br from-accent/20 via-transparent to-warm/30 pointer-events-none" />
-      
+
       <div className="container-main py-16 md:py-24 relative">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Content */}
@@ -28,7 +26,7 @@ const HeroSection = () => {
             <div className="flex flex-col sm:flex-row gap-4">
               <Button size="lg" asChild>
                 <Link to="/request-visit" className="no-link-style">
-                  Request a Visit
+                  Request Consultation
                   <ArrowRight size={18} />
                 </Link>
               </Button>
@@ -65,9 +63,6 @@ const HeroSection = () => {
                 className="w-full h-full object-cover"
               />
             </div>
-            {/* Decorative accent */}
-            <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-accent rounded-full opacity-60 blur-2xl" />
-            <div className="absolute -top-4 -right-4 w-32 h-32 bg-warm rounded-full opacity-40 blur-2xl" />
           </div>
         </div>
       </div>

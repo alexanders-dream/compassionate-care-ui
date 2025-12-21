@@ -5,6 +5,13 @@ import { Link } from "react-router-dom";
 import { Heart, Shield, Users, Award, Target, Eye } from "lucide-react";
 import heroClinician from "@/assets/hero-clinician.jpg";
 import { useSiteData } from "@/contexts/SiteDataContext";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 const values = [
   {
@@ -30,7 +37,7 @@ const values = [
 ];
 
 const stats = [
-  { value: "5,000+", label: "Patients Served" },
+  { value: "10,000+", label: "Patients Served" },
   { value: "98%", label: "Patient Satisfaction" },
   { value: "15+", label: "Years Experience" },
   { value: "50+", label: "Healthcare Partners" }
@@ -46,7 +53,7 @@ const About = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="bg-white py-16 md:py-24">
+      <section className="bg-background py-16 md:py-24">
         <div className="container-main">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
@@ -70,7 +77,7 @@ const About = () => {
       </section>
 
       {/* Mission & Vision */}
-      <section className="py-16 md:py-24 bg-warm">
+      <section className="py-16 md:py-24 bg-warm dark:bg-background">
         <div className="container-main">
           <div className="grid md:grid-cols-2 gap-8">
             <div className="bg-card rounded-2xl p-8 shadow-soft">
@@ -131,15 +138,15 @@ const About = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 md:py-24 bg-[#0B2545]">
+      <section className="py-16 md:py-24 bg-primary dark:bg-card">
         <div className="container-main">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
-                <div className="font-display text-4xl md:text-5xl font-bold text-primary-foreground mb-2">
+                <div className="font-display text-4xl md:text-5xl font-bold text-white dark:text-primary-foreground mb-2">
                   {stat.value}
                 </div>
-                <div className="text-primary-foreground/80">
+                <div className="text-white/80 dark:text-primary-foreground/80">
                   {stat.label}
                 </div>
               </div>
@@ -160,44 +167,91 @@ const About = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {teamMembers.map((member) => (
-              <div
-                key={member.id}
-                className="bg-card rounded-2xl overflow-hidden shadow-soft group"
+          {teamMembers.filter(m => m.is_public).length <= 3 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {teamMembers.filter(m => m.is_public).map((member) => (
+                <div
+                  key={member.id}
+                  className="bg-card rounded-2xl overflow-hidden shadow-soft group"
+                >
+                  <div className="aspect-[4/3] bg-muted relative overflow-hidden">
+                    {member.image_url ? (
+                      <img
+                        src={member.image_url}
+                        alt={member.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-primary/10">
+                        <Users className="w-16 h-16 text-primary/40" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-6">
+                    <h3 className="font-display text-xl font-semibold text-foreground mb-1">
+                      {member.name}
+                    </h3>
+                    <p className="text-primary font-medium text-sm mb-3">
+                      {member.role}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {member.bio}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="px-12">
+              <Carousel
+                opts={{
+                  align: "start",
+                  loop: true,
+                }}
+                className="w-full"
               >
-                <div className="aspect-[4/3] bg-muted relative overflow-hidden">
-                  {member.image_url ? (
-                    <img
-                      src={member.image_url}
-                      alt={member.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-primary/10">
-                      <Users className="w-16 h-16 text-primary/40" />
-                    </div>
-                  )}
-                </div>
-                <div className="p-6">
-                  <h3 className="font-display text-xl font-semibold text-foreground mb-1">
-                    {member.name}
-                  </h3>
-                  <p className="text-primary font-medium text-sm mb-3">
-                    {member.role}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {member.bio}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
+                <CarouselContent className="-ml-4">
+                  {teamMembers.filter(m => m.is_public).map((member) => (
+                    <CarouselItem key={member.id} className="pl-4 md:basis-1/2 lg:basis-1/3">
+                      <div className="bg-card rounded-2xl overflow-hidden shadow-soft group h-full">
+                        <div className="aspect-[4/3] bg-muted relative overflow-hidden">
+                          {member.image_url ? (
+                            <img
+                              src={member.image_url}
+                              alt={member.name}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-primary/10">
+                              <Users className="w-16 h-16 text-primary/40" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-6">
+                          <h3 className="font-display text-xl font-semibold text-foreground mb-1">
+                            {member.name}
+                          </h3>
+                          <p className="text-primary font-medium text-sm mb-3">
+                            {member.role}
+                          </p>
+                          <p className="text-sm text-muted-foreground line-clamp-4">
+                            {member.bio}
+                          </p>
+                        </div>
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="-left-4 lg:-left-12" />
+                <CarouselNext className="-right-4 lg:-right-12" />
+              </Carousel>
+            </div>
+          )}
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 md:py-24">
+      <section className="py-16 md:py-24 bg-muted">
         <div className="container-main text-center">
           <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
             Partner With Us
@@ -208,7 +262,7 @@ const About = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="no-link-style" asChild>
-              <Link to="/request-visit">Book a Visit</Link>
+              <Link to="/request-visit">Book Consultation</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
               <Link to="/refer">Refer a Patient</Link>

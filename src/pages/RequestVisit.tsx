@@ -56,7 +56,7 @@ const RequestVisit = () => {
       wound_type: data.woundType,
       additional_notes: data.additionalInfo,
     });
-    
+
     if (result.success) {
       setIsSubmitted(true);
     }
@@ -110,17 +110,17 @@ const RequestVisit = () => {
   return (
     <>
       <Helmet>
-        <title>Request a Visit | AR Advanced Woundcare Solutions</title>
+        <title>Request Consultation | AR Advanced Woundcare Solutions</title>
         <meta
           name="description"
-          content="Request a wound care visit from AR Advanced Woundcare Solutions. Fill out our simple form and a care coordinator will contact you within 24 hours."
+          content="Request a wound care consultation from AR Advanced Woundcare Solutions. Fill out our simple form and a care coordinator will contact you within 24 hours."
         />
       </Helmet>
       <Layout>
         {/* Hero */}
-        <section className="bg-[#EBF4FA] py-12 md:py-16">
+        <section className="bg-muted py-12 md:py-16">
           <div className="container-main text-center">
-            <h1 className="text-foreground mb-4">Request a Visit</h1>
+            <h1 className="text-foreground mb-4">Request Consultation</h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Take the first step toward healing. Fill out the form below and our
               care team will contact you within 24 hours.
@@ -295,22 +295,28 @@ const RequestVisit = () => {
                 <Card className="bg-primary/10 border-0">
                   <CardContent className="p-6">
                     <h3 className="font-semibold text-foreground mb-4">Need Immediate Help?</h3>
-                    <div className="space-y-4">
-                      <a href="tel:+18001234567" className="flex items-center gap-3 text-foreground hover:text-primary transition-colors">
+                    <div className="space-y-3">
+                      <a
+                        href="tel:+18001234567"
+                        className="no-link-style flex items-center gap-3 p-3 bg-primary/20 rounded-lg hover:bg-primary/30 transition-colors"
+                      >
                         <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
                           <Phone size={18} className="text-primary" />
                         </div>
                         <div>
-                          <p className="font-medium">(800) 123-4567</p>
+                          <p className="font-medium text-foreground">(800) 123-4567</p>
                           <p className="text-xs text-muted-foreground">Call us directly</p>
                         </div>
                       </a>
-                      <a href="mailto:info@arwoundcare.com" className="flex items-center gap-3 text-foreground hover:text-primary transition-colors">
+                      <a
+                        href="mailto:info@arwoundcare.com"
+                        className="no-link-style flex items-center gap-3 p-3 bg-primary/20 rounded-lg hover:bg-primary/30 transition-colors"
+                      >
                         <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
                           <Mail size={18} className="text-primary" />
                         </div>
                         <div>
-                          <p className="font-medium">info@arwoundcare.com</p>
+                          <p className="font-medium text-foreground">info@arwoundcare.com</p>
                           <p className="text-xs text-muted-foreground">Email us</p>
                         </div>
                       </a>
@@ -326,7 +332,7 @@ const RequestVisit = () => {
                       <h3 className="font-semibold text-foreground">Response Time</h3>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      We respond to all visit requests within 24 hours during business days.
+                      We respond to all consultation requests within 24 hours during business days.
                     </p>
                   </CardContent>
                 </Card>
@@ -335,7 +341,7 @@ const RequestVisit = () => {
                 <div className="space-y-3">
                   <div className="flex items-center gap-3 text-sm text-muted-foreground">
                     <Shield size={18} className="text-primary" />
-                    <span>HIPAA Compliant & Secure</span>
+                    <span>Data Protected & Secure</span>
                   </div>
                   <div className="flex items-center gap-3 text-sm text-muted-foreground">
                     <Heart size={18} className="text-primary" />

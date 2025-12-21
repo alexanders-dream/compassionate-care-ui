@@ -1,5 +1,4 @@
 import { AIConfig } from './config';
-import { aiProviders } from '@/data/aiProviders';
 
 // This is a browser-side implementation. In a production app, 
 // strictly sensitive calls should ideally go through an Edge Function.
@@ -116,9 +115,8 @@ const callOpenAICompatible = async ({ config, systemPrompt, userPrompt, jsonMode
     return data.choices[0].message.content;
 };
 
-
-// Generic handler
-const callAI = async (params: AIRequestParams) => {
+// Generic handler - exported for use in quick actions
+export const callAI = async (params: AIRequestParams) => {
     const { config } = params;
 
     switch (config.provider) {
@@ -139,12 +137,184 @@ const callAI = async (params: AIRequestParams) => {
     }
 };
 
-export const fetchModels = async (providerId: string, apiKey: string) => {
-    // In a real scenario, we would query the provider API to get the list.
-    // For now, we return the static list, validating key existence at least in UI logic.
-    const provider = aiProviders.find(p => p.id === providerId);
-    if (!provider) return [];
-    return provider.models;
+// --- Model Fetching ---
+// Cache for fetched models to avoid repeated API calls
+const modelCache: Map<string, { models: AIModel[]; timestamp: number }> = new Map();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+interface AIModel {
+    id: string;
+    name: string;
+    description?: string;
+}
+
+// OpenAI Models
+const fetchOpenAIModels = async (apiKey: string): Promise<AIModel[]> => {
+    const response = await fetch('https://api.openai.com/v1/models', {
+        headers: { 'Authorization': `Bearer ${apiKey}` }
+    });
+
+    if (!response.ok) throw new Error('Failed to fetch OpenAI models');
+
+    const data = await response.json();
+    // Filter for GPT chat models only (exclude embeddings, whisper, dall-e, tts)
+    return data.data
+        .filter((m: any) => m.id.includes('gpt') && !m.id.includes('instruct'))
+        .map((m: any) => ({
+            id: m.id,
+            name: m.id.replace(/-/g, ' ').replace(/gpt/gi, 'GPT').replace(/\d+/g, (n: string) => ` ${n}`).trim(),
+            description: m.owned_by === 'openai' ? 'OpenAI Model' : m.owned_by
+        }))
+        .sort((a: AIModel, b: AIModel) => b.id.localeCompare(a.id)); // Newest first
+};
+
+// Anthropic Models
+const fetchAnthropicModels = async (apiKey: string): Promise<AIModel[]> => {
+    const response = await fetch('https://api.anthropic.com/v1/models', {
+        headers: {
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01'
+        }
+    });
+
+    if (!response.ok) throw new Error('Failed to fetch Anthropic models');
+
+    const data = await response.json();
+    return data.data
+        .map((m: any) => ({
+            id: m.id,
+            name: m.display_name || m.id.replace(/-/g, ' ').replace(/claude/gi, 'Claude'),
+            description: m.description || 'Anthropic Model'
+        }))
+        .sort((a: AIModel, b: AIModel) => b.id.localeCompare(a.id));
+};
+
+// Google Gemini Models
+const fetchGoogleModels = async (apiKey: string): Promise<AIModel[]> => {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+
+    if (!response.ok) throw new Error('Failed to fetch Google models');
+
+    const data = await response.json();
+    // Filter for models that support generateContent
+    return data.models
+        .filter((m: any) => m.supportedGenerationMethods?.includes('generateContent'))
+        .map((m: any) => ({
+            id: m.name.replace('models/', ''),
+            name: m.displayName || m.name.replace('models/', ''),
+            description: m.description?.slice(0, 50) || 'Google AI Model'
+        }));
+};
+
+// Groq Models (OpenAI-compatible)
+const fetchGroqModels = async (apiKey: string): Promise<AIModel[]> => {
+    const response = await fetch('https://api.groq.com/openai/v1/models', {
+        headers: { 'Authorization': `Bearer ${apiKey}` }
+    });
+
+    if (!response.ok) throw new Error('Failed to fetch Groq models');
+
+    const data = await response.json();
+    return data.data
+        .filter((m: any) => m.active !== false)
+        .map((m: any) => ({
+            id: m.id,
+            name: m.id.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()),
+            description: m.owned_by || 'Groq Model'
+        }));
+};
+
+// DeepSeek Models (OpenAI-compatible)
+const fetchDeepSeekModels = async (apiKey: string): Promise<AIModel[]> => {
+    const response = await fetch('https://api.deepseek.com/models', {
+        headers: { 'Authorization': `Bearer ${apiKey}` }
+    });
+
+    if (!response.ok) throw new Error('Failed to fetch DeepSeek models');
+
+    const data = await response.json();
+    return data.data.map((m: any) => ({
+        id: m.id,
+        name: m.id.replace(/-/g, ' ').replace(/deepseek/gi, 'DeepSeek'),
+        description: 'DeepSeek Model'
+    }));
+};
+
+// OpenRouter Models (no auth required for listing)
+const fetchOpenRouterModels = async (_apiKey: string): Promise<AIModel[]> => {
+    const response = await fetch('https://openrouter.ai/api/v1/models');
+
+    if (!response.ok) throw new Error('Failed to fetch OpenRouter models');
+
+    const data = await response.json();
+    // Return top models sorted by popularity/context length
+    return data.data
+        .slice(0, 50) // Limit to top 50 models
+        .map((m: any) => ({
+            id: m.id,
+            name: m.name || m.id,
+            description: `${m.context_length ? `${Math.round(m.context_length / 1000)}k ctx` : ''}`
+        }));
+};
+
+export const fetchModels = async (providerId: string, apiKey: string): Promise<AIModel[]> => {
+    // Check cache first
+    const cacheKey = `${providerId}:${apiKey.slice(-6)}`; // Use last 6 chars of key for cache key
+    const cached = modelCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+        return cached.models;
+    }
+
+    if (!apiKey) {
+        return []; // No API key, return empty - UI will show prompt
+    }
+
+    try {
+        let models: AIModel[] = [];
+
+        switch (providerId) {
+            case 'openai':
+                models = await fetchOpenAIModels(apiKey);
+                break;
+            case 'anthropic':
+                models = await fetchAnthropicModels(apiKey);
+                break;
+            case 'google':
+                models = await fetchGoogleModels(apiKey);
+                break;
+            case 'groq':
+                models = await fetchGroqModels(apiKey);
+                break;
+            case 'deepseek':
+                models = await fetchDeepSeekModels(apiKey);
+                break;
+            case 'openrouter':
+                models = await fetchOpenRouterModels(apiKey);
+                break;
+            default:
+                return [];
+        }
+
+        // Cache the results
+        modelCache.set(cacheKey, { models, timestamp: Date.now() });
+        return models;
+    } catch (error) {
+        console.error(`Failed to fetch models for ${providerId}:`, error);
+        return []; // Return empty on error - UI will show prompt
+    }
+};
+
+// Clear cache for a specific provider (used when refreshing)
+export const clearModelCache = (providerId?: string) => {
+    if (providerId) {
+        for (const key of modelCache.keys()) {
+            if (key.startsWith(providerId)) {
+                modelCache.delete(key);
+            }
+        }
+    } else {
+        modelCache.clear();
+    }
 };
 
 export const researchKeywords = async (config: AIConfig, topic: string, businessContext: string) => {

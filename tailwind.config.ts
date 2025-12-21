@@ -57,10 +57,14 @@ export default {
           foreground: "hsl(var(--card-foreground))",
         },
         // Brand colors for direct use
-        teal: "hsl(var(--teal))",
-        navy: "hsl(var(--navy))",
-        aqua: "hsl(var(--aqua))",
-        blush: "hsl(var(--blush))",
+        "ocean-blue": "hsl(var(--ocean-blue))",
+        "honey-bronze": "hsl(var(--honey-bronze))",
+        "icy-blue": "hsl(var(--icy-blue))",
+        "ink-black": "hsl(var(--ink-black))",
+        cta: {
+          DEFAULT: "hsl(var(--cta))",
+          foreground: "hsl(var(--cta-foreground))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

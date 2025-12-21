@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,8 +20,10 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, ArrowUpDown, HelpCircle } from "lucide-react";
 import { FAQ } from "@/contexts/SiteDataContext";
+import RoleGate from "@/components/auth/RoleGate";
+import AdminPagination from "../AdminPagination";
 
 interface FaqsTabProps {
     faqs: FAQ[];
@@ -39,6 +41,26 @@ const FaqsTab = ({
     setEditingFaq,
 }: FaqsTabProps) => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [sortField, setSortField] = useState<"question" | "category">("question");
+    const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
+
+    // Reset page when sort changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [sortField, sortDirection]);
+
+    const toggleSort = (field: "question" | "category") => {
+        if (field === sortField) {
+            setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+        } else {
+            setSortField(field);
+            setSortDirection("asc");
+        }
+    };
 
     const handleOpenDialog = (faq: FAQ | null) => {
         setEditingFaq(faq);
@@ -50,16 +72,40 @@ const FaqsTab = ({
         setIsDialogOpen(false);
     };
 
+    const sortedFaqs = [...faqs].sort((a, b) => {
+        let comparison = 0;
+        switch (sortField) {
+            case "question":
+                comparison = a.question.localeCompare(b.question);
+                break;
+            case "category":
+                comparison = a.category.localeCompare(b.category);
+                break;
+        }
+        return sortDirection === "asc" ? comparison : -comparison;
+    });
+
+    // Paginate the sorted FAQs
+    const paginatedFaqs = sortedFaqs.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
+
     return (
         <>
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
-                <h2 className="text-lg md:text-xl font-semibold">FAQs ({faqs.length})</h2>
+                <h2 className="text-lg md:text-xl font-semibold flex items-center gap-2">
+                    <HelpCircle className="h-5 w-5 text-primary" />
+                    FAQs ({faqs.length})
+                </h2>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                    <DialogTrigger asChild>
-                        <Button onClick={() => handleOpenDialog(null)} className="w-full sm:w-auto">
-                            <Plus className="h-4 w-4 mr-2" /> Add FAQ
-                        </Button>
-                    </DialogTrigger>
+                    <RoleGate allowedRoles={['admin', 'medical_staff']}>
+                        <DialogTrigger asChild>
+                            <Button onClick={() => handleOpenDialog(null)} className="w-full sm:w-auto">
+                                <Plus className="h-4 w-4 mr-2" /> Add FAQ
+                            </Button>
+                        </DialogTrigger>
+                    </RoleGate>
                     <DialogContent className="max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
                             <DialogTitle>{editingFaq ? "Edit FAQ" : "New FAQ"}</DialogTitle>
@@ -84,55 +130,94 @@ const FaqsTab = ({
             </div>
 
             {/* Mobile Cards */}
-            <div className="md:hidden space-y-3">
-                {faqs.map(faq => (
+            <div className="md:hidden space-y-4">
+                {paginatedFaqs.map(faq => (
                     <Card key={faq.id} className="p-4">
                         <div className="flex justify-between items-start gap-2 mb-2">
                             <p className="font-medium text-sm line-clamp-2 flex-1">{faq.question}</p>
                             <Badge variant="outline" className="shrink-0">{faq.category}</Badge>
                         </div>
                         <div className="flex gap-2 mt-3">
-                            <Button variant="outline" size="sm" className="flex-1" onClick={() => handleOpenDialog(faq)}>
-                                <Pencil className="h-3 w-3 mr-1" /> Edit
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => onDelete(faq.id)}>
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
+                            <RoleGate allowedRoles={['admin', 'medical_staff']}>
+                                <Button variant="outline" size="sm" className="flex-1" onClick={() => handleOpenDialog(faq)}>
+                                    <Pencil className="h-3 w-3 mr-1" /> Edit
+                                </Button>
+                                <Button variant="ghost" size="sm" onClick={() => onDelete(faq.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </RoleGate>
                         </div>
                     </Card>
                 ))}
                 {faqs.length === 0 && (
                     <p className="text-center text-muted-foreground py-8">No FAQs yet</p>
                 )}
+                {/* Mobile Pagination */}
+                <AdminPagination
+                    currentPage={currentPage}
+                    totalItems={sortedFaqs.length}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={setCurrentPage}
+                    onItemsPerPageChange={setItemsPerPage}
+                />
             </div>
 
             {/* Desktop Table */}
-            <div className="hidden md:block overflow-x-auto">
+            <div className="hidden md:block overflow-x-auto rounded-md border">
                 <Table>
                     <TableHeader>
-                        <TableRow>
-                            <TableHead>Question</TableHead>
-                            <TableHead>Category</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
+                        <TableRow className="bg-muted/50 hover:bg-muted/50 border-b-0">
+                            <TableHead
+                                className="cursor-pointer hover:bg-muted/50 select-none"
+                                onClick={() => toggleSort("question")}
+                            >
+                                <div className="flex items-center gap-1">
+                                    Question
+                                    <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
+                                </div>
+                            </TableHead>
+                            <TableHead
+                                className="cursor-pointer hover:bg-muted/50 select-none"
+                                onClick={() => toggleSort("category")}
+                            >
+                                <div className="flex items-center gap-1">
+                                    Category
+                                    <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
+                                </div>
+                            </TableHead>
+                            <TableHead className="text-right text-slate-700 font-semibold">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {faqs.map(faq => (
-                            <TableRow key={faq.id}>
+                        {paginatedFaqs.map((faq, index) => (
+                            <TableRow key={faq.id} className={index % 2 === 1 ? "bg-muted/50" : ""}>
                                 <TableCell className="font-medium max-w-md truncate">{faq.question}</TableCell>
                                 <TableCell>{faq.category}</TableCell>
                                 <TableCell className="text-right">
-                                    <Button variant="ghost" size="sm" onClick={() => handleOpenDialog(faq)}>
-                                        <Pencil className="h-4 w-4" />
-                                    </Button>
-                                    <Button variant="ghost" size="sm" onClick={() => onDelete(faq.id)}>
-                                        <Trash2 className="h-4 w-4 text-destructive" />
-                                    </Button>
+                                    <RoleGate allowedRoles={['admin', 'medical_staff']}>
+                                        <Button variant="ghost" size="sm" onClick={() => handleOpenDialog(faq)}>
+                                            <Pencil className="h-4 w-4" />
+                                        </Button>
+                                        <Button variant="ghost" size="sm" onClick={() => onDelete(faq.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </RoleGate>
                                 </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
                 </Table>
+            </div>
+
+            {/* Desktop Pagination */}
+            <div className="hidden md:block">
+                <AdminPagination
+                    currentPage={currentPage}
+                    totalItems={sortedFaqs.length}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={setCurrentPage}
+                    onItemsPerPageChange={setItemsPerPage}
+                />
             </div>
         </>
     );

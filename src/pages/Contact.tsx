@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -80,17 +81,17 @@ const Contact = () => {
     <Layout>
       <Helmet>
         <title>Contact Us | AR Advanced Woundcare Solutions</title>
-        <meta name="description" content="Contact AR Advanced Woundcare Solutions for questions about our services, to schedule a visit, or to discuss referral partnerships." />
+        <meta name="description" content="Contact AR Advanced Woundcare Solutions for questions about our services, to schedule a consultation, or to discuss referral partnerships." />
       </Helmet>
 
       {/* Hero Section */}
-      <section className="bg-white py-16 md:py-24">
+      <section className="bg-[#EBF4FA] dark:bg-background py-16 md:py-24">
         <div className="container-main text-center">
           <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-6">
             Get in <span className="text-primary">Touch</span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Have questions about our services? Need to schedule a visit or discuss a referral?
+            Have questions about our services? Need to schedule a consultation or discuss a referral?
             We're here to help.
           </p>
         </div>
@@ -131,7 +132,7 @@ const Contact = () => {
       </section>
 
       {/* Contact Form Section */}
-      <section className="py-12 md:py-16 bg-warm">
+      <section className="py-12 md:py-16 bg-warm dark:bg-background">
         <div className="container-main">
           <div className="max-w-2xl mx-auto">
             <div className="bg-card rounded-2xl p-8 shadow-elegant">
@@ -217,8 +218,8 @@ const Contact = () => {
                     )}
                   />
 
-                  <Button type="submit" size="lg" className="w-full">
-                    Send Message
+                  <Button type="submit" size="lg" className="w-full" disabled={form.formState.isSubmitting}>
+                    {form.formState.isSubmitting ? "Sending..." : "Send Message"}
                   </Button>
                 </form>
               </Form>
@@ -238,10 +239,10 @@ const Contact = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="no-link-style" asChild>
-              <a href="/request-visit">Schedule a Visit</a>
+              <Link to="/request-visit">Schedule Consultation</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <a href="/refer">Refer a Patient</a>
+              <Link to="/refer">Refer a Patient</Link>
             </Button>
           </div>
         </div>

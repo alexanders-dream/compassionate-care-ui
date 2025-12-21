@@ -80,7 +80,7 @@ const ProviderReferral = () => {
       urgency: data.urgency,
       clinical_notes: data.clinicalNotes,
     });
-    
+
     if (result.success) {
       setIsSubmitted(true);
     }
@@ -145,7 +145,7 @@ const ProviderReferral = () => {
       </Helmet>
       <Layout>
         {/* Hero */}
-        <section className="bg-[#EBF4FA] py-12 md:py-16">
+        <section className="bg-muted py-12 md:py-16">
           <div className="container-main">
             <div className="max-w-3xl mx-auto text-center">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-secondary/10 rounded-full text-sm font-medium text-secondary mb-4">
@@ -399,7 +399,7 @@ const ProviderReferral = () => {
               {/* Sidebar */}
               <div className="space-y-6">
                 {/* Provider Hotline */}
-                <Card className="bg-secondary text-secondary-foreground border-0">
+                <Card className="bg-primary/10 border-0">
                   <CardContent className="p-6">
                     <h3 className="font-semibold mb-4">Provider Hotline</h3>
                     <p className="text-sm opacity-90 mb-4">
@@ -407,9 +407,11 @@ const ProviderReferral = () => {
                     </p>
                     <a
                       href="tel:+18001234568"
-                      className="flex items-center gap-3 p-3 bg-primary/20 rounded-lg hover:bg-primary/30 transition-colors"
+                      className="no-link-style flex items-center gap-3 p-3 bg-primary/20 rounded-lg hover:bg-primary/30 transition-colors"
                     >
-                      <Phone size={20} className="text-primary" />
+                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                        <Phone size={18} className="text-primary" />
+                      </div>
                       <div>
                         <p className="font-medium">(800) 123-4568</p>
                         <p className="text-xs opacity-80">Mon-Fri 7AM-7PM</p>

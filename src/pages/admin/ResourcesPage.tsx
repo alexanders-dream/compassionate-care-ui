@@ -4,6 +4,8 @@ import ResourcesTab from "@/components/admin/tabs/ResourcesTab";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
+const BUCKET_NAME = "patient-resources";
+
 const ResourcesPage = () => {
     const { patientResources, setPatientResources } = useSiteData();
     const { toast } = useToast();
@@ -11,6 +13,7 @@ const ResourcesPage = () => {
     const [editingResource, setEditingResource] = useState<PatientResource | null>(null);
     const [resourceIcon, setResourceIcon] = useState("FileText");
     const [resourceFile, setResourceFile] = useState<File | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -26,16 +29,62 @@ const ResourcesPage = () => {
         return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
     };
 
+    const uploadFileToStorage = async (file: File): Promise<{ url: string; fileName: string; fileSize: string } | null> => {
+        try {
+            const fileExt = file.name.split('.').pop();
+            const uniqueName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from(BUCKET_NAME)
+                .upload(uniqueName, file);
+
+            if (uploadError) throw uploadError;
+
+            const { data } = supabase.storage
+                .from(BUCKET_NAME)
+                .getPublicUrl(uniqueName);
+
+            return {
+                url: data.publicUrl,
+                fileName: file.name,
+                fileSize: formatFileSize(file.size)
+            };
+        } catch (error) {
+            console.error("Error uploading file:", error);
+            return null;
+        }
+    };
+
     const handleSaveResource = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        setIsUploading(true);
         const formData = new FormData(e.currentTarget);
 
-        // Handle file upload to Storage (if strictly needed, but reusing naive logic for now)
-        // Admin.tsx logic for `file_url` was: if resourceFile, use `/downloads/${name}`, else input url.
-        // We should replicate this for now.
-        const fileUrl = resourceFile ? `/downloads/${resourceFile.name}` : (String(formData.get("url")) || null);
-        const fileName = resourceFile?.name || editingResource?.file_name || null;
-        const fileSize = resourceFile ? formatFileSize(resourceFile.size) : editingResource?.file_size || null;
+        let fileUrl = editingResource?.file_url || null;
+        let fileName = editingResource?.file_name || null;
+        let fileSize = editingResource?.file_size || null;
+
+        // If a new file is selected, upload it
+        if (resourceFile) {
+            const uploadResult = await uploadFileToStorage(resourceFile);
+            if (uploadResult) {
+                fileUrl = uploadResult.url;
+                fileName = uploadResult.fileName;
+                fileSize = uploadResult.fileSize;
+            } else {
+                toast({ title: "Error uploading file", variant: "destructive" });
+                setIsUploading(false);
+                return;
+            }
+        } else {
+            // Check if an external URL was provided
+            const externalUrl = String(formData.get("url") || "").trim();
+            if (externalUrl && externalUrl !== editingResource?.file_url) {
+                fileUrl = externalUrl;
+                fileName = null;
+                fileSize = null;
+            }
+        }
 
         const resourceData = {
             title: String(formData.get("title")),
@@ -80,10 +129,22 @@ const ResourcesPage = () => {
         setEditingResource(null);
         setResourceFile(null);
         setResourceIcon("FileText");
+        setIsUploading(false);
     };
 
     const handleDeleteResource = async (id: string) => {
+        const resource = patientResources.find(r => r.id === id);
+
         try {
+            // If the file was uploaded to our storage bucket, delete it
+            if (resource?.file_url?.includes(BUCKET_NAME)) {
+                const urlParts = resource.file_url.split('/');
+                const fileName = urlParts[urlParts.length - 1];
+                if (fileName) {
+                    await supabase.storage.from(BUCKET_NAME).remove([fileName]);
+                }
+            }
+
             const { error } = await supabase
                 .from("patient_resources")
                 .delete()
@@ -99,19 +160,35 @@ const ResourcesPage = () => {
         }
     };
 
+    // Handler for selecting a file from gallery
+    const handleSelectExistingFile = (url: string, fileName: string, fileSize: string) => {
+        // This will be passed to the form
+        setResourceFile(null); // Clear any new file selection
+        // The form will use the selected existing file's URL
+    };
+
     return (
-        <ResourcesTab
-            resources={patientResources}
-            onSave={handleSaveResource}
-            onDelete={handleDeleteResource}
-            editingResource={editingResource}
-            setEditingResource={setEditingResource}
-            resourceIcon={resourceIcon}
-            setResourceIcon={setResourceIcon}
-            resourceFile={resourceFile}
-            onFileUpload={handleFileUpload}
-        />
+        <div className="space-y-6">
+            <div>
+                <h2 className="text-3xl font-bold tracking-tight">Patient Resources</h2>
+                <p className="text-muted-foreground">Manage downloadable patient resources</p>
+            </div>
+
+            <ResourcesTab
+                resources={patientResources}
+                onSave={handleSaveResource}
+                onDelete={handleDeleteResource}
+                editingResource={editingResource}
+                setEditingResource={setEditingResource}
+                resourceIcon={resourceIcon}
+                setResourceIcon={setResourceIcon}
+                resourceFile={resourceFile}
+                onFileUpload={handleFileUpload}
+                isUploading={isUploading}
+            />
+        </div>
     );
 };
 
 export default ResourcesPage;
+

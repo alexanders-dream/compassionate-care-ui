@@ -4,7 +4,7 @@ const steps = [
   {
     number: "01",
     icon: Phone,
-    title: "Request a Visit",
+    title: "Request Consultation",
     description: "Fill out our simple form or call us directly. We'll gather your information and understand your needs.",
   },
   {
@@ -23,7 +23,7 @@ const steps = [
 
 const HowItWorks = () => {
   return (
-    <section className="section-padding bg-warm">
+    <section className="section-padding bg-warm dark:bg-background">
       <div className="container-main">
         {/* Section Header */}
         <div className="text-center max-w-2xl mx-auto mb-12">
@@ -51,7 +51,7 @@ const HowItWorks = () => {
                 <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-secondary text-white text-sm font-bold flex items-center justify-center z-10">
                   {step.number}
                 </div>
-                <div className="relative w-20 h-20 rounded-full bg-accent flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                <div className="relative w-20 h-20 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center group-hover:bg-blue-200 dark:group-hover:bg-blue-800/50 transition-colors">
                   <step.icon size={36} className="text-secondary" />
                 </div>
               </div>

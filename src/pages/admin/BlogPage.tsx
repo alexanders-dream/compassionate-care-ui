@@ -15,7 +15,8 @@ const BlogPage = () => {
         media: [],
         status: post.status, // Ensure status is passed
         category: post.category as any, // Cast category to satisfy the literal type union if it doesn't match exactly
-        image: post.imageUrl // Map imageUrl to image expected by UI
+        image: post.imageUrl, // Map imageUrl to image expected by UI
+        is_featured: post.is_featured
     }));
 
     const handleSaveArticle = async (article: ExtendedBlogPost) => {
@@ -32,11 +33,14 @@ const BlogPage = () => {
                 published_at: article.publishedAt,
                 scheduled_at: article.scheduledAt,
                 tags: article.tags,
-                slug: article.slug || article.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+                slug: (article as any).slug || article.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')
             };
 
+            // Check if ID is a valid UUID (update) or empty/invalid (insert)
+            const isValidUUID = article.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(article.id);
+
             let error;
-            if (article.id && article.id.length > 10) { // Simple check if it's likely a UUID vs temp ID
+            if (isValidUUID) {
                 const result = await supabase
                     .from("blog_posts")
                     .update(postData)
@@ -113,13 +117,56 @@ const BlogPage = () => {
         }
     };
 
+    const handleSetFeatured = async (post: ExtendedBlogPost) => {
+        try {
+            // Optimistic update
+            const updatedPosts = blogPosts.map(p => ({
+                ...p,
+                is_featured: p.id === post.id
+            })) as any;
+            setBlogPosts(updatedPosts);
+
+            // 1. Unset all current featured posts
+            // 1. Unset all current featured posts
+            const { error: unsetError } = await (supabase
+                .from("blog_posts")
+                .update({ is_featured: false } as any) as any)
+                .eq("is_featured", true);
+
+            if (unsetError) throw unsetError;
+
+            // 2. Set the new featured post
+            const { error: setError } = await (supabase
+                .from("blog_posts")
+                .update({ is_featured: true } as any) as any)
+                .eq("id", post.id);
+
+            if (setError) throw setError;
+
+            await refreshBlogPosts();
+            toast({ title: "Featured article updated" });
+        } catch (error) {
+            console.error("Error setting featured post:", error);
+            toast({ title: "Error updating featured post", variant: "destructive" });
+            await refreshBlogPosts(); // Revert on error
+        }
+    };
+
     return (
-        <BlogTab
-            posts={posts}
-            onSaveArticle={handleSaveArticle}
-            onDeletePost={handleDeletePost}
-            onSharePost={handleSharePost}
-        />
+        <div className="space-y-6">
+            <div>
+                <h2 className="text-3xl font-bold tracking-tight">Blog</h2>
+                <p className="text-muted-foreground">Manage blog posts and articles</p>
+            </div>
+
+            <BlogTab
+                posts={posts}
+                onSaveArticle={handleSaveArticle}
+                onDeletePost={handleDeletePost}
+                onSharePost={handleSharePost}
+                onSetFeatured={handleSetFeatured}
+            />
+        </div>
     );
 };
 

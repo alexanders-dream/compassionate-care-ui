@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
     Table,
     TableBody,
@@ -19,152 +20,626 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, User } from "lucide-react";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, Pencil, Trash2, User, Shield, Key, Eye, EyeOff, ArrowUpDown, Users } from "lucide-react";
 import { TeamMember } from "@/contexts/SiteDataContext";
+import RoleGate from "@/components/auth/RoleGate";
+import { ImageInsertionDialog } from "@/components/admin/ImageInsertionDialog";
+import { Badge } from "@/components/ui/badge";
+import AdminPagination from "../AdminPagination";
+
+// Extended Type for the Unified View
+export interface EnhancedTeamMember extends TeamMember {
+    email?: string; // from Profile/User
+    system_role?: string; // from UserRoles
+    user_id?: string; // link to auth user
+    is_public: boolean;
+}
 
 interface TeamTabProps {
-    team: TeamMember[];
-    onSave: (e: React.FormEvent<HTMLFormElement>) => void;
-    onDelete: (id: string) => void;
-    editingTeamMember: TeamMember | null;
-    setEditingTeamMember: (member: TeamMember | null) => void;
-    teamMemberImage: File | null;
+    team: EnhancedTeamMember[];
+    onSave: (memberData: any, isNew: boolean, password?: string) => Promise<void>;
+    onDelete: (id: string, userId?: string) => Promise<void>;
+    onCredentialsUpdate?: (userId: string, email?: string, newPassword?: string) => Promise<void>;
+
+    // Legacy/State Props
+    editingTeamMember: EnhancedTeamMember | null;
+    setEditingTeamMember: (member: EnhancedTeamMember | null) => void;
     teamMemberImagePreview: string | null;
-    onImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onImageSelected: (url: string) => void;
+    onVisibilityChange: (id: string, newVisibility: boolean) => Promise<void>;
 }
 
 const TeamTab = ({
     team,
     onSave,
     onDelete,
+    onCredentialsUpdate,
     editingTeamMember,
     setEditingTeamMember,
-    teamMemberImage,
     teamMemberImagePreview,
-    onImageUpload,
+    onImageSelected,
+    onVisibilityChange,
 }: TeamTabProps) => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState<EnhancedTeamMember | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
+    const [sortField, setSortField] = useState<"name" | "role" | "is_public" | "system_role">("name");
+    const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
-    const handleOpenDialog = (member: TeamMember | null) => {
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
+
+    // Reset page when sort changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [sortField, sortDirection]);
+
+    const toggleSort = (field: "name" | "role" | "is_public" | "system_role") => {
+        if (field === sortField) {
+            setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+        } else {
+            setSortField(field);
+            setSortDirection("asc");
+        }
+    };
+
+    // Form State (Controlled Inputs)
+    const [activeTab, setActiveTab] = useState("public");
+    const [name, setName] = useState("");
+    const [role, setRole] = useState("");
+    const [bio, setBio] = useState("");
+    const [isPublic, setIsPublic] = useState(true);
+    const [email, setEmail] = useState("");
+    const [systemRole, setSystemRole] = useState("user");
+    const [password, setPassword] = useState("");
+
+    // Password Reset State
+    const [resetPassword, setResetPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [showResetPassword, setShowResetPassword] = useState(false);
+
+    // Initialize State
+    useEffect(() => {
+        if (isDialogOpen) {
+            if (editingTeamMember) {
+                setName(editingTeamMember.name || "");
+                setRole(editingTeamMember.role || "");
+                setBio(editingTeamMember.bio || "");
+                setIsPublic(editingTeamMember.is_public ?? true);
+                setEmail(editingTeamMember.email || "");
+                setSystemRole(editingTeamMember.system_role || "user");
+            } else {
+                setName("");
+                setRole("");
+                setBio("");
+                setIsPublic(true);
+                setEmail("");
+                setSystemRole("user");
+                setPassword("");
+            }
+            setResetPassword("");
+            setShowPassword(false);
+            setShowResetPassword(false);
+        }
+    }, [isDialogOpen, editingTeamMember]);
+
+    const handleOpenDialog = (member: EnhancedTeamMember | null) => {
         setEditingTeamMember(member);
+        setActiveTab("public");
         setIsDialogOpen(true);
     };
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-        onSave(e);
-        setIsDialogOpen(false);
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setIsSaving(true);
+        try {
+            // Construct data object from State
+            const data: any = {
+                name,
+                role,
+                bio,
+                image_url: teamMemberImagePreview || editingTeamMember?.image_url,
+                display_order: editingTeamMember?.display_order,
+                is_public: isPublic,
+                email,
+                system_role: systemRole,
+                id: editingTeamMember?.id,
+                user_id: editingTeamMember?.user_id
+            };
+
+            await onSave(data, !editingTeamMember, password);
+            // Handle credential updates for existing users (email/password)
+            if (editingTeamMember && onCredentialsUpdate && editingTeamMember.user_id) {
+                const emailChanged = email !== editingTeamMember.email;
+                if (emailChanged || resetPassword) {
+                    await onCredentialsUpdate(
+                        editingTeamMember.user_id,
+                        emailChanged ? email : undefined,
+                        resetPassword || undefined
+                    );
+                }
+            }
+
+            setIsDialogOpen(false);
+        } catch (error) {
+            console.error("Failed to save:", error);
+        } finally {
+            setIsSaving(false);
+        }
     };
+
+    const confirmDelete = async () => {
+        if (itemToDelete) {
+            await onDelete(itemToDelete.id, itemToDelete.user_id);
+            setItemToDelete(null);
+        }
+    };
+
+    const sortedTeam = [...team].sort((a, b) => {
+        let comparison = 0;
+        switch (sortField) {
+            case "name":
+                comparison = a.name.localeCompare(b.name);
+                break;
+            case "role":
+                comparison = a.role.localeCompare(b.role);
+                break;
+            case "is_public":
+                comparison = (a.is_public === b.is_public) ? 0 : a.is_public ? -1 : 1;
+                break;
+            case "system_role":
+                comparison = (a.system_role || "").localeCompare(b.system_role || "");
+                break;
+        }
+        return sortDirection === "asc" ? comparison : -comparison;
+    });
+
+    // Paginate the sorted team
+    const paginatedTeam = sortedTeam.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
 
     return (
         <>
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
-                <h2 className="text-lg md:text-xl font-semibold">Team Members ({team.length})</h2>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
+                <h2 className="text-lg md:text-xl font-semibold flex items-center gap-2">
+                    <Users className="h-5 w-5 text-primary" />
+                    Team Members ({team.length})
+                </h2>
+
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                    <DialogTrigger asChild>
-                        <Button onClick={() => handleOpenDialog(null)} className="w-full sm:w-auto">
-                            <Plus className="h-4 w-4 mr-2" /> Add Member
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-h-[90vh] overflow-y-auto">
+                    <RoleGate allowedRoles={['admin']}>
+                        <DialogTrigger asChild>
+                            <Button onClick={() => handleOpenDialog(null)} className="w-full sm:w-auto">
+                                <Plus className="h-4 w-4 mr-2" /> Add Member
+                            </Button>
+                        </DialogTrigger>
+                    </RoleGate>
+                    <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[600px]">
                         <DialogHeader>
-                            <DialogTitle>{editingTeamMember ? "Edit Team Member" : "New Team Member"}</DialogTitle>
+                            <DialogTitle>{editingTeamMember ? "Edit User / Team Member" : "New User / Team Member"}</DialogTitle>
                         </DialogHeader>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div>
-                                <Label htmlFor="name">Name</Label>
-                                <Input id="name" name="name" defaultValue={editingTeamMember?.name} required />
-                            </div>
-                            <div>
-                                <Label htmlFor="role">Role/Title</Label>
-                                <Input id="role" name="role" defaultValue={editingTeamMember?.role} required />
-                            </div>
-                            <div>
-                                <Label htmlFor="bio">Bio</Label>
-                                <Textarea id="bio" name="bio" defaultValue={editingTeamMember?.bio} rows={3} required />
-                            </div>
-                            <div>
-                                <Label>Profile Image</Label>
-                                <div className="mt-2 space-y-3">
-                                    {(teamMemberImagePreview || editingTeamMember?.image_url) && (
-                                        <div className="flex items-center gap-3">
-                                            <img src={teamMemberImagePreview || editingTeamMember?.image_url || ""} alt="Profile preview" className="w-16 h-16 rounded-full object-cover border-2 border-border" />
-                                            <span className="text-sm text-muted-foreground">Current image</span>
+
+                        <form onSubmit={handleSubmit} autoComplete="off">
+                            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                                <TabsList className="grid w-full grid-cols-2 mb-4">
+                                    <TabsTrigger value="public">Public Details</TabsTrigger>
+                                    <TabsTrigger value="account">Account Settings</TabsTrigger>
+                                </TabsList>
+
+                                {/* PUBLIC DETAILS TAB */}
+                                <TabsContent value="public" className="space-y-4">
+                                    <div className="p-4 bg-muted/30 rounded-lg space-y-4 border">
+                                        <div>
+                                            <Label htmlFor="name">Display Name</Label>
+                                            <Input
+                                                id="name"
+                                                name="name"
+                                                value={name}
+                                                onChange={(e) => setName(e.target.value)}
+                                                required
+                                                placeholder="e.g. Dr. Jane Smith"
+                                                autoComplete="off"
+                                            />
                                         </div>
-                                    )}
-                                    <div className="border-2 border-dashed border-border rounded-lg p-4 text-center hover:border-primary/50 transition-colors">
-                                        <input type="file" accept="image/*" onChange={onImageUpload} className="hidden" id="team-member-image" />
-                                        <label htmlFor="team-member-image" className="cursor-pointer">
-                                            <div className="flex flex-col items-center gap-2">
-                                                <div className="p-2 bg-muted rounded-full"><User className="h-5 w-5 text-muted-foreground" /></div>
-                                                <span className="text-sm text-muted-foreground">{teamMemberImage ? teamMemberImage.name : "Click to upload"}</span>
+                                        <div>
+                                            <Label htmlFor="role">Job Title (Public)</Label>
+                                            <Input
+                                                id="role"
+                                                name="role"
+                                                value={role}
+                                                onChange={(e) => setRole(e.target.value)}
+                                                required
+                                                placeholder="e.g. Senior Wound Specialist"
+                                                autoComplete="off"
+                                            />
+                                        </div>
+                                        <div>
+                                            <Label htmlFor="bio">Bio</Label>
+                                            <Textarea
+                                                id="bio"
+                                                name="bio"
+                                                value={bio}
+                                                onChange={(e) => setBio(e.target.value)}
+                                                rows={3}
+                                                placeholder="Short professional biography..."
+                                            />
+                                        </div>
+
+                                        <div className="flex items-center space-x-2 border p-3 rounded-md bg-background">
+                                            <Switch
+                                                id="is_public"
+                                                name="is_public"
+                                                checked={isPublic}
+                                                onCheckedChange={setIsPublic}
+                                            />
+                                            <Label htmlFor="is_public" className="cursor-pointer">
+                                                Show on Website (About Us Page)
+                                            </Label>
+                                        </div>
+                                        <div>
+                                            <Label>Profile Image</Label>
+                                            <div className="mt-2 flex items-center gap-4">
+                                                {(teamMemberImagePreview || editingTeamMember?.image_url) ? (
+                                                    <img src={teamMemberImagePreview || editingTeamMember?.image_url || ""} alt="Preview" className="w-16 h-16 rounded-full object-cover border-2 border-border" />
+                                                ) : (
+                                                    <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center border-2 border-dashed">
+                                                        <User className="h-6 w-6 text-muted-foreground" />
+                                                    </div>
+                                                )}
+                                                <Button type="button" variant="outline" size="sm" onClick={() => setIsImageDialogOpen(true)}>
+                                                    Select Image
+                                                </Button>
+                                                <ImageInsertionDialog
+                                                    open={isImageDialogOpen}
+                                                    onOpenChange={setIsImageDialogOpen}
+                                                    onImageSelected={onImageSelected}
+                                                />
                                             </div>
-                                        </label>
+                                        </div>
                                     </div>
-                                </div>
+                                </TabsContent>
+
+                                {/* ACCOUNT SETTINGS TAB */}
+                                <TabsContent value="account" className="space-y-4">
+                                    <div className="p-4 bg-muted/30 rounded-lg space-y-4 border">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <Shield className="h-4 w-4 text-primary" />
+                                            <h3 className="font-semibold text-sm">System Access Controls</h3>
+                                        </div>
+
+                                        <div>
+                                            <Label htmlFor="email">Email Address</Label>
+                                            <Input
+                                                id="email"
+                                                name="email"
+                                                type="email"
+                                                value={email}
+                                                onChange={(e) => setEmail(e.target.value)}
+                                                autoComplete="new-password" // Often works better to stop generic autofill
+                                                required
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <Label htmlFor="system_role">System Role (RBAC)</Label>
+                                            <RoleGate allowedRoles={['admin']} fallback={<p className="text-sm text-foreground/80 py-2">{systemRole}</p>}>
+                                                <Select name="system_role" value={systemRole} onValueChange={setSystemRole}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select role" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="user">User (Standard)</SelectItem>
+                                                        <SelectItem value="admin">Administrator</SelectItem>
+                                                        <SelectItem value="medical_staff">Medical Staff</SelectItem>
+                                                        <SelectItem value="front_office">Front Office</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </RoleGate>
+                                            <p className="text-xs text-muted-foreground mt-1">
+                                                Determines what sections of the dashboard they can access.
+                                            </p>
+                                        </div>
+
+                                        <div className="border-t pt-4 mt-2">
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <Key className="h-4 w-4 text-primary" />
+                                                <h3 className="font-semibold text-sm">Password Management</h3>
+                                            </div>
+
+                                            {!editingTeamMember ? (
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="password">Initial Password</Label>
+                                                    <div className="relative">
+                                                        <Input
+                                                            id="password"
+                                                            name="password"
+                                                            value={password}
+                                                            onChange={(e) => setPassword(e.target.value)}
+                                                            type={showPassword ? "text" : "password"}
+                                                            required
+                                                            minLength={6}
+                                                            className="pr-10"
+                                                            autoComplete="new-password"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setShowPassword(!showPassword)}
+                                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                                            tabIndex={-1}
+                                                        >
+                                                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                        </button>
+                                                    </div>
+                                                    <p className="text-xs text-muted-foreground">Set a temporary password for the new user.</p>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="reset_password">Reset Password</Label>
+                                                    <div className="relative">
+                                                        <Input
+                                                            id="reset_password"
+                                                            value={resetPassword}
+                                                            onChange={(e) => setResetPassword(e.target.value)}
+                                                            type={showResetPassword ? "text" : "password"}
+                                                            minLength={6}
+                                                            placeholder="Enter new password to reset"
+                                                            className="pr-10"
+                                                            autoComplete="new-password"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setShowResetPassword(!showResetPassword)}
+                                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                                            tabIndex={-1}
+                                                        >
+                                                            {showResetPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                        </button>
+                                                    </div>
+                                                    <p className="text-xs text-muted-foreground">Leave blank to keep existing password.</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </TabsContent>
+                            </Tabs>
+
+                            <div className="mt-6 flex justify-end gap-3">
+                                <Button type="submit" disabled={isSaving}>
+                                    {isSaving ? "Saving..." : "Save User"}
+                                </Button>
                             </div>
-                            <Button type="submit" className="w-full">Save Team Member</Button>
                         </form>
                     </DialogContent>
                 </Dialog>
             </div>
 
-            {/* Mobile Cards */}
-            <div className="md:hidden space-y-3">
-                {team.map(member => (
-                    <Card key={member.id} className="p-4">
-                        <div className="flex items-start gap-3 mb-3">
-                            {member.image_url && <img src={member.image_url} alt={member.name} className="w-12 h-12 rounded-full object-cover shrink-0" />}
-                            <div className="flex-1 min-w-0">
-                                <p className="font-medium">{member.name}</p>
-                                <p className="text-xs text-muted-foreground">{member.role}</p>
-                            </div>
-                        </div>
-                        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{member.bio}</p>
-                        <div className="flex gap-2">
-                            <Button variant="outline" size="sm" className="flex-1" onClick={() => handleOpenDialog(member)}>
-                                <Pencil className="h-3 w-3 mr-1" /> Edit
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => onDelete(member.id)}>
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                        </div>
-                    </Card>
-                ))}
-                {team.length === 0 && (
-                    <p className="text-center text-muted-foreground py-8">No team members yet</p>
-                )}
-            </div>
-
-            {/* Desktop Table */}
-            <div className="hidden md:block overflow-x-auto">
+            {/* Desktop Table - Unified View */}
+            <div className="hidden md:block overflow-x-auto rounded-md border">
                 <Table>
                     <TableHeader>
-                        <TableRow>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Role</TableHead>
-                            <TableHead>Bio</TableHead>
+                        <TableRow className="bg-muted/50 hover:bg-muted/50 border-b-0">
+                            <TableHead
+                                className="cursor-pointer hover:bg-muted/50 select-none"
+                                onClick={() => toggleSort("name")}
+                            >
+                                <div className="flex items-center gap-1">
+                                    User
+                                    <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
+                                </div>
+                            </TableHead>
+                            <TableHead
+                                className="cursor-pointer hover:bg-muted/50 select-none"
+                                onClick={() => toggleSort("role")}
+                            >
+                                <div className="flex items-center gap-1">
+                                    Public Role
+                                    <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
+                                </div>
+                            </TableHead>
+                            <TableHead
+                                className="cursor-pointer hover:bg-muted/50 select-none"
+                                onClick={() => toggleSort("is_public")}
+                            >
+                                <div className="flex items-center gap-1">
+                                    Visibility
+                                    <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
+                                </div>
+                            </TableHead>
+                            <TableHead
+                                className="cursor-pointer hover:bg-muted/50 select-none"
+                                onClick={() => toggleSort("system_role")}
+                            >
+                                <div className="flex items-center gap-1">
+                                    System Access
+                                    <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
+                                </div>
+                            </TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {team.map(member => (
-                            <TableRow key={member.id}>
-                                <TableCell className="font-medium">{member.name}</TableCell>
+                        {paginatedTeam.map((member, index) => (
+                            <TableRow key={member.id} className={index % 2 === 1 ? "bg-muted/50" : ""}>
+                                <TableCell>
+                                    <div className="flex items-center gap-3">
+                                        <div className="h-10 w-10 rounded-full bg-muted overflow-hidden">
+                                            {member.image_url ? (
+                                                <img src={member.image_url} alt={member.name} className="h-full w-full object-cover" />
+                                            ) : (
+                                                <div className="h-full w-full flex items-center justify-center bg-primary/10 text-primary font-medium">
+                                                    {member.name.charAt(0)}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <p className="font-medium">{member.name}</p>
+                                            <p className="text-xs text-muted-foreground">{member.email || "No email linked"}</p>
+                                        </div>
+                                    </div>
+                                </TableCell>
                                 <TableCell>{member.role}</TableCell>
-                                <TableCell className="max-w-xs truncate">{member.bio}</TableCell>
+                                <TableCell>
+                                    <div className="flex items-center space-x-2">
+                                        <Switch
+                                            checked={member.is_public}
+                                            onCheckedChange={(checked) => onVisibilityChange(member.id, checked)}
+                                        />
+                                        <span className={`text-xs ${member.is_public ? 'text-green-600' : 'text-muted-foreground'}`}>
+                                            {member.is_public ? 'Visible' : 'Hidden'}
+                                        </span>
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    <Badge variant={
+                                        member.system_role === 'admin' ? "default" :
+                                            member.system_role === 'Public Only' ? "outline" :
+                                                "secondary"
+                                    } className="capitalize">
+                                        {member.system_role === 'Public Only' ? 'Public Only' :
+                                            (member.system_role || 'User').replace(/_/g, ' ')}
+                                    </Badge>
+                                </TableCell>
                                 <TableCell className="text-right">
                                     <Button variant="ghost" size="sm" onClick={() => handleOpenDialog(member)}>
                                         <Pencil className="h-4 w-4" />
                                     </Button>
-                                    <Button variant="ghost" size="sm" onClick={() => onDelete(member.id)}>
-                                        <Trash2 className="h-4 w-4 text-destructive" />
-                                    </Button>
+                                    <RoleGate allowedRoles={['admin']}>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => setItemToDelete(member)}
+                                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </RoleGate>
                                 </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
                 </Table>
             </div>
+
+            {/* Desktop Pagination */}
+            <div className="hidden md:block">
+                <AdminPagination
+                    currentPage={currentPage}
+                    totalItems={sortedTeam.length}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={setCurrentPage}
+                    onItemsPerPageChange={setItemsPerPage}
+                />
+            </div>
+
+            {/* Mobile View */}
+            <div className="md:hidden space-y-4">
+                {paginatedTeam.map((member) => (
+                    <Card key={member.id} className="p-4">
+                        <div className="flex items-start gap-3">
+                            <div className="h-10 w-10 rounded-full bg-muted overflow-hidden shrink-0">
+                                {member.image_url ? (
+                                    <img src={member.image_url} alt={member.name} className="h-full w-full object-cover" />
+                                ) : (
+                                    <div className="h-full w-full flex items-center justify-center bg-primary/10 text-primary font-medium">
+                                        {member.name.charAt(0)}
+                                    </div>
+                                )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                        </div>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <p className="text-xs text-muted-foreground">{member.role}</p>
+                                            <div className="flex items-center gap-1.5 ml-2">
+                                                <Switch
+                                                    id={`mobile-vis-${member.id}`}
+                                                    className="h-5 w-9"
+                                                    checked={member.is_public}
+                                                    onCheckedChange={(checked) => onVisibilityChange(member.id, checked)}
+                                                />
+                                                <Label htmlFor={`mobile-vis-${member.id}`} className="text-[10px] text-muted-foreground font-normal">
+                                                    {member.is_public ? 'Visible' : 'Hidden'}
+                                                </Label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <Badge variant={
+                                        member.system_role === 'admin' ? "default" :
+                                            member.system_role === 'Public Only' ? "outline" :
+                                                "secondary"
+                                    } className="text-[10px] px-1.5 py-0 h-5 capitalize">
+                                        {member.system_role === 'Public Only' ? 'Public Only' :
+                                            (member.system_role || 'User').replace(/_/g, ' ')}
+                                    </Badge>
+                                </div>
+
+                                <div className="mt-3 flex justify-end gap-2">
+                                    <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => handleOpenDialog(member)}>
+                                        Edit
+                                    </Button>
+                                    <RoleGate allowedRoles={['admin']}>
+                                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive" onClick={() => setItemToDelete(member)}>
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </RoleGate>
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
+                ))}
+                {/* Mobile Pagination */}
+                <AdminPagination
+                    currentPage={currentPage}
+                    totalItems={sortedTeam.length}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={setCurrentPage}
+                    onItemsPerPageChange={setItemsPerPage}
+                />
+            </div>
+
+            <AlertDialog open={!!itemToDelete} onOpenChange={(open) => !open && setItemToDelete(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will remove <span className="font-semibold">{itemToDelete?.name}</span> from the team.
+                            {itemToDelete?.user_id && " This will also delete their system access and user account."}
+                            <br />
+                            This action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                            Delete User
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </>
     );
 };

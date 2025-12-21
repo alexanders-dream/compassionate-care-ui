@@ -52,7 +52,7 @@ const Conditions = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="bg-white py-16 md:py-24">
+      <section className="bg-[#EBF4FA] dark:bg-background py-16 md:py-24">
         <div className="container-main text-center">
           <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-6">
             Conditions We <span className="text-primary">Treat</span>
@@ -97,7 +97,7 @@ const Conditions = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 md:py-24 bg-muted/30">
+      <section className="py-16 md:py-24 bg-muted">
         <div className="container-main text-center">
           <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
             Not Sure About Your Condition?
@@ -107,8 +107,8 @@ const Conditions = () => {
             Contact us for a consultation.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" asChild>
-              <Link to="/request-visit">Request a Visit</Link>
+            <Button size="lg" asChild className="text-white">
+              <Link to="/request-visit">Request Consultation</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
               <Link to="/contact">Contact Us</Link>

@@ -1,6 +1,7 @@
 import { Helmet } from "react-helmet-async";
 import Layout from "@/components/layout/Layout";
 import HeroSection from "@/components/home/HeroSection";
+import TrustBadges from "@/components/home/TrustBadges";
 import ServicesPreview from "@/components/home/ServicesPreview";
 import HowItWorks from "@/components/home/HowItWorks";
 import TrustSection from "@/components/home/TrustSection";
@@ -12,14 +13,15 @@ const Index = () => {
     <>
       <Helmet>
         <title>AR Advanced Woundcare Solutions | Expert Wound Care You Can Trust</title>
-        <meta 
-          name="description" 
-          content="AR Advanced Woundcare Solutions provides compassionate, expert wound care services. Request a visit or refer a patient today for personalized treatment and faster healing." 
+        <meta
+          name="description"
+          content="AR Advanced Woundcare Solutions provides compassionate, expert wound care services. Request a consultation or refer a patient today for personalized treatment and faster healing."
         />
         <meta name="keywords" content="wound care, advanced wound treatment, chronic wound care, wound healing, in-home wound care" />
       </Helmet>
       <Layout>
         <HeroSection />
+        <TrustBadges />
         <ServicesPreview />
         <HowItWorks />
         <TrustSection />
