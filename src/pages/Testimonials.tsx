@@ -30,9 +30,9 @@ const Testimonials = () => {
       {/* Testimonials Grid */}
       <section className="py-16 md:py-24">
         <div className="container-main">
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="flex flex-wrap justify-center gap-8">
             {testimonials.map((testimonial, index) => (
-              <div key={testimonial.id || index} className="bg-card rounded-2xl p-6 shadow-soft relative">
+              <div key={testimonial.id || index} className="bg-card rounded-2xl p-6 shadow-soft relative w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1.34rem)]">
                 <Quote className="absolute top-6 right-6 w-8 h-8 text-primary/20" />
                 <div className="flex gap-1 mb-4">
                   {[...Array(testimonial.rating)].map((_, i) => (

@@ -39,11 +39,11 @@ const Resources = () => {
           <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-8 text-center">
             Educational Materials
           </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="flex flex-wrap justify-center gap-6">
             {patientResources.map((resource, index) => {
               const IconComponent = iconMap[resource.icon] || FileText;
               return (
-                <div key={resource.id || index} className="bg-card rounded-2xl p-6 shadow-soft hover:shadow-elegant transition-shadow h-full flex flex-col">
+                <div key={resource.id || index} className="bg-card rounded-2xl p-6 shadow-soft hover:shadow-elegant transition-shadow h-full flex flex-col w-full md:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)]">
                   <div className="flex items-start gap-4 flex-1">
                     <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
                       <IconComponent className="w-6 h-6 text-primary" />

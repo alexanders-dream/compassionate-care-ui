@@ -57,6 +57,7 @@ const Footer = () => {
                   <Link
                     to={link.href}
                     className="no-link-style text-sm text-white/95 hover:text-white transition-colors"
+                    onClick={() => window.scrollTo(0, 0)}
                   >
                     {link.label}
                   </Link>
@@ -79,6 +80,7 @@ const Footer = () => {
                   <Link
                     to={link.href}
                     className="no-link-style text-sm text-white/95 hover:text-white transition-colors"
+                    onClick={() => window.scrollTo(0, 0)}
                   >
                     {link.label}
                   </Link>
@@ -118,13 +120,13 @@ const Footer = () => {
             © {currentYear} AR Advanced Woundcare Solutions. All rights reserved.
           </p>
           <div className="flex flex-wrap justify-center gap-6 text-sm text-white/95 dark:text-white/95">
-            <Link to="/privacy" className="no-link-style hover:text-white transition-colors">
+            <Link to="/privacy" className="no-link-style hover:text-white transition-colors" onClick={() => window.scrollTo(0, 0)}>
               Privacy Policy
             </Link>
-            <Link to="/terms" className="no-link-style hover:text-white transition-colors">
+            <Link to="/terms" className="no-link-style hover:text-white transition-colors" onClick={() => window.scrollTo(0, 0)}>
               Terms of Service
             </Link>
-            <Link to="/accessibility" className="no-link-style hover:text-white transition-colors">
+            <Link to="/accessibility" className="no-link-style hover:text-white transition-colors" onClick={() => window.scrollTo(0, 0)}>
               Accessibility
             </Link>
           </div>
