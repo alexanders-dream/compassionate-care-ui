@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
-import { BubbleMenu, FloatingMenu } from "@tiptap/react/menus";
 import { RichEditorMenus } from "./RichEditorMenus";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
@@ -175,82 +174,18 @@ const RichEditor = ({ content, onChange, placeholder = "Start writing...", class
     return (
         <div className="flex flex-col border rounded-md overflow-hidden bg-background relative">
 
-            {/* Bubble Menu for Text Selection */}
-            {editor && (
-                <BubbleMenu editor={editor} className="flex overflow-hidden border rounded-lg shadow-xl bg-background text-foreground">
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button variant={editor.isActive("bold") ? "secondary" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleBold().run()} className="h-8 w-8 p-0 rounded-none">
-                                <Bold className="h-4 w-4" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Bold</TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button variant={editor.isActive("italic") ? "secondary" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleItalic().run()} className="h-8 w-8 p-0 rounded-none">
-                                <Italic className="h-4 w-4" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Italic</TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button variant={editor.isActive("link") ? "secondary" : "ghost"} size="sm" onClick={addLink} className="h-8 w-8 p-0 rounded-none">
-                                <Link2 className="h-4 w-4" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Add Link</TooltipContent>
-                    </Tooltip>
-                    <Separator orientation="vertical" className="h-8" />
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button variant={editor.isActive("heading", { level: 2 }) ? "secondary" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className="h-8 w-8 p-0 rounded-none">
-                                <Heading2 className="h-4 w-4" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Heading 2</TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button variant={editor.isActive("heading", { level: 3 }) ? "secondary" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} className="h-8 w-8 p-0 rounded-none">
-                                <Heading3 className="h-4 w-4" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Heading 3</TooltipContent>
-                    </Tooltip>
-                </BubbleMenu>
-            )}
-
-            {/* Floating Menu for Empty Lines */}
-            {editor && (
-                <FloatingMenu editor={editor} className="flex gap-1 overflow-hidden border rounded-lg shadow-xl bg-background text-foreground p-1">
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button variant={editor.isActive("heading", { level: 2 }) ? "secondary" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className="h-8 w-8 p-0">
-                                <Heading2 className="h-4 w-4" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Heading 2</TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button variant={editor.isActive("bulletList") ? "secondary" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleBulletList().run()} className="h-8 w-8 p-0">
-                                <List className="h-4 w-4" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Bullet List</TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button variant={editor.isActive("orderedList") ? "secondary" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleOrderedList().run()} className="h-8 w-8 p-0">
-                                <ListOrdered className="h-4 w-4" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Numbered List</TooltipContent>
-                    </Tooltip>
-                </FloatingMenu>
-            )}
+            {/* Bubble Menu and Floating Menu with All Editing Options */}
+            <RichEditorMenus
+                editor={editor}
+                onAddLink={addLink}
+                onAddImage={() => setIsImageDialogOpen(true)}
+                onAddYoutube={() => {
+                    const url = window.prompt("YouTube URL");
+                    if (url) {
+                        editor.commands.setYoutubeVideo({ src: url });
+                    }
+                }}
+            />
 
             {/* Main Toolbar */}
             <div className="flex items-center gap-1 p-2 bg-muted/50 border-b flex-wrap sticky top-0 z-10">
