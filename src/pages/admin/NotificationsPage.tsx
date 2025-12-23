@@ -13,8 +13,8 @@ interface NotificationSettings {
     adminEmail: string;
     enablePatientConfirmations: boolean;
     enableAdminAlerts: boolean;
-    reminderTime: string; // "24", "48", "72" hours
-    reminderTimeOfDay: string; // "09:00", "14:00" etc.
+    enableAppointmentReminders: boolean;
+    reminderTime: string; // "1", "2", "3", "6", "12", "24", "48", "72" hours
 }
 
 const NotificationsPage = () => {
@@ -25,8 +25,8 @@ const NotificationsPage = () => {
         adminEmail: "",
         enablePatientConfirmations: true,
         enableAdminAlerts: true,
+        enableAppointmentReminders: true,
         reminderTime: "24",
-        reminderTimeOfDay: "09:00",
     });
 
     useEffect(() => {
@@ -35,12 +35,10 @@ const NotificationsPage = () => {
 
     const fetchSettings = async () => {
         try {
-            // In a real app, this would come from the 'app_config' table
-            // mocking initial load from what might be in DB or defaults
             const { data, error } = await supabase
                 .from('app_config' as any)
                 .select('*')
-                .in('key', ['admin_email', 'enable_patient_confirmations', 'enable_admin_alerts', 'reminder_time', 'reminder_time_of_day']);
+                .in('key', ['admin_email', 'enable_patient_confirmations', 'enable_admin_alerts', 'enable_appointment_reminders', 'reminder_time']);
 
             if (error) throw error;
 
@@ -50,8 +48,8 @@ const NotificationsPage = () => {
                     if (item.key === 'admin_email') newSettings.adminEmail = item.value || "";
                     if (item.key === 'enable_patient_confirmations') newSettings.enablePatientConfirmations = item.value === 'true';
                     if (item.key === 'enable_admin_alerts') newSettings.enableAdminAlerts = item.value === 'true';
+                    if (item.key === 'enable_appointment_reminders') newSettings.enableAppointmentReminders = item.value !== 'false';
                     if (item.key === 'reminder_time') newSettings.reminderTime = item.value || "24";
-                    if (item.key === 'reminder_time_of_day') newSettings.reminderTimeOfDay = item.value || "09:00";
                 });
                 setSettings(newSettings);
             }
@@ -69,8 +67,8 @@ const NotificationsPage = () => {
                 { key: 'admin_email', value: settings.adminEmail },
                 { key: 'enable_patient_confirmations', value: String(settings.enablePatientConfirmations) },
                 { key: 'enable_admin_alerts', value: String(settings.enableAdminAlerts) },
+                { key: 'enable_appointment_reminders', value: String(settings.enableAppointmentReminders) },
                 { key: 'reminder_time', value: settings.reminderTime },
-                { key: 'reminder_time_of_day', value: settings.reminderTimeOfDay },
             ];
 
             const { error } = await supabase.from('app_config' as any).upsert(updates);
@@ -172,43 +170,46 @@ const NotificationsPage = () => {
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <div className="space-y-2">
-                            <Label>Reminder Timing</Label>
-                            <Select
-                                value={settings.reminderTime}
-                                onValueChange={(v) => setSettings({ ...settings, reminderTime: v })}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select time" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="24">24 Hours Before</SelectItem>
-                                    <SelectItem value="48">48 Hours Before</SelectItem>
-                                    <SelectItem value="72">3 Days Before</SelectItem>
-                                </SelectContent>
-                            </Select>
+                        <div className="flex items-center justify-between space-x-2">
+                            <Label htmlFor="reminders-enabled" className="flex flex-col space-y-1">
+                                <span>Enable Reminders</span>
+                                <span className="font-normal text-xs text-muted-foreground">
+                                    Send automated reminders before appointments
+                                </span>
+                            </Label>
+                            <Switch
+                                id="reminders-enabled"
+                                checked={settings.enableAppointmentReminders}
+                                onCheckedChange={(c) => setSettings({ ...settings, enableAppointmentReminders: c })}
+                            />
                         </div>
 
-                        <div className="space-y-2">
-                            <Label>Time of Day to Send</Label>
-                            <Select
-                                value={settings.reminderTimeOfDay}
-                                onValueChange={(v) => setSettings({ ...settings, reminderTimeOfDay: v })}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select time of day" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="08:00">8:00 AM</SelectItem>
-                                    <SelectItem value="09:00">9:00 AM</SelectItem>
-                                    <SelectItem value="12:00">12:00 PM</SelectItem>
-                                    <SelectItem value="17:00">5:00 PM</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <p className="text-xs text-muted-foreground">
-                                Emails are sent daily at this time for appointments falling in the window.
-                            </p>
-                        </div>
+                        {settings.enableAppointmentReminders && (
+                            <div className="space-y-2 pt-2">
+                                <Label>Reminder Timing</Label>
+                                <Select
+                                    value={settings.reminderTime}
+                                    onValueChange={(v) => setSettings({ ...settings, reminderTime: v })}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select time" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="1">1 Hour Before</SelectItem>
+                                        <SelectItem value="2">2 Hours Before</SelectItem>
+                                        <SelectItem value="3">3 Hours Before</SelectItem>
+                                        <SelectItem value="6">6 Hours Before</SelectItem>
+                                        <SelectItem value="12">12 Hours Before</SelectItem>
+                                        <SelectItem value="24">24 Hours Before</SelectItem>
+                                        <SelectItem value="48">48 Hours Before</SelectItem>
+                                        <SelectItem value="72">3 Days Before</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <p className="text-xs text-muted-foreground">
+                                    Patients will receive a reminder email this many hours before their appointment.
+                                </p>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             </div>
@@ -223,3 +224,4 @@ const NotificationsPage = () => {
 };
 
 export default NotificationsPage;
+

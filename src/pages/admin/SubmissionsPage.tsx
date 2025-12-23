@@ -6,15 +6,21 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { ScheduleDialog, AppointmentFormData, useClinicians } from "@/components/admin/AppointmentScheduler";
 import { useAppointmentMutations } from "@/hooks/useAppointmentMutations";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Send, Mail } from "lucide-react";
+import EmailComposeModal from "@/components/admin/EmailComposeModal";
 
 // Types extracted from Admin.tsx logic
 import { VisitRequest, ProviderReferralSubmission } from "@/contexts/SiteDataContext";
+
+interface EmailRecipient {
+    email: string;
+    name: string;
+    type: "visit_request" | "referral";
+    id: string;
+    woundType?: string;
+    patientName?: string; // For referrals, the patient name (not the provider)
+    providerName?: string; // For referrals
+    practiceName?: string; // For referrals
+}
 
 const SubmissionsPage = () => {
     const {
@@ -32,9 +38,9 @@ const SubmissionsPage = () => {
     const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
     const [scheduleInitialData, setScheduleInitialData] = useState<Partial<AppointmentFormData> | undefined>(undefined);
 
-    // Email dialog state
-    const [emailOpen, setEmailOpen] = useState(false);
-    const [emailData, setEmailData] = useState<{ id: string; type: "visit" | "referral"; to: string; subject: string; message: string } | null>(null);
+    // Email modal state
+    const [emailModalOpen, setEmailModalOpen] = useState(false);
+    const [emailRecipient, setEmailRecipient] = useState<EmailRecipient | null>(null);
 
     // Internal function to update visit status directly (without opening dialog)
     const updateVisitStatusDirect = async (id: string, status: VisitRequest["status"]) => {
@@ -144,18 +150,40 @@ const SubmissionsPage = () => {
     };
 
     const handleEmail = (type: "visit" | "referral", item: any) => {
-        let email = "";
-
         if (type === "visit") {
             const req = item as VisitRequest;
-            email = req.email;
+            setEmailRecipient({
+                email: req.email,
+                name: `${req.firstName} ${req.lastName}`.trim(),
+                type: "visit_request",
+                id: req.id,
+                woundType: req.woundType,
+            });
         } else {
             const ref = item as ProviderReferralSubmission;
-            email = ref.providerEmail;
+            // Email the provider for referrals
+            setEmailRecipient({
+                email: ref.providerEmail,
+                name: ref.providerName,
+                type: "referral",
+                id: ref.id,
+                woundType: ref.woundType,
+                patientName: `${ref.patientFirstName} ${ref.patientLastName}`.trim(),
+                providerName: ref.providerName,
+                practiceName: ref.practiceName,
+            });
         }
+        setEmailModalOpen(true);
+    };
 
-        if (email) {
-            window.location.href = `mailto:${email}`;
+    const handleEmailSuccess = () => {
+        // Update status to "contacted" after sending email
+        if (emailRecipient) {
+            if (emailRecipient.type === "visit_request") {
+                updateVisitStatusDirect(emailRecipient.id, "contacted");
+            } else {
+                updateReferralStatusDirect(emailRecipient.id, "contacted");
+            }
         }
     };
 
@@ -211,13 +239,33 @@ const SubmissionsPage = () => {
                     if (apt.providerReferralId) updateReferralStatusDirect(apt.providerReferralId, "scheduled");
                     setIsScheduleDialogOpen(false);
                 }}
-                existingAppointments={appointments} // We could pass appointments if needed for conflict checking
+                existingAppointments={appointments}
                 visitRequests={visitRequests}
                 referrals={referrals}
                 availableClinicians={clinicians}
             />
+
+            {/* Email Compose Modal */}
+            {emailRecipient && (
+                <EmailComposeModal
+                    open={emailModalOpen}
+                    onOpenChange={setEmailModalOpen}
+                    recipientEmail={emailRecipient.email}
+                    recipientName={emailRecipient.name}
+                    contextType={emailRecipient.type}
+                    contextId={emailRecipient.id}
+                    onSuccess={handleEmailSuccess}
+                    placeholderData={{
+                        patient_name: emailRecipient.type === 'referral' ? emailRecipient.patientName : emailRecipient.name,
+                        wound_type: emailRecipient.woundType,
+                        provider_name: emailRecipient.providerName,
+                        practice_name: emailRecipient.practiceName,
+                    }}
+                />
+            )}
         </div>
     );
 };
 
 export default SubmissionsPage;
+

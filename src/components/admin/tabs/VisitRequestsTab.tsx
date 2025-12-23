@@ -308,13 +308,13 @@ const VisitRequestsTab = ({
 
                         {/* Contact Info Section - Clickable links */}
                         <div className="px-4 py-2 space-y-1 text-sm">
-                            <a
-                                href={`mailto:${request.email}`}
+                            <button
+                                onClick={() => onEmail(request)}
                                 className="flex items-center gap-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
                             >
                                 <Mail className="h-4 w-4 shrink-0" />
                                 <span className="truncate">{request.email}</span>
-                            </a>
+                            </button>
                             {request.phone && (
                                 <a
                                     href={`tel:${request.phone}`}
@@ -536,7 +536,7 @@ const VisitRequestsTab = ({
                                         variant="ghost"
                                         size="icon"
                                         className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                                        onClick={() => window.location.href = `mailto:${request.email}`}
+                                        onClick={() => onEmail(request)}
                                         disabled={!request.email}
                                         title="Email Patient"
                                     >

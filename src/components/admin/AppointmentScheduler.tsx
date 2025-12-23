@@ -40,6 +40,7 @@ import StatusCounts from "./StatusCounts";
 import { supabase } from "@/integrations/supabase/client";
 import AdminPagination from "./AdminPagination";
 import RoleGate from "@/components/auth/RoleGate";
+import EmailComposeModal from "./EmailComposeModal";
 
 // Shared constants
 export const useClinicians = () => {
@@ -700,6 +701,10 @@ const AppointmentScheduler = ({
   const [viewAppointment, setViewAppointment] = useState<Appointment | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
 
+  // Email Modal State
+  const [emailModalOpen, setEmailModalOpen] = useState(false);
+  const [emailAppointment, setEmailAppointment] = useState<Appointment | null>(null);
+
   // Filtering and sorting state
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [sortField, setSortField] = useState<"name" | "date" | "status" | "type" | "clinician" | "location">("date");
@@ -932,7 +937,8 @@ const AppointmentScheduler = ({
   // Email handlers
   const handleEmail = (apt: Appointment) => {
     if (apt.patientEmail) {
-      window.location.href = `mailto:${apt.patientEmail}`;
+      setEmailAppointment(apt);
+      setEmailModalOpen(true);
     }
   };
 
@@ -1353,13 +1359,13 @@ const AppointmentScheduler = ({
                         </a>
                       )}
                       {apt.patientEmail && (
-                        <a
-                          href={`mailto:${apt.patientEmail}`}
+                        <button
+                          onClick={() => handleEmail(apt)}
                           className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline flex items-center gap-1"
                         >
                           <Mail className="h-3 w-3" />
                           <span className="truncate max-w-[120px]">{apt.patientEmail}</span>
-                        </a>
+                        </button>
                       )}
                     </div>
                   </div>
@@ -1628,7 +1634,7 @@ const AppointmentScheduler = ({
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                    onClick={() => window.location.href = `mailto:${apt.patientEmail}`}
+                    onClick={() => handleEmail(apt)}
                     disabled={!apt.patientEmail}
                     title="Email Patient"
                   >
@@ -1699,6 +1705,24 @@ const AppointmentScheduler = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Email Compose Modal */}
+      {emailAppointment && (
+        <EmailComposeModal
+          open={emailModalOpen}
+          onOpenChange={setEmailModalOpen}
+          recipientEmail={emailAppointment.patientEmail || ''}
+          recipientName={emailAppointment.patientName}
+          contextType="appointment"
+          contextId={emailAppointment.id}
+          placeholderData={{
+            patient_name: emailAppointment.patientName,
+            appointment_date: emailAppointment.appointmentDate,
+            appointment_time: emailAppointment.appointmentTime,
+            clinician: emailAppointment.clinician,
+          }}
+        />
+      )}
     </div >
   );
 };

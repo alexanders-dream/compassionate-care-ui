@@ -96,7 +96,7 @@ export function SubmissionDetailsDialog({
                                         <label className="text-xs text-muted-foreground">Email</label>
                                         <div className="flex items-center gap-2">
                                             <Mail className="h-3 w-3 text-muted-foreground" />
-                                            <a href={`mailto:${email}`} className="hover:underline">{email}</a>
+                                            <button onClick={() => onEmail(submission)} className="hover:underline text-left">{email}</button>
                                         </div>
                                     </div>
                                 )}
@@ -180,10 +180,8 @@ export function SubmissionDetailsDialog({
                         variant="outline"
                         className="flex-1"
                         onClick={() => {
-                            const emailAddr = type === "visit"
-                                ? (submission as any).email
-                                : (submission as any).providerEmail;
-                            if (emailAddr) window.location.href = `mailto:${emailAddr}`;
+                            onEmail(submission);
+                            onOpenChange(false);
                         }}
                     >
                         <Mail className="h-4 w-4 mr-2" /> Email

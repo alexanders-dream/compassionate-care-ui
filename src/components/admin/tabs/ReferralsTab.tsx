@@ -577,7 +577,7 @@ const ReferralsTab = ({
                                         variant="ghost"
                                         size="icon"
                                         className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                                        onClick={() => window.location.href = `mailto:${referral.providerEmail}`}
+                                        onClick={() => onEmail(referral)}
                                         disabled={!referral.providerEmail}
                                         title="Email Provider"
                                     >

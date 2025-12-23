@@ -5,7 +5,6 @@ export type {
   TeamMember,
   FAQ,
   PatientResource,
-  FormConfig,
   VisitRequest,
   ProviderReferralSubmission,
   Appointment

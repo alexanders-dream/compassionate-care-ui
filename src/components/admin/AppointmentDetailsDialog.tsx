@@ -86,9 +86,9 @@ export function AppointmentDetailsDialog({
                                         <span className="text-muted-foreground text-xs">Email</span>
                                         <div className="flex items-center gap-2 mt-1">
                                             <Mail className="h-3 w-3 text-muted-foreground" />
-                                            <a href={`mailto:${appointment.patientEmail}`} className="hover:underline font-medium">
+                                            <button onClick={() => onEmail(appointment)} className="hover:underline font-medium text-left">
                                                 {appointment.patientEmail || "N/A"}
-                                            </a>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -169,7 +169,10 @@ export function AppointmentDetailsDialog({
                     <Button
                         variant="outline"
                         className="flex-1"
-                        onClick={() => window.location.href = `mailto:${appointment.patientEmail}`}
+                        onClick={() => {
+                            onEmail(appointment);
+                            onOpenChange(false);
+                        }}
                         disabled={!appointment.patientEmail}
                     >
                         <Mail className="h-4 w-4 mr-2" /> Email

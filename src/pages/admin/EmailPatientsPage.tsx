@@ -4,148 +4,231 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { Send, FileText } from "lucide-react";
-
-const TEMPLATES = [
-    {
-        id: "review",
-        name: "Request Review",
-        subject: "How was your visit with Compassionate Care?",
-        message: "Hi there,\n\nWe hope your recent visit went well. We would love to hear your feedback to help us improve.\n\nPlease take a moment to leave us a review.\n\nBest,\nCompassionate Care"
-    },
-    {
-        id: "follow-up",
-        name: "Follow Up",
-        subject: "Checking in on your progress",
-        message: "Hi,\n\nJust checking in to see how your wound is healing. Do you have any questions or concerns?\n\nBest,\nCompassionate Care Team"
-    },
-    {
-        id: "visit-prep",
-        name: "Visit Preparation",
-        subject: "Preparing for your upcoming visit",
-        message: "Hi,\n\nFor our upcoming visit, please ensure the wound area is accessible and you have a clean space prepared.\n\nSee you soon!"
-    }
-];
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Send, FileText, Plus, Pencil, Trash2, Mail, History, Loader2, Star } from "lucide-react";
+import { useEmailTemplates, EmailTemplate } from "@/hooks/useEmailTemplates";
+import { useEmailLogs, replacePlaceholders } from "@/hooks/useEmailLogs";
+import EmailTemplateDialog from "@/components/admin/EmailTemplateDialog";
+import { format } from "date-fns";
 
 const EmailPatientsPage = () => {
-    const { toast } = useToast();
-    const [loading, setLoading] = useState(false);
+    const {
+        templates,
+        loading: templatesLoading,
+        createTemplate,
+        updateTemplate,
+        deleteTemplate,
+        setDefaultTemplate,
+        clearDefaultTemplate,
+    } = useEmailTemplates();
+    const { emailLogs, loading: logsLoading, sendEmail, sending } = useEmailLogs();
+
+    // Compose state
     const [recipient, setRecipient] = useState("");
     const [subject, setSubject] = useState("");
     const [message, setMessage] = useState("");
+    const [selectedTemplateId, setSelectedTemplateId] = useState("");
+
+    // Template dialog state
+    const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
+    const [editingTemplate, setEditingTemplate] = useState<EmailTemplate | null>(null);
+    const [templateToDelete, setTemplateToDelete] = useState<string | null>(null);
+    const [savingTemplate, setSavingTemplate] = useState(false);
 
     const handleTemplateSelect = (templateId: string) => {
-        const template = TEMPLATES.find(t => t.id === templateId);
+        setSelectedTemplateId(templateId);
+        if (templateId === "custom") {
+            return;
+        }
+        const template = templates.find(t => t.id === templateId);
         if (template) {
             setSubject(template.subject);
-            setMessage(template.message);
+            setMessage(template.body);
         }
     };
 
     const handleSend = async () => {
         if (!recipient || !subject || !message) {
-            toast({
-                title: "Missing Fields",
-                description: "Please fill in all fields before sending.",
-                variant: "destructive",
-            });
             return;
         }
 
-        setLoading(true);
-        try {
-            const workerUrl = import.meta.env.VITE_WORKER_URL;
-            if (!workerUrl) throw new Error("Worker URL not configured");
+        const success = await sendEmail({
+            recipientEmail: recipient,
+            subject,
+            body: message,
+            templateId: selectedTemplateId && selectedTemplateId !== "custom" ? selectedTemplateId : undefined,
+            contextType: "custom",
+        });
 
-            const response = await fetch(`${workerUrl}/send-custom`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ to: recipient, subject, message }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.details || errorData.error || "Failed to send email");
-            }
-
-            toast({
-                title: "Email Sent",
-                description: `Sent to ${recipient}`,
-            });
-
-            // Reset form
+        if (success) {
             setRecipient("");
             setSubject("");
             setMessage("");
-
-        } catch (error: any) {
-            console.error("Error sending email", error);
-            toast({
-                title: "Error",
-                description: error.message || "Failed to send email.",
-                variant: "destructive",
-            });
-        } finally {
-            setLoading(false);
+            setSelectedTemplateId("");
         }
     };
 
+    const handleSaveTemplate = async (data: any) => {
+        setSavingTemplate(true);
+        let success = false;
+        if (editingTemplate) {
+            success = await updateTemplate(editingTemplate.id, data);
+        } else {
+            const result = await createTemplate(data);
+            success = result !== null;
+        }
+        setSavingTemplate(false);
+        return success;
+    };
+
+    const handleDeleteTemplate = async () => {
+        if (templateToDelete) {
+            await deleteTemplate(templateToDelete);
+            setTemplateToDelete(null);
+        }
+    };
+
+    const openEditTemplate = (template: EmailTemplate) => {
+        setEditingTemplate(template);
+        setTemplateDialogOpen(true);
+    };
+
+    const openNewTemplate = () => {
+        setEditingTemplate(null);
+        setTemplateDialogOpen(true);
+    };
+
+    const getCategoryBadge = (category: string) => {
+        const colors: Record<string, string> = {
+            general: "bg-gray-100 text-gray-700",
+            "follow-up": "bg-blue-100 text-blue-700",
+            reminder: "bg-amber-100 text-amber-700",
+            welcome: "bg-green-100 text-green-700",
+            scheduling: "bg-indigo-100 text-indigo-700",
+        };
+        return (
+            <Badge className={`${colors[category] || colors.general} border-0 capitalize`}>
+                {category}
+            </Badge>
+        );
+    };
+
+    const getDefaultContextLabel = (context: string | null) => {
+        const labels: Record<string, string> = {
+            appointment: "Appointments",
+            visit_request: "Visit Requests",
+            referral: "Referrals",
+        };
+        return context ? labels[context] || context : null;
+    };
+
+    const handleSetDefault = async (templateId: string, contextType: string) => {
+        await setDefaultTemplate(templateId, contextType);
+    };
+
+    const handleClearDefault = async (templateId: string) => {
+        await clearDefaultTemplate(templateId);
+    };
+
     return (
-        <div className="max-w-4xl mx-auto space-y-6">
+        <div className="space-y-6">
             <div>
                 <h2 className="text-3xl font-bold tracking-tight">Email Patients</h2>
                 <p className="text-muted-foreground">
-                    Send custom messages or use templates to contact patients directly.
+                    Manage email templates and send messages to patients.
                 </p>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-3">
-                {/* Templates Sidebar */}
-                <div className="md:col-span-1 space-y-4">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-lg">Templates</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                            {TEMPLATES.map(template => (
-                                <Button
-                                    key={template.id}
-                                    variant="outline"
-                                    className="w-full justify-start gap-2 h-auto py-3 whitespace-normal text-left"
-                                    onClick={() => handleTemplateSelect(template.id)}
-                                >
-                                    <FileText className="h-4 w-4 shrink-0 mt-0.5" />
-                                    <div className="flex flex-col">
-                                        <span className="font-semibold">{template.name}</span>
-                                        <span className="text-xs text-muted-foreground truncate w-32">{template.subject}</span>
-                                    </div>
-                                </Button>
-                            ))}
-                        </CardContent>
-                    </Card>
-                </div>
+            <Tabs defaultValue="compose" className="space-y-4">
+                <TabsList>
+                    <TabsTrigger value="compose" className="gap-2">
+                        <Send className="h-4 w-4" />
+                        Compose
+                    </TabsTrigger>
+                    <TabsTrigger value="templates" className="gap-2">
+                        <FileText className="h-4 w-4" />
+                        Templates
+                    </TabsTrigger>
+                    <TabsTrigger value="history" className="gap-2">
+                        <History className="h-4 w-4" />
+                        Email History
+                    </TabsTrigger>
+                </TabsList>
 
-                {/* Email Composer */}
-                <div className="md:col-span-2">
+                {/* Compose Tab */}
+                <TabsContent value="compose">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Compose Message</CardTitle>
+                            <CardTitle className="flex items-center gap-2">
+                                <Mail className="h-5 w-5" />
+                                Compose Message
+                            </CardTitle>
+                            <CardDescription>
+                                Send a custom email or use a template.
+                            </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="recipient">To (Email)</Label>
-                                <Input
-                                    id="recipient"
-                                    placeholder="patient@example.com"
-                                    value={recipient}
-                                    onChange={(e) => setRecipient(e.target.value)}
-                                />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="recipient">Recipient Email *</Label>
+                                    <Input
+                                        id="recipient"
+                                        type="email"
+                                        placeholder="patient@example.com"
+                                        value={recipient}
+                                        onChange={(e) => setRecipient(e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Use Template</Label>
+                                    <Select
+                                        value={selectedTemplateId}
+                                        onValueChange={handleTemplateSelect}
+                                        disabled={templatesLoading}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select a template..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="custom">Custom Email</SelectItem>
+                                            {templates.map(template => (
+                                                <SelectItem key={template.id} value={template.id}>
+                                                    {template.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="subject">Subject</Label>
+                                <Label htmlFor="subject">Subject *</Label>
                                 <Input
                                     id="subject"
                                     placeholder="Email subject..."
@@ -155,7 +238,7 @@ const EmailPatientsPage = () => {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="message">Message</Label>
+                                <Label htmlFor="message">Message *</Label>
                                 <Textarea
                                     id="message"
                                     placeholder="Type your message here..."
@@ -166,15 +249,233 @@ const EmailPatientsPage = () => {
                             </div>
 
                             <div className="flex justify-end pt-2">
-                                <Button onClick={handleSend} disabled={loading} className="gap-2">
-                                    <Send className="h-4 w-4" />
-                                    {loading ? "Sending..." : "Send Email"}
+                                <Button
+                                    onClick={handleSend}
+                                    disabled={sending || !recipient || !subject || !message}
+                                    className="gap-2"
+                                >
+                                    {sending ? (
+                                        <>
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                            Sending...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Send className="h-4 w-4" />
+                                            Send Email
+                                        </>
+                                    )}
                                 </Button>
                             </div>
                         </CardContent>
                     </Card>
-                </div>
-            </div>
+                </TabsContent>
+
+                {/* Templates Tab */}
+                <TabsContent value="templates">
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between">
+                            <div>
+                                <CardTitle className="flex items-center gap-2">
+                                    <FileText className="h-5 w-5" />
+                                    Email Templates
+                                </CardTitle>
+                                <CardDescription>
+                                    Create and manage reusable email templates.
+                                </CardDescription>
+                            </div>
+                            <Button onClick={openNewTemplate} className="gap-2">
+                                <Plus className="h-4 w-4" />
+                                New Template
+                            </Button>
+                        </CardHeader>
+                        <CardContent>
+                            {templatesLoading ? (
+                                <div className="flex justify-center py-8">
+                                    <Loader2 className="h-6 w-6 animate-spin" />
+                                </div>
+                            ) : templates.length === 0 ? (
+                                <div className="text-center py-8 text-muted-foreground">
+                                    <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                                    <p>No templates yet. Create your first template to get started.</p>
+                                </div>
+                            ) : (
+                                <div className="rounded-md border">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow className="bg-muted/50">
+                                                <TableHead>Name</TableHead>
+                                                <TableHead>Subject</TableHead>
+                                                <TableHead>Category</TableHead>
+                                                <TableHead>Default For</TableHead>
+                                                <TableHead className="text-right">Actions</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {templates.map((template, index) => (
+                                                <TableRow key={template.id} className={index % 2 === 1 ? "bg-muted/50" : ""}>
+                                                    <TableCell className="font-medium">{template.name}</TableCell>
+                                                    <TableCell className="max-w-[200px] truncate text-muted-foreground">
+                                                        {template.subject}
+                                                    </TableCell>
+                                                    <TableCell>{getCategoryBadge(template.category)}</TableCell>
+                                                    <TableCell>
+                                                        {template.default_for_context ? (
+                                                            <div className="flex items-center gap-2">
+                                                                <Badge className="bg-amber-100 text-amber-700 border-0">
+                                                                    <Star className="h-3 w-3 mr-1" />
+                                                                    {getDefaultContextLabel(template.default_for_context)}
+                                                                </Badge>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
+                                                                    onClick={() => handleClearDefault(template.id)}
+                                                                >
+                                                                    Clear
+                                                                </Button>
+                                                            </div>
+                                                        ) : (
+                                                            <Select
+                                                                onValueChange={(value) => handleSetDefault(template.id, value)}
+                                                            >
+                                                                <SelectTrigger className="h-8 w-[140px]">
+                                                                    <SelectValue placeholder="Set default..." />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    <SelectItem value="appointment">Appointments</SelectItem>
+                                                                    <SelectItem value="visit_request">Visit Requests</SelectItem>
+                                                                    <SelectItem value="referral">Referrals</SelectItem>
+                                                                </SelectContent>
+                                                            </Select>
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell className="text-right space-x-1">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => openEditTemplate(template)}
+                                                        >
+                                                            <Pencil className="h-4 w-4" />
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                                            onClick={() => setTemplateToDelete(template.id)}
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                {/* History Tab */}
+                <TabsContent value="history">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <History className="h-5 w-5" />
+                                Email History
+                            </CardTitle>
+                            <CardDescription>
+                                View all sent emails and their status.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            {logsLoading ? (
+                                <div className="flex justify-center py-8">
+                                    <Loader2 className="h-6 w-6 animate-spin" />
+                                </div>
+                            ) : emailLogs.length === 0 ? (
+                                <div className="text-center py-8 text-muted-foreground">
+                                    <Mail className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                                    <p>No emails sent yet.</p>
+                                </div>
+                            ) : (
+                                <div className="rounded-md border">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow className="bg-muted/50">
+                                                <TableHead>Recipient</TableHead>
+                                                <TableHead>Subject</TableHead>
+                                                <TableHead>Status</TableHead>
+                                                <TableHead>Sent At</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {emailLogs.map((log, index) => (
+                                                <TableRow key={log.id} className={index % 2 === 1 ? "bg-muted/50" : ""}>
+                                                    <TableCell>
+                                                        <div>
+                                                            <p className="font-medium">{log.recipient_name || "—"}</p>
+                                                            <p className="text-sm text-muted-foreground">{log.recipient_email}</p>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="max-w-[250px] truncate">
+                                                        {log.subject}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Badge
+                                                            className={
+                                                                log.status === "sent"
+                                                                    ? "bg-green-100 text-green-700 border-0"
+                                                                    : "bg-red-100 text-red-700 border-0"
+                                                            }
+                                                        >
+                                                            {log.status}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell className="text-muted-foreground">
+                                                        {format(new Date(log.created_at), "MMM d, yyyy h:mm a")}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+            </Tabs>
+
+            {/* Template Dialog */}
+            <EmailTemplateDialog
+                open={templateDialogOpen}
+                onOpenChange={setTemplateDialogOpen}
+                template={editingTemplate}
+                onSave={handleSaveTemplate}
+                saving={savingTemplate}
+            />
+
+            {/* Delete Confirmation */}
+            <AlertDialog open={!!templateToDelete} onOpenChange={(open) => !open && setTemplateToDelete(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Template?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will remove the template from your list. This action can be undone by contacting support.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleDeleteTemplate}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 };
