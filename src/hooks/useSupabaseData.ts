@@ -13,6 +13,7 @@ export function useVisitRequests() {
     wound_type?: string;
     preferred_date?: string;
     preferred_time?: string;
+    preferred_contact?: string;
     additional_notes?: string;
   }) => {
     try {

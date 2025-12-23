@@ -74,67 +74,141 @@ export async function handleAdminNotification(request: Request, env: Env) {
     let subject = 'New Submission';
     let content = '';
 
+    const buttonStyle = 'display: inline-block; padding: 12px 24px; margin: 10px 5px 10px 0; background-color: #2563eb; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;';
+    const secondaryButtonStyle = 'display: inline-block; padding: 12px 24px; margin: 10px 5px 10px 0; background-color: #ffffff; color: #2563eb; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px; border: 2px solid #2563eb;';
+
     if (type === 'visit_request') {
         subject = 'New Visit Request Received';
         content = `
-            <p>You have received a new request for a home visit. Here are the details:</p>
-            <div class="field">
-                <div class="field-label">Patient Name</div>
-                <div class="field-value">${details.patient_name}</div>
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h2 style="color: #1e293b; margin-bottom: 10px;">New Patient Request</h2>
+                <p style="color: #64748b; font-size: 16px;">A new request for a home visit has been submitted.</p>
             </div>
-            <div class="field">
-                <div class="field-label">Contact Info</div>
-                <div class="field-value">${details.phone} <br> ${details.email}</div>
+            
+            <div style="background-color: #f8fafc; padding: 25px; border-radius: 12px; margin-bottom: 25px;">
+                <h3 style="color: #334155; margin-top: 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 20px;">Patient Details</h3>
+                
+                <div class="field">
+                    <div class="field-label">Patient Name</div>
+                    <div class="field-value" style="font-size: 18px; color: #0f172a; font-weight: 500;">${details.patient_name}</div>
+                </div>
+
+                <div class="field">
+                    <div class="field-label">Contact Information</div>
+                    <div class="field-value">
+                        <div style="margin-bottom: 5px;">📱 ${details.phone}</div>
+                        <div>📧 ${details.email}</div>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="field-label">Preferred Contact Method</div>
+                    <div class="field-value" style="display: inline-block; background-color: #e0f2fe; color: #0284c7; padding: 4px 12px; border-radius: 9999px; font-weight: 500; font-size: 14px;">
+                        ${details.preferred_contact ? details.preferred_contact.charAt(0).toUpperCase() + details.preferred_contact.slice(1) : 'Not Specified'}
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="field-label">Wound Details</div>
+                    <div class="field-value">${details.wound_type || 'Not specified'}</div>
+                </div>
+
+                <div class="field">
+                    <div class="field-label">Location</div>
+                    <div class="field-value">📍 ${details.address}</div>
+                </div>
+
+                <div class="field">
+                    <div class="field-label">Scheduling Preference</div>
+                    <div class="field-value">
+                        ${details.preferred_date || 'Any date'} ${details.preferred_time ? ' at ' + details.preferred_time : ''}
+                    </div>
+                </div>
+
+                ${details.additional_notes ? `
+                <div class="field">
+                    <div class="field-label">Additional Notes</div>
+                    <div class="field-value" style="background: #ffffff; padding: 15px; border-radius: 6px; border: 1px solid #e2e8f0; color: #475569; font-style: italic;">
+                        "${details.additional_notes}"
+                    </div>
+                </div>
+                ` : ''}
             </div>
-            <div class="field">
-                <div class="field-label">Address</div>
-                <div class="field-value">${details.address}</div>
-            </div>
-            <div class="field">
-                <div class="field-label">Wound Type</div>
-                <div class="field-value">${details.wound_type || 'Not specified'}</div>
-            </div>
-             <div class="field">
-                <div class="field-label">Preferred Time</div>
-                <div class="field-value">${details.preferred_date || 'Any date'} at ${details.preferred_time || 'Any time'}</div>
+
+            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                <p style="margin-bottom: 20px; color: #64748b; font-weight: 500;">Take Action:</p>
+                <a href="tel:${details.phone.replace(/[^0-9+]/g, '')}" style="${buttonStyle}">📞 Call Patient</a>
+                <a href="mailto:${details.email}" style="${secondaryButtonStyle}">✉️ Email Patient</a>
             </div>
         `;
     } else if (type === 'referral') {
         subject = 'New Provider Referral Received';
         content = `
-            <p>A new patient referral has been submitted by a provider:</p>
-             <div class="field">
-                <div class="field-label">Provider</div>
-                <div class="field-value">${details.provider_name} (${details.provider_organization || 'No Org'})</div>
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h2 style="color: #1e293b; margin-bottom: 10px;">New Provider Referral</h2>
             </div>
-            <div class="field">
-                <div class="field-label">Patient</div>
-                <div class="field-value">${details.patient_name}</div>
+
+            <div style="background-color: #f8fafc; padding: 25px; border-radius: 12px; margin-bottom: 25px;">
+                <h3 style="color: #334155; margin-top: 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 20px;">Referral Info</h3>
+                
+                 <div class="field">
+                    <div class="field-label">Provider</div>
+                    <div class="field-value" style="font-weight: 500;">${details.provider_name}</div>
+                    <div class="field-value" style="color: #64748b; font-size: 14px;">${details.provider_organization || 'No Organization'}</div>
+                </div>
+
+                <div style="margin: 20px 0; border-top: 1px dashed #cbd5e1;"></div>
+
+                <div class="field">
+                    <div class="field-label">Patient Name</div>
+                    <div class="field-value" style="font-size: 18px; font-weight: 500;">${details.patient_name}</div>
+                </div>
+
+                 <div class="field">
+                    <div class="field-label">Patient Contact</div>
+                    <div class="field-value">
+                         <div style="margin-bottom: 5px;">📱 ${details.patient_phone}</div>
+                         ${details.patient_email ? `<div>📧 ${details.patient_email}</div>` : ''}
+                    </div>
+                </div>
+                 
+                 <div class="field">
+                    <div class="field-label">Urgency</div>
+                    <div class="field-value">
+                        <span style="background-color: ${details.urgency === 'High' ? '#fee2e2' : '#f1f5f9'}; color: ${details.urgency === 'High' ? '#ef4444' : '#475569'}; padding: 4px 12px; border-radius: 9999px; font-weight: 600; font-size: 14px;">
+                            ${details.urgency || 'Standard'}
+                        </span>
+                    </div>
+                </div>
             </div>
-             <div class="field">
-                <div class="field-label">Patient Contact</div>
-                <div class="field-value">${details.patient_phone}</div>
-            </div>
-             <div class="field">
-                <div class="field-label">Urgency</div>
-                <div class="field-value">${details.urgency || 'Standard'}</div>
+
+             <div style="text-align: center; margin-top: 30px;">
+                <a href="tel:${details.patient_phone.replace(/[^0-9+]/g, '')}" style="${buttonStyle}">📞 Call Patient</a>
             </div>
         `;
     } else if (type === 'contact') {
         subject = 'New Contact Form Submission';
         content = `
-            <p>Someone has reached out via the contact form:</p>
-            <div class="field">
-                <div class="field-label">Name</div>
-                <div class="field-value">${details.name}</div>
+            <div style="background-color: #f8fafc; padding: 25px; border-radius: 12px;">
+                <div class="field">
+                    <div class="field-label">From</div>
+                    <div class="field-value" style="font-size: 18px; font-weight: 500;">${details.name}</div>
+                    <div class="field-value"><a href="mailto:${details.email}" style="color: #2563eb;">${details.email}</a></div>
+                </div>
+
+                <div class="field">
+                    <div class="field-label">Subject</div>
+                    <div class="field-value" style="font-weight: 500;">${details.subject || 'No Subject'}</div>
+                </div>
+                
+                 <div class="field">
+                    <div class="field-label">Message</div>
+                    <div class="field-value" style="background: #ffffff; padding: 15px; border-radius: 6px; border: 1px solid #e2e8f0; line-height: 1.6;">${details.message}</div>
+                </div>
             </div>
-            <div class="field">
-                <div class="field-label">Subject</div>
-                <div class="field-value">${details.subject || 'No Subject'}</div>
-            </div>
-             <div class="field">
-                <div class="field-label">Message</div>
-                <div class="field-value" style="background: #f8fafc; padding: 10px; border-radius: 4px; border: 1px solid #e2e8f0;">${details.message}</div>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <a href="mailto:${details.email}" style="${buttonStyle}">Reply via Email</a>
             </div>
         `;
     }

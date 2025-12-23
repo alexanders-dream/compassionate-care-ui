@@ -54,6 +54,7 @@ const RequestVisit = () => {
       phone: data.phone,
       address: data.address,
       wound_type: data.woundType,
+      preferred_contact: data.preferredContact,
       additional_notes: data.additionalInfo,
     });
 
