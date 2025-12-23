@@ -21,20 +21,25 @@ export function useVisitRequests() {
 
       if (error) throw error;
 
+
+      toast({
+        title: "Request Submitted",
+        description: "Your request has been securely recorded.",
+      });
+
       // Trigger Email Worker
       try {
         const workerUrl = import.meta.env.VITE_WORKER_URL;
         if (workerUrl) {
+          let emailErrors = [];
+
           // 1. Notify Admin
           const adminResp = await fetch(`${workerUrl}/notify-admin`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ type: 'visit_request', details: data }),
           });
-          if (!adminResp.ok) {
-            const err = await adminResp.json();
-            console.error("Admin notification failed:", err);
-          }
+          if (!adminResp.ok) emailErrors.push("Admin notification");
 
           // 2. Notify Patient (Confirmation)
           const patientResp = await fetch(`${workerUrl}/notify-patient`, {
@@ -46,20 +51,31 @@ export function useVisitRequests() {
               type: 'visit_request'
             }),
           });
-          if (!patientResp.ok) {
-            const err = await patientResp.json();
-            console.error("Patient notification failed:", err);
+          if (!patientResp.ok) emailErrors.push("Patient confirmation");
+
+          if (emailErrors.length === 0) {
+            toast({
+              title: "Confirmation Sent",
+              description: "Emails have been sent successfully.",
+            });
+          } else {
+            console.error("Email errors:", emailErrors);
+            toast({
+              variant: "destructive",
+              title: "Email Delivery Issue",
+              description: "Form saved, but confirmation emails failed to send.",
+            });
           }
         }
       } catch (workerError) {
         console.error("Worker notification failed:", workerError);
-        // Don't fail the written submission if email fails, but log it
+        toast({
+          variant: "destructive",
+          title: "Email System Error",
+          description: "Form saved, but email system is unreachable.",
+        });
       }
 
-      toast({
-        title: "Request Submitted",
-        description: "We'll contact you within 24 hours to schedule your visit.",
-      });
       return { success: true };
     } catch (err) {
       console.error("Error submitting visit request:", err);
@@ -97,20 +113,25 @@ export function useProviderReferrals() {
 
       if (error) throw error;
 
+
+      toast({
+        title: "Referral Submitted",
+        description: "Referral has been recorded in the system.",
+      });
+
       // Trigger Email Worker
       try {
         const workerUrl = import.meta.env.VITE_WORKER_URL;
         if (workerUrl) {
+          let emailErrors = [];
+
           // 1. Notify Admin
           const adminResp = await fetch(`${workerUrl}/notify-admin`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ type: 'referral', details: data }),
           });
-          if (!adminResp.ok) {
-            const err = await adminResp.json();
-            console.error("Admin notification failed:", err);
-          }
+          if (!adminResp.ok) emailErrors.push("Admin notification");
 
           // 2. Notify Patient (if email provided)
           if (data.patient_email) {
@@ -123,20 +144,31 @@ export function useProviderReferrals() {
                 type: 'referral'
               }),
             });
-            if (!patientResp.ok) {
-              const err = await patientResp.json();
-              console.error("Patient notification failed:", err);
-            }
+            if (!patientResp.ok) emailErrors.push("Patient notification");
+          }
+
+          if (emailErrors.length === 0) {
+            toast({
+              title: "Confirmation Sent",
+              description: "Notification emails sent successfully.",
+            });
+          } else {
+            toast({
+              variant: "destructive",
+              title: "Email Delivery Issue",
+              description: "Referral saved, but some emails failed to send.",
+            });
           }
         }
       } catch (workerError) {
         console.error("Worker notification failed:", workerError);
+        toast({
+          variant: "destructive",
+          title: "Email System Error",
+          description: "Referral saved, but email system is unreachable.",
+        });
       }
 
-      toast({
-        title: "Referral Submitted",
-        description: "We'll contact the patient within 24 hours.",
-      });
       return { success: true };
     } catch (err) {
       console.error("Error submitting referral:", err);
@@ -168,6 +200,12 @@ export function useContactSubmissions() {
 
       if (error) throw error;
 
+
+      toast({
+        title: "Message Saved",
+        description: "We have received your message.",
+      });
+
       // Trigger Email Worker
       try {
         const workerUrl = import.meta.env.VITE_WORKER_URL;
@@ -178,19 +216,29 @@ export function useContactSubmissions() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ type: 'contact', details: data }),
           });
-          if (!adminResp.ok) {
-            const err = await adminResp.json();
-            console.error("Admin notification failed:", err);
+
+          if (adminResp.ok) {
+            toast({
+              title: "Notification Sent",
+              description: "Admin has been notified of your message.",
+            });
+          } else {
+            toast({
+              variant: "destructive",
+              title: "Notification Failed",
+              description: "Message saved, but failed to notify admin.",
+            });
           }
         }
       } catch (workerError) {
         console.error("Worker notification failed:", workerError);
+        toast({
+          variant: "destructive",
+          title: "Email System Error",
+          description: "Message saved, but email system is unreachable.",
+        });
       }
 
-      toast({
-        title: "Message Sent!",
-        description: "We'll get back to you within 1 business day.",
-      });
       return { success: true };
     } catch (err) {
       console.error("Error submitting contact form:", err);

@@ -34,7 +34,7 @@ const Header = () => {
             </Link>
 
             {/* Desktop Navigation - absolutely centered */}
-            <nav className="hidden lg:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
+            <nav className="hidden xl:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
@@ -48,7 +48,7 @@ const Header = () => {
             </nav>
 
             {/* CTA Buttons - positioned at the end */}
-            <div className="hidden md:flex items-center gap-3 z-10">
+            <div className="hidden xl:flex items-center gap-3 z-10">
               <ThemeToggle />
               <Button variant="ghost" asChild className="border-2 border-white/80 text-white hover:bg-white/10 hover:text-white">
                 <Link to="/refer" className="no-link-style">Refer a Patient</Link>
@@ -61,7 +61,7 @@ const Header = () => {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="lg:hidden p-2 text-white focus-ring rounded-md"
+              className="xl:hidden p-2 text-white focus-ring rounded-md"
               aria-label="Toggle menu"
               aria-expanded={isMenuOpen}
             >
@@ -72,7 +72,7 @@ const Header = () => {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="lg:hidden border-t border-white/20 bg-primary">
+          <div className="xl:hidden border-t border-white/20 bg-primary dark:bg-background">
             <nav className="container-main py-4 flex flex-col gap-2">
               {navLinks.map((link) => (
                 <Link
@@ -86,6 +86,10 @@ const Header = () => {
                 </Link>
               ))}
               <div className="flex flex-col gap-3 pt-4 border-t border-white/20 mt-2">
+                <div className="flex items-center justify-between px-2 text-white">
+                  <span className="text-sm font-medium">Theme</span>
+                  <ThemeToggle />
+                </div>
                 <Button variant="ghost" asChild className="w-full justify-center border-2 border-white/80 text-white hover:bg-white/10">
                   <Link to="/refer" onClick={() => setIsMenuOpen(false)} className="no-link-style">
                     Refer a Patient

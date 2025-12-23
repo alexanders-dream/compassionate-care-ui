@@ -70,7 +70,7 @@ const RequestVisit = () => {
           <title>Request Submitted | AR Advanced Woundcare Solutions</title>
         </Helmet>
         <Layout>
-          <section className="section-padding bg-[#EBF4FA]">
+          <section className="section-padding bg-[#EBF4FA] dark:bg-background">
             <div className="container-main">
               <div className="max-w-xl mx-auto text-center">
                 <div className="w-20 h-20 mx-auto rounded-full bg-primary/20 flex items-center justify-center mb-6">
