@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Mail, Lock, Chrome, Eye, EyeOff } from "lucide-react";
 import { z } from "zod";
+import Icon from "@/assets/Icon.png";
 
 const emailSchema = z.string().email("Please enter a valid email address");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
@@ -163,8 +164,10 @@ const Auth = () => {
       <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4 py-12">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <div className="mx-auto w-12 h-12 rounded-full bg-primary flex items-center justify-center mb-4">
-              <span className="text-primary-foreground font-bold text-lg">AR</span>
+            <div className="flex justify-center mb-6">
+              <div className="bg-black p-2 rounded-lg">
+                <img src={Icon} alt="Logo" className="w-20 h-20 object-contain" />
+              </div>
             </div>
             <CardTitle className="text-2xl font-display">Welcome Back</CardTitle>
             <CardDescription>
