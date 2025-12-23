@@ -6,7 +6,7 @@
 -- -----------------------------------------------------------------------------
 -- 1. Email Templates Table
 -- -----------------------------------------------------------------------------
-CREATE TABLE public.email_templates (
+CREATE TABLE IF NOT EXISTS public.email_templates (
     id UUID NOT NULL DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
     subject TEXT NOT NULL,
@@ -20,14 +20,14 @@ CREATE TABLE public.email_templates (
 );
 
 -- Add unique constraint on default_for_context (only one default per context type)
-CREATE UNIQUE INDEX idx_email_templates_default_context 
+CREATE UNIQUE INDEX IF NOT EXISTS idx_email_templates_default_context 
 ON public.email_templates(default_for_context) 
 WHERE default_for_context IS NOT NULL AND is_active = true;
 
 -- -----------------------------------------------------------------------------
 -- 2. Email Logs Table
 -- -----------------------------------------------------------------------------
-CREATE TABLE public.email_logs (
+CREATE TABLE IF NOT EXISTS public.email_logs (
     id UUID NOT NULL DEFAULT gen_random_uuid(),
     recipient_email TEXT NOT NULL,
     recipient_name TEXT,
@@ -91,10 +91,10 @@ WITH CHECK (
 -- -----------------------------------------------------------------------------
 -- 6. Indexes
 -- -----------------------------------------------------------------------------
-CREATE INDEX idx_email_logs_context ON public.email_logs(context_type, context_id);
-CREATE INDEX idx_email_logs_sent_by ON public.email_logs(sent_by);
-CREATE INDEX idx_email_logs_created ON public.email_logs(created_at DESC);
-CREATE INDEX idx_email_templates_active ON public.email_templates(is_active);
+CREATE INDEX IF NOT EXISTS idx_email_logs_context ON public.email_logs(context_type, context_id);
+CREATE INDEX IF NOT EXISTS idx_email_logs_sent_by ON public.email_logs(sent_by);
+CREATE INDEX IF NOT EXISTS idx_email_logs_created ON public.email_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_email_templates_active ON public.email_templates(is_active);
 
 -- -----------------------------------------------------------------------------
 -- 7. Seed Default Templates
@@ -155,5 +155,6 @@ For our upcoming visit on {{appointment_date}} at {{appointment_time}}, please e
 
 See you soon!
 
-Compassionate Care Team', 'reminder', NULL);
+Compassionate Care Team', 'reminder', NULL)
+ON CONFLICT (default_for_context) WHERE default_for_context IS NOT NULL DO NOTHING;
 
