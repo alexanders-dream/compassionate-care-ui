@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Menu, X, Phone } from "lucide-react";
+import Logo from "@/assets/Logo.png";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -25,13 +26,11 @@ const Header = () => {
           <div className="relative flex h-16 md:h-20 items-center justify-between">
             {/* Logo - positioned at the start */}
             <Link to="/" className="no-link-style flex items-center gap-2 z-10">
-              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-lg">AR</span>
-              </div>
-              <div className="hidden sm:block">
-                <span className="font-display font-semibold text-white">AR Advanced</span>
-                <span className="block text-xs text-white/70 -mt-1">Woundcare Solutions</span>
-              </div>
+              <img
+                src={Logo}
+                alt="AR Advanced Woundcare Solutions"
+                className="h-10 md:h-12 w-auto object-contain"
+              />
             </Link>
 
             {/* Desktop Navigation - absolutely centered */}
