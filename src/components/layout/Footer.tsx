@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Phone, Mail, MapPin, Clock } from "lucide-react";
+import Logo from "@/assets/Logo.png";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -11,14 +12,12 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           {/* Brand & Contact */}
           <div className="lg:col-span-1">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                <span className="text-white font-bold text-lg">AR</span>
-              </div>
-              <div>
-                <span className="font-display font-semibold text-white">AR Advanced</span>
-                <span className="block text-xs text-white/90 dark:text-white/95 -mt-1">Woundcare Solutions</span>
-              </div>
+            <div className="mb-6">
+              <img
+                src={Logo}
+                alt="AR Advanced Woundcare Solutions"
+                className="h-16 w-auto object-contain"
+              />
             </div>
             <p className="text-sm text-white/95 dark:text-white mb-6 leading-relaxed">
               Compassionate, expert wound care delivered with trust and clinical excellence.
