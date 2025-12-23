@@ -179,7 +179,12 @@ export function SubmissionDetailsDialog({
                     <Button
                         variant="outline"
                         className="flex-1"
-                        onClick={() => onEmail(submission)}
+                        onClick={() => {
+                            const emailAddr = type === "visit"
+                                ? (submission as any).email
+                                : (submission as any).providerEmail;
+                            if (emailAddr) window.location.href = `mailto:${emailAddr}`;
+                        }}
                     >
                         <Mail className="h-4 w-4 mr-2" /> Email
                     </Button>

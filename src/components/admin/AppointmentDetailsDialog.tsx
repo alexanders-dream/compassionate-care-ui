@@ -169,7 +169,7 @@ export function AppointmentDetailsDialog({
                     <Button
                         variant="outline"
                         className="flex-1"
-                        onClick={() => onEmail(appointment)}
+                        onClick={() => window.location.href = `mailto:${appointment.patientEmail}`}
                         disabled={!appointment.patientEmail}
                     >
                         <Mail className="h-4 w-4 mr-2" /> Email

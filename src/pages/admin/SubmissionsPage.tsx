@@ -143,43 +143,20 @@ const SubmissionsPage = () => {
         setIsScheduleDialogOpen(true);
     };
 
-    const openEmailDialog = (type: "visit" | "referral", item: any) => {
+    const handleEmail = (type: "visit" | "referral", item: any) => {
+        let email = "";
+
         if (type === "visit") {
             const req = item as VisitRequest;
-            setEmailData({
-                id: req.id,
-                type: "visit",
-                to: req.email,
-                subject: "Regarding your Visit Request - Compassionate Care",
-                message: `Dear ${req.firstName},\n\nWe received your visit request and would like to...`
-            });
+            email = req.email;
         } else {
             const ref = item as ProviderReferralSubmission;
-            setEmailData({
-                id: ref.id,
-                type: "referral",
-                to: ref.providerEmail,
-                subject: "Referral Update - Compassionate Care",
-                message: `Dr. ${ref.providerName},\n\nRegarding your referral for ${ref.patientFirstName} ${ref.patientLastName}...`
-            });
-        }
-        setEmailOpen(true);
-    };
-
-    const handleSendEmail = async () => {
-        if (!emailData) return;
-
-        // In a real app, call a backend function to send email here
-        // For now, we update the status to 'contacted'
-
-        if (emailData.type === "visit") {
-            await updateVisitStatus(emailData.id, "contacted");
-        } else {
-            await updateReferralStatus(emailData.id, "contacted");
+            email = ref.providerEmail;
         }
 
-        toast({ title: "Email sent", description: "Status updated to Contacted" });
-        setEmailOpen(false);
+        if (email) {
+            window.location.href = `mailto:${email}`;
+        }
     };
 
     return (
@@ -195,7 +172,7 @@ const SubmissionsPage = () => {
                     appointments={appointments}
                     onUpdateStatus={updateVisitStatus}
                     onSchedule={(req) => openScheduleDialog("visit", req)}
-                    onEmail={(req) => openEmailDialog("visit", req)}
+                    onEmail={(req) => handleEmail("visit", req)}
                     onDelete={deleteVisitRequest}
                 />
 
@@ -206,7 +183,7 @@ const SubmissionsPage = () => {
                     appointments={appointments}
                     onUpdateStatus={updateReferralStatus}
                     onSchedule={(ref) => openScheduleDialog("referral", ref)}
-                    onEmail={(ref) => openEmailDialog("referral", ref)}
+                    onEmail={(ref) => handleEmail("referral", ref)}
                     onDelete={deleteReferral}
                 />
             </div>
@@ -239,42 +216,6 @@ const SubmissionsPage = () => {
                 referrals={referrals}
                 availableClinicians={clinicians}
             />
-
-
-            <Dialog open={emailOpen} onOpenChange={setEmailOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Send Email</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                            <Label>To</Label>
-                            <Input value={emailData?.to || ''} readOnly />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Subject</Label>
-                            <Input
-                                value={emailData?.subject || ''}
-                                onChange={e => setEmailData(prev => prev ? { ...prev, subject: e.target.value } : null)}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Message</Label>
-                            <Textarea
-                                value={emailData?.message || ''}
-                                onChange={e => setEmailData(prev => prev ? { ...prev, message: e.target.value } : null)}
-                                rows={5}
-                            />
-                        </div>
-                        <div className="flex justify-end gap-2">
-                            <Button variant="outline" onClick={() => setEmailOpen(false)}>Cancel</Button>
-                            <Button onClick={handleSendEmail} className="gap-2">
-                                <Send className="h-4 w-4" /> Send
-                            </Button>
-                        </div>
-                    </div>
-                </DialogContent>
-            </Dialog>
         </div>
     );
 };

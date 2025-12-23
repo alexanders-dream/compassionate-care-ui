@@ -1,6 +1,7 @@
 import {
   ClipboardList, CalendarDays, Settings2, Type, BookOpen,
-  FileText, Star, Briefcase, Users, HelpCircle, ChevronLeft, ChevronRight, Menu, LogOut, Home, User, Shield
+  FileText, Star, Briefcase, Users, HelpCircle, ChevronLeft, ChevronRight, Menu, LogOut, Home, User, Shield,
+  Bell, Mail
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -26,7 +27,9 @@ export type AdminSection =
   | "services"
   | "team"
   | "faqs"
-  | "insurance";
+  | "insurance"
+  | "notifications"
+  | "email-patients";
 
 interface AdminSidebarProps {
   collapsed: boolean;
@@ -44,6 +47,8 @@ const menuItems: { id: AdminSection; label: string; icon: React.ElementType; pat
   { id: "team", label: "Team", icon: Users, path: "/admin/team" },
   { id: "faqs", label: "FAQs", icon: HelpCircle, path: "/admin/faqs" },
   { id: "insurance", label: "Insurance", icon: Shield, path: "/admin/insurance" },
+  { id: "notifications", label: "Notifications", icon: Bell, path: "/admin/notifications" },
+  { id: "email-patients", label: "Email Patients", icon: Mail, path: "/admin/email-patients" },
 ];
 
 const SidebarNavItem = ({

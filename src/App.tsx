@@ -46,6 +46,8 @@ const TeamPage = lazy(() => import("./pages/admin/TeamPage"));
 const FaqsPage = lazy(() => import("./pages/admin/FaqsPage"));
 const ProfilePage = lazy(() => import("./pages/admin/ProfilePage"));
 const InsurancePage = lazy(() => import("./pages/admin/InsurancePage"));
+const NotificationsPage = lazy(() => import("./pages/admin/NotificationsPage"));
+const EmailPatientsPage = lazy(() => import("./pages/admin/EmailPatientsPage"));
 const BlogEditor = lazy(() => import("./pages/BlogEditor"));
 
 const queryClient = new QueryClient();
@@ -108,6 +110,8 @@ const App = () => (
                     <Route path="team" element={<TeamPage />} />
                     <Route path="faqs" element={<FaqsPage />} />
                     <Route path="insurance" element={<InsurancePage />} />
+                    <Route path="notifications" element={<NotificationsPage />} />
+                    <Route path="email-patients" element={<EmailPatientsPage />} />
                     <Route path="profile" element={<ProfilePage />} />
 
                     {/* Blog Editor Routes */}

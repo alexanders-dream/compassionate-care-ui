@@ -532,8 +532,15 @@ const VisitRequestsTab = ({
                                     >
                                         <Phone className="h-4 w-4" />
                                     </Button>
-                                    <Button variant="ghost" size="sm" onClick={() => onEmail(request)} className="gap-1 text-muted-foreground hover:text-foreground">
-                                        <Send className="h-3 w-3" /> {request.emailSent ? "Resend" : "Email"}
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                                        onClick={() => window.location.href = `mailto:${request.email}`}
+                                        disabled={!request.email}
+                                        title="Email Patient"
+                                    >
+                                        <Send className="h-4 w-4" />
                                     </Button>
                                     <RoleGate allowedRoles={['admin']}>
                                         <Button variant="ghost" size="sm" onClick={() => setItemToDelete(request.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">

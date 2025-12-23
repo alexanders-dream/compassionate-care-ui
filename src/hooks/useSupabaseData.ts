@@ -4,7 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 // Hook for visit requests submissions
 export function useVisitRequests() {
   const { toast } = useToast();
-  
+
   const submitVisitRequest = async (data: {
     patient_name: string;
     email: string;
@@ -19,6 +19,41 @@ export function useVisitRequests() {
       const { error } = await supabase.from("visit_requests").insert([data]);
 
       if (error) throw error;
+
+      // Trigger Email Worker
+      try {
+        const workerUrl = import.meta.env.VITE_WORKER_URL;
+        if (workerUrl) {
+          // 1. Notify Admin
+          const adminResp = await fetch(`${workerUrl}/notify-admin`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'visit_request', details: data }),
+          });
+          if (!adminResp.ok) {
+            const err = await adminResp.json();
+            console.error("Admin notification failed:", err);
+          }
+
+          // 2. Notify Patient (Confirmation)
+          const patientResp = await fetch(`${workerUrl}/notify-patient`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: data.email,
+              name: data.patient_name,
+              type: 'visit_request'
+            }),
+          });
+          if (!patientResp.ok) {
+            const err = await patientResp.json();
+            console.error("Patient notification failed:", err);
+          }
+        }
+      } catch (workerError) {
+        console.error("Worker notification failed:", workerError);
+        // Don't fail the written submission if email fails, but log it
+      }
 
       toast({
         title: "Request Submitted",
@@ -61,6 +96,42 @@ export function useProviderReferrals() {
 
       if (error) throw error;
 
+      // Trigger Email Worker
+      try {
+        const workerUrl = import.meta.env.VITE_WORKER_URL;
+        if (workerUrl) {
+          // 1. Notify Admin
+          const adminResp = await fetch(`${workerUrl}/notify-admin`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'referral', details: data }),
+          });
+          if (!adminResp.ok) {
+            const err = await adminResp.json();
+            console.error("Admin notification failed:", err);
+          }
+
+          // 2. Notify Patient (if email provided)
+          if (data.patient_email) {
+            const patientResp = await fetch(`${workerUrl}/notify-patient`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                email: data.patient_email,
+                name: data.patient_name,
+                type: 'referral'
+              }),
+            });
+            if (!patientResp.ok) {
+              const err = await patientResp.json();
+              console.error("Patient notification failed:", err);
+            }
+          }
+        }
+      } catch (workerError) {
+        console.error("Worker notification failed:", workerError);
+      }
+
       toast({
         title: "Referral Submitted",
         description: "We'll contact the patient within 24 hours.",
@@ -95,6 +166,25 @@ export function useContactSubmissions() {
       const { error } = await supabase.from("contact_submissions").insert([data]);
 
       if (error) throw error;
+
+      // Trigger Email Worker
+      try {
+        const workerUrl = import.meta.env.VITE_WORKER_URL;
+        if (workerUrl) {
+          // 1. Notify Admin
+          const adminResp = await fetch(`${workerUrl}/notify-admin`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'contact', details: data }),
+          });
+          if (!adminResp.ok) {
+            const err = await adminResp.json();
+            console.error("Admin notification failed:", err);
+          }
+        }
+      } catch (workerError) {
+        console.error("Worker notification failed:", workerError);
+      }
 
       toast({
         title: "Message Sent!",

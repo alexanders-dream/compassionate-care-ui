@@ -700,13 +700,6 @@ const AppointmentScheduler = ({
   const [viewAppointment, setViewAppointment] = useState<Appointment | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
 
-  // Email dialog state
-  const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
-  const [emailAppointment, setEmailAppointment] = useState<Appointment | null>(null);
-  const [emailSubject, setEmailSubject] = useState("");
-  const [emailBody, setEmailBody] = useState("");
-  const [emailsSent, setEmailsSent] = useState<Record<string, boolean>>({});
-
   // Filtering and sorting state
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [sortField, setSortField] = useState<"name" | "date" | "status" | "type" | "clinician" | "location">("date");
@@ -937,26 +930,12 @@ const AppointmentScheduler = ({
   };
 
   // Email handlers
-  const openEmailDialog = (apt: Appointment) => {
-    setEmailAppointment(apt);
-    const appointmentDate = format(new Date(apt.appointmentDate), "MMMM d, yyyy");
-    setEmailSubject("Appointment Confirmation - AR Advanced Woundcare Solutions");
-    setEmailBody(`Dear ${apt.patientName},\n\nThis is to confirm your appointment with AR Advanced Woundcare Solutions.\n\nAppointment Details:\n- Date: ${appointmentDate}\n- Time: ${apt.appointmentTime}\n- Duration: ${apt.duration} minutes\n- Clinician: ${apt.clinician}\n- Location: ${apt.location === "in-home" ? `In-home visit at ${apt.address || "your address"}` : "Clinic visit"}\n\nPlease ensure you are available at the scheduled time. If you need to reschedule, please contact us as soon as possible.\n\nBest regards,\nAR Advanced Woundcare Solutions Team`);
-    setIsEmailDialogOpen(true);
+  const handleEmail = (apt: Appointment) => {
+    if (apt.patientEmail) {
+      window.location.href = `mailto:${apt.patientEmail}`;
+    }
   };
 
-  const handleSendEmail = () => {
-    if (!emailAppointment) return;
-
-    setEmailsSent(prev => ({ ...prev, [emailAppointment.id]: true }));
-
-    toast({
-      title: "Email Sent",
-      description: `Confirmation email sent to ${emailAppointment.patientEmail || emailAppointment.patientName}`
-    });
-    setIsEmailDialogOpen(false);
-    setEmailAppointment(null);
-  };
 
   const getStatusBadge = (status: Appointment["status"], showIcon: boolean = false) => {
     const styles: Record<Appointment["status"], { bg: string; text: string; label: string }> = {
@@ -1647,15 +1626,13 @@ const AppointmentScheduler = ({
                   </Button>
                   <Button
                     variant="ghost"
-                    size="sm"
-                    onClick={() => openEmailDialog(apt)}
-                    className="gap-1 text-muted-foreground hover:text-foreground"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                    onClick={() => window.location.href = `mailto:${apt.patientEmail}`}
                     disabled={!apt.patientEmail}
-                    title={apt.patientEmail ? "Send email" : "No email address"}
+                    title="Email Patient"
                   >
                     <Send className="h-3 w-3" />
-                    {emailsSent[apt.id] ? "Resend" : "Email"}
-                    {emailsSent[apt.id] && <CheckCircle2 className="h-3 w-3 text-blue-500" />}
                   </Button>
                   <Button variant="ghost" size="sm" onClick={() => handleEditAppointment(apt)}>
                     <Pencil className="h-4 w-4" />
@@ -1691,65 +1668,13 @@ const AppointmentScheduler = ({
       </div>
 
 
-      {/* Email Dialog */}
-      <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Mail className="h-5 w-5" />
-              Send Appointment Email
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Recipient</Label>
-              <Input
-                value={emailAppointment?.patientEmail || ""}
-                disabled
-              />
-            </div>
-            <div>
-              <Label>Patient</Label>
-              <Input
-                value={emailAppointment?.patientName || ""}
-                disabled
-              />
-            </div>
-            <div>
-              <Label htmlFor="emailSubject">Subject</Label>
-              <Input
-                id="emailSubject"
-                value={emailSubject}
-                onChange={(e) => setEmailSubject(e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="emailBody">Message</Label>
-              <Textarea
-                id="emailBody"
-                value={emailBody}
-                onChange={(e) => setEmailBody(e.target.value)}
-                rows={12}
-              />
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setIsEmailDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleSendEmail} className="gap-2">
-                <Send className="h-4 w-4" />
-                Send Email
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+
 
       <AppointmentDetailsDialog
         open={isViewDialogOpen}
         onOpenChange={setIsViewDialogOpen}
         appointment={viewAppointment}
-        onEmail={(apt) => openEmailDialog(apt)}
+        onEmail={(apt) => handleEmail(apt)}
         onEdit={(apt) => handleEditAppointment(apt)}
         visitRequest={viewAppointment?.visitRequestId ? visitRequests.find(v => v.id === viewAppointment.visitRequestId) : undefined}
         referral={viewAppointment?.providerReferralId ? referrals.find(r => r.id === viewAppointment.providerReferralId) : undefined}

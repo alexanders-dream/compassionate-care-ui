@@ -1,0 +1,11 @@
+name = "compassionate-care-email-service"
+main = "src/index.ts"
+compatibility_date = "2024-03-20"
+
+# Bindings
+[vars]
+# Default values for non-secret vars (if any)
+
+# Cron Triggers for Appointment Reminders
+[triggers]
+crons = ["0 14 * * *"] # Runs at 2:00 PM UTC everyday (check timezone needs)
