@@ -242,7 +242,7 @@ const VisitRequestsTab = ({
             {/* Mobile Cards */}
             <div className="md:hidden space-y-4">
                 {paginatedRequests.map(request => (
-                    <Card key={request.id} className="overflow-hidden shadow-lg ring-1 ring-slate-900/5 dark:ring-slate-100/10 rounded-xl bg-white dark:bg-slate-800">
+                    <Card key={request.id} className={`overflow-hidden shadow-lg ring-1 ring-slate-900/5 dark:ring-slate-100/10 rounded-xl bg-white dark:bg-slate-800 ${request.status === "pending" ? "border-l-4 border-l-yellow-500" : ""}`}>
                         {/* Header with Name and Status */}
                         <div className="px-4 py-3">
                             <div className="flex items-start justify-between gap-3">

@@ -1,5 +1,5 @@
 import { Helmet } from "react-helmet-async";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { categories } from "@/data/blogPosts";
@@ -12,6 +12,8 @@ import { Badge } from "@/components/ui/badge";
 const Blog = () => {
   const { blogPosts, loading } = useSiteData();
   const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [hideStickyFilter, setHideStickyFilter] = useState(false);
+  const ctaSectionRef = useRef<HTMLDivElement>(null);
 
   // Filter for published posts only (or scheduled posts that are due)
   const publishedPosts = blogPosts.filter(post =>
@@ -31,6 +33,44 @@ const Blog = () => {
       day: 'numeric'
     });
   };
+
+  // Intersection observer to hide sticky filter when CTA section is reached and beyond
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // Only hide the filter if there are posts to display
+        // This prevents the filter from disappearing on empty/short pages
+        if (filteredPosts.length === 0) {
+          setHideStickyFilter(false);
+          return;
+        }
+
+        // Hide the filter when CTA section comes into view
+        if (entry.isIntersecting) {
+          setHideStickyFilter(true);
+        } else {
+          // Only show the filter again if we're scrolling up and CTA is below viewport
+          const rect = entry.boundingClientRect;
+          const isAboveViewport = rect.top < 0;
+          setHideStickyFilter(isAboveViewport);
+        }
+      },
+      {
+        threshold: 0,
+        rootMargin: "-100px 0px 0px 0px"
+      }
+    );
+
+    if (ctaSectionRef.current) {
+      observer.observe(ctaSectionRef.current);
+    }
+
+    return () => {
+      if (ctaSectionRef.current) {
+        observer.unobserve(ctaSectionRef.current);
+      }
+    };
+  }, [filteredPosts.length]);
 
   // Determine featured post: prioritizes 'is_featured' flag, falls back to the most recent published post
   const featuredPost = filteredPosts.find(post => post.is_featured) || filteredPosts[0];
@@ -68,7 +108,7 @@ const Blog = () => {
       </section>
 
       {/* Category Filter */}
-      <section className="sticky top-20 z-30 bg-background/95 backdrop-blur-md border-b py-4">
+      <section className={`sticky top-16 md:top-20 z-30 bg-background/95 backdrop-blur-md border-b py-4 transition-opacity duration-300 ${hideStickyFilter ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
         <div className="container-main">
           <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
             {categories.map((category) => (
@@ -248,7 +288,7 @@ const Blog = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="bg-muted dark:bg-[#0B2545] py-20">
+      <section ref={ctaSectionRef} className="bg-muted dark:bg-[#0B2545] py-20">
         <div className="container-main text-center">
           <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground dark:text-primary-foreground mb-4">
             Have Questions About Your Wound Care?

@@ -7,6 +7,7 @@ interface AppointmentsTabProps {
     referrals: ProviderReferralSubmission[];
     onUpdateVisitStatus: (id: string, status: VisitRequest["status"]) => void;
     onUpdateReferralStatus: (id: string, status: ProviderReferralSubmission["status"]) => void;
+    onUpdateAppointmentStatus?: (id: string, status: Appointment["status"]) => void;
     externalAppointments: Appointment[];
     onAppointmentsChange: (appointments: Appointment[]) => void;
     onDelete: (id: string) => void;
@@ -17,6 +18,7 @@ const AppointmentsTab = ({
     referrals,
     onUpdateVisitStatus,
     onUpdateReferralStatus,
+    onUpdateAppointmentStatus,
     externalAppointments,
     onAppointmentsChange,
     onDelete
@@ -27,6 +29,7 @@ const AppointmentsTab = ({
             referrals={referrals}
             onUpdateVisitStatus={onUpdateVisitStatus}
             onUpdateReferralStatus={onUpdateReferralStatus}
+            onUpdateAppointmentStatus={onUpdateAppointmentStatus}
             externalAppointments={externalAppointments}
             onAppointmentsChange={onAppointmentsChange}
             onDelete={onDelete}

@@ -5,12 +5,14 @@ import { Link } from "react-router-dom";
 import { Heart, Shield, Users, Award, Target, Eye } from "lucide-react";
 import heroClinician from "@/assets/hero-clinician.jpg";
 import { useSiteData } from "@/contexts/SiteDataContext";
+import { useState, useEffect } from "react";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
+  type CarouselApi,
 } from "@/components/ui/carousel";
 
 const values = [
@@ -45,6 +47,21 @@ const stats = [
 
 const About = () => {
   const { teamMembers } = useSiteData();
+  const [carouselApi, setCarouselApi] = useState<CarouselApi>();
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [slideCount, setSlideCount] = useState(0);
+
+  useEffect(() => {
+    if (!carouselApi) return;
+
+    setSlideCount(carouselApi.scrollSnapList().length);
+    setCurrentSlide(carouselApi.selectedScrollSnap());
+
+    carouselApi.on("select", () => {
+      setCurrentSlide(carouselApi.selectedScrollSnap());
+    });
+  }, [carouselApi]);
+
   return (
     <Layout>
       <Helmet>
@@ -202,8 +219,9 @@ const About = () => {
               ))}
             </div>
           ) : (
-            <div className="px-12">
+            <div className="relative">
               <Carousel
+                setApi={setCarouselApi}
                 opts={{
                   align: "start",
                   loop: true,
@@ -242,9 +260,24 @@ const About = () => {
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                <CarouselPrevious className="-left-4 lg:-left-12" />
-                <CarouselNext className="-right-4 lg:-right-12" />
+                <CarouselPrevious className="left-4 md:left-8 lg:-left-12 -bottom-16 md:-bottom-20 top-auto" />
+                <CarouselNext className="right-4 md:right-8 lg:-right-12 -bottom-16 md:-bottom-20 top-auto" />
               </Carousel>
+
+              {/* Pagination Dots */}
+              <div className="flex justify-center gap-2 mt-8">
+                {Array.from({ length: slideCount }).map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => carouselApi?.scrollTo(index)}
+                    className={`h-2 rounded-full transition-all duration-300 ${index === currentSlide
+                        ? "w-8 bg-primary"
+                        : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                      }`}
+                    aria-label={`Go to slide ${index + 1}`}
+                  />
+                ))}
+              </div>
             </div>
           )}
         </div>

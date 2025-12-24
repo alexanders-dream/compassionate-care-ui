@@ -39,7 +39,7 @@ const Header = () => {
                 <Link
                   key={link.href}
                   to={link.href}
-                  className={`no-link-style text-base font-medium transition-colors hover:text-white ${isActive(link.href) ? "text-white font-semibold" : "text-white"
+                  className={`no-link-style text-base font-medium transition-colors hover:text-white pb-1 border-b-2 ${isActive(link.href) ? "text-white font-semibold border-white" : "text-white border-transparent"
                     }`}
                 >
                   {link.label}
@@ -49,7 +49,7 @@ const Header = () => {
 
             {/* CTA Buttons - positioned at the end */}
             <div className="hidden xl:flex items-center gap-3 z-10">
-              <ThemeToggle />
+              <ThemeToggle className="hover:bg-white/10 hover:text-white text-white" />
               <Button variant="ghost" asChild className="border-2 border-white/80 text-white hover:bg-white/10 hover:text-white">
                 <Link to="/refer" className="no-link-style">Refer a Patient</Link>
               </Button>
@@ -79,7 +79,7 @@ const Header = () => {
                   key={link.href}
                   to={link.href}
                   onClick={() => setIsMenuOpen(false)}
-                  className={`no-link-style py-3 text-base font-medium transition-colors ${isActive(link.href) ? "text-white font-semibold" : "text-white"
+                  className={`no-link-style py-3 text-base font-medium transition-colors border-b-2 ${isActive(link.href) ? "text-white font-semibold border-white" : "text-white border-transparent"
                     }`}
                 >
                   {link.label}
@@ -88,7 +88,7 @@ const Header = () => {
               <div className="flex flex-col gap-3 pt-4 border-t border-white/20 mt-2">
                 <div className="flex items-center justify-between px-2 text-white">
                   <span className="text-sm font-medium">Theme</span>
-                  <ThemeToggle />
+                  <ThemeToggle className="hover:bg-white/10 hover:text-white text-white" />
                 </div>
                 <Button variant="ghost" asChild className="w-full justify-center border-2 border-white/80 text-white hover:bg-white/10">
                   <Link to="/refer" onClick={() => setIsMenuOpen(false)} className="no-link-style">

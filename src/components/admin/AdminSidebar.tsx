@@ -67,9 +67,9 @@ const SidebarNavItem = ({
       to={item.path}
       onClick={onItemClick}
       className={({ isActive }) => cn(
-        "w-full flex items-center gap-3 px-4 py-2 mx-1 rounded-full text-sm font-medium transition-all duration-200",
+        "w-full flex items-center gap-3 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
         isActive
-          ? "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-100 shadow-sm"
+          ? "bg-blue-100 dark:bg-transparent text-blue-700 dark:text-foreground shadow-sm"
           : "text-muted-foreground hover:bg-slate-200/80 dark:hover:bg-slate-700/60 hover:text-foreground hover:shadow-md hover:scale-[1.02]",
         collapsed && "justify-center px-2"
       )}
@@ -154,11 +154,10 @@ const SidebarContent = ({
                   to="/admin/profile"
                   onClick={onItemClick}
                   className={({ isActive }) => cn(
-                    "w-full flex items-center gap-3 px-3 py-2.5 mx-1 rounded-full text-sm font-medium transition-all duration-200",
+                    "w-full flex items-center justify-center px-2 py-2.5 rounded-full text-sm font-medium transition-all duration-200",
                     isActive
-                      ? "bg-blue-100 dark:bg-blue-900/40 text-foreground shadow-sm"
-                      : "text-muted-foreground hover:bg-slate-200/80 dark:hover:bg-slate-700/60 hover:text-foreground hover:shadow-md hover:scale-[1.02]",
-                    collapsed && "justify-center px-2"
+                      ? "bg-blue-100 dark:bg-transparent text-foreground shadow-sm"
+                      : "text-muted-foreground hover:bg-slate-200/80 dark:hover:bg-slate-700/60 hover:text-foreground hover:shadow-md hover:scale-[1.02]"
                   )}
                 >
                   <User className="h-4 w-4 shrink-0" />
@@ -177,9 +176,9 @@ const SidebarContent = ({
               to="/admin/profile"
               onClick={onItemClick}
               className={({ isActive }) => cn(
-                "w-full flex items-center gap-3 px-3 py-2.5 mx-1 rounded-full text-sm font-medium transition-all duration-200",
+                "w-full flex items-center gap-3 px-3 py-2.5 rounded-full text-sm font-medium transition-all duration-200",
                 isActive
-                  ? "bg-blue-100 dark:bg-blue-900/40 text-foreground shadow-sm"
+                  ? "bg-blue-100 dark:bg-transparent text-foreground shadow-sm"
                   : "text-muted-foreground hover:bg-slate-200/80 dark:hover:bg-slate-700/60 hover:text-foreground hover:shadow-md hover:scale-[1.02]",
                 collapsed && "justify-center px-2"
               )}
@@ -197,7 +196,7 @@ const SidebarContent = ({
                   variant="ghost"
                   onClick={handleLogout}
                   className={cn(
-                    "w-full flex items-center gap-3 px-3 py-2.5 mx-1 rounded-full text-sm font-medium justify-center h-auto transition-all duration-200",
+                    "w-full flex items-center justify-center px-2 py-2.5 rounded-full text-sm font-medium h-auto transition-all duration-200",
                     "text-muted-foreground hover:bg-slate-200/80 dark:hover:bg-slate-700/60 hover:text-foreground hover:shadow-md hover:scale-[1.02]"
                   )}
                 >
@@ -217,7 +216,7 @@ const SidebarContent = ({
               variant="ghost"
               onClick={handleLogout}
               className={cn(
-                "w-full flex items-center gap-3 px-3 py-2.5 mx-1 rounded-full text-sm font-medium justify-start h-auto transition-all duration-200",
+                "w-full flex items-center gap-3 px-3 py-2.5 rounded-full text-sm font-medium justify-start h-auto transition-all duration-200",
                 "text-muted-foreground hover:bg-slate-200/80 dark:hover:bg-slate-700/60 hover:text-foreground hover:shadow-md hover:scale-[1.02]"
               )}
             >
@@ -231,6 +230,8 @@ const SidebarContent = ({
     </TooltipProvider>
   );
 };
+
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const AdminSidebar = ({ collapsed, onToggleCollapse }: AdminSidebarProps) => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -257,16 +258,20 @@ const AdminSidebar = ({ collapsed, onToggleCollapse }: AdminSidebarProps) => {
             <Menu className="h-5 w-5" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-64 p-0">
+        <SheetContent side="left" className="w-64 p-0 flex flex-col">
           <SheetTitle className="sr-only">Admin Navigation</SheetTitle>
-          <div className="p-4 border-b border-border">
+          <div className="p-4 border-b border-border flex items-center justify-between">
             <span className="font-semibold text-sm text-foreground">Navigation</span>
           </div>
-          <ScrollArea className="h-[calc(100vh-60px)]">
+          <ScrollArea className="flex-1">
             <SidebarContent
               onItemClick={() => setMobileOpen(false)}
             />
           </ScrollArea>
+          <div className="p-4 border-t border-border flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">Theme</span>
+            <ThemeToggle className="text-muted-foreground hover:text-foreground" />
+          </div>
         </SheetContent>
       </Sheet>
     );
@@ -299,6 +304,28 @@ const AdminSidebar = ({ collapsed, onToggleCollapse }: AdminSidebarProps) => {
           collapsed={collapsed}
         />
       </ScrollArea>
+
+      <div className={cn("p-2 border-t border-border/50", collapsed ? "flex justify-center" : "")}>
+        <div className={cn("flex items-center", collapsed ? "justify-center" : "justify-between px-2")}>
+          {!collapsed && <span className="text-xs text-muted-foreground">Theme</span>}
+          {collapsed ? (
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger asChild>
+                <ThemeToggle className="text-muted-foreground hover:bg-slate-200/80 dark:hover:bg-slate-700/60 hover:text-foreground hover:shadow-md" />
+              </TooltipTrigger>
+              <TooltipContent
+                side="right"
+                className="bg-slate-900 text-white font-medium px-3 py-1.5 rounded-full shadow-lg border-0"
+                sideOffset={8}
+              >
+                Switch Theme
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            <ThemeToggle className="text-muted-foreground hover:bg-slate-200/80 dark:hover:bg-slate-700/60 hover:text-foreground hover:shadow-md" />
+          )}
+        </div>
+      </div>
 
       {!collapsed && (
         <div className="p-3 border-t border-border">

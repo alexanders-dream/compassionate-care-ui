@@ -104,26 +104,46 @@ const Contact = () => {
             {contactInfo.map((item, index) => (
               <div
                 key={index}
-                className="bg-card rounded-2xl p-6 shadow-soft text-center"
+                className="bg-card rounded-2xl p-6 shadow-soft text-center hover:shadow-md transition-shadow"
               >
-                <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center mx-auto mb-4">
-                  <item.icon className="w-6 h-6 text-primary" />
-                </div>
-                <h3 className="font-display text-lg font-semibold text-foreground mb-2">
-                  {item.title}
-                </h3>
-                {item.details.map((detail, idx) => (
-                  <p key={idx} className="text-sm text-muted-foreground">
-                    {detail}
-                  </p>
-                ))}
-                {item.action && (
+                {item.action ? (
                   <a
                     href={item.action.href}
-                    className="inline-block mt-3 text-sm font-medium text-primary hover:underline"
+                    className="block group no-underline"
                   >
-                    {item.action.label}
+                    <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/25 transition-colors">
+                      <item.icon className="w-6 h-6 text-primary" />
+                    </div>
+                    <h3 className="font-display text-lg font-semibold text-foreground mb-2">
+                      {item.title}
+                    </h3>
+                    {item.details.map((detail, idx) => (
+                      <p key={idx} className="text-sm text-muted-foreground mb-1">
+                        {detail}
+                      </p>
+                    ))}
+                    <Button
+                      className="mt-4 w-full group-hover:bg-primary/90"
+                      size="sm"
+                    >
+                      <item.icon className="w-4 h-4 mr-2" />
+                      {item.action.label}
+                    </Button>
                   </a>
+                ) : (
+                  <>
+                    <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center mx-auto mb-4">
+                      <item.icon className="w-6 h-6 text-primary" />
+                    </div>
+                    <h3 className="font-display text-lg font-semibold text-foreground mb-2">
+                      {item.title}
+                    </h3>
+                    {item.details.map((detail, idx) => (
+                      <p key={idx} className="text-sm text-muted-foreground">
+                        {detail}
+                      </p>
+                    ))}
+                  </>
                 )}
               </div>
             ))}

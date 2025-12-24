@@ -7,7 +7,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Phone, Mail, Calendar as CalendarIcon, Clock, MapPin, User, FileText, Pencil } from "lucide-react";
 import { Appointment, VisitRequest, ProviderReferralSubmission } from "@/contexts/SiteDataContext";
@@ -45,7 +44,7 @@ export function AppointmentDetailsDialog({
                     </DialogTitle>
                 </DialogHeader>
 
-                <ScrollArea className="flex-1 pr-4">
+                <div className="flex-1 overflow-y-auto pr-4">
                     <div className="space-y-6">
                         {/* Header Info */}
                         <div className="flex flex-col md:flex-row justify-between gap-4 bg-muted/30 p-4 rounded-lg">
@@ -155,7 +154,7 @@ export function AppointmentDetailsDialog({
                         )}
 
                     </div>
-                </ScrollArea>
+                </div>
 
                 <div className="flex flex-col sm:flex-row gap-2 pt-4 mt-2 border-t">
                     <Button

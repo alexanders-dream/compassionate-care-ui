@@ -674,6 +674,7 @@ interface AppointmentSchedulerProps {
   referrals: ProviderReferralSubmission[];
   onUpdateVisitStatus: (id: string, status: VisitRequest["status"]) => void;
   onUpdateReferralStatus: (id: string, status: ProviderReferralSubmission["status"]) => void;
+  onUpdateAppointmentStatus?: (id: string, status: Appointment["status"]) => void;
   externalAppointments?: Appointment[];
   onAppointmentsChange?: (appointments: Appointment[]) => void;
   onDelete?: (id: string) => void;
@@ -684,6 +685,7 @@ const AppointmentScheduler = ({
   referrals,
   onUpdateVisitStatus,
   onUpdateReferralStatus,
+  onUpdateAppointmentStatus,
   externalAppointments = [],
   onAppointmentsChange,
   onDelete
@@ -920,7 +922,13 @@ const AppointmentScheduler = ({
   };
 
   const handleUpdateStatus = (id: string, status: Appointment["status"]) => {
+    // 1. Update local state for immediate UI feedback
     setAppointments(appointments.map(a => a.id === id ? { ...a, status } : a));
+
+    // 2. Persist appointment status change
+    if (onUpdateAppointmentStatus) {
+      onUpdateAppointmentStatus(id, status);
+    }
 
     const apt = appointments.find(a => a.id === id);
     if (apt && status === "completed") {
@@ -931,7 +939,10 @@ const AppointmentScheduler = ({
       }
     }
 
-    toast({ title: "Status updated" });
+    // Toast is handled by the mutation callback in parent usually, but keeping it here for immediate feedback if no parent handler
+    if (!onUpdateAppointmentStatus) {
+      toast({ title: "Status updated" });
+    }
   };
 
   // Email handlers
@@ -1339,7 +1350,13 @@ const AppointmentScheduler = ({
       {/* Mobile Cards */}
       <div className="md:hidden space-y-4">
         {paginatedAppointments.map(apt => (
-          <Card key={apt.id} className="overflow-hidden shadow-lg ring-1 ring-slate-900/5 dark:ring-slate-100/10 rounded-xl bg-white dark:bg-slate-800">
+          <Card key={apt.id} className={`overflow-hidden shadow-lg ring-1 ring-slate-900/5 dark:ring-slate-100/10 rounded-xl bg-white dark:bg-slate-800 ${(() => {
+            const todayStr = format(new Date(), "yyyy-MM-dd");
+            const isPastDue = apt.status === "scheduled" && apt.appointmentDate < todayStr;
+            if (isPastDue) return "border-l-4 border-l-yellow-500";
+            if (apt.status === "scheduled") return "border-l-4 border-l-purple-500";
+            return "";
+          })()}`}>
             {/* Header */}
             <div className="px-4 py-3">
               <div className="flex justify-between items-start mb-2">
@@ -1370,19 +1387,53 @@ const AppointmentScheduler = ({
                     </div>
                   </div>
                 </div>
-                {(() => {
-                  const todayStr = format(new Date(), "yyyy-MM-dd");
-                  const isPastDue = apt.status === "scheduled" && apt.appointmentDate < todayStr;
-                  if (isPastDue) {
-                    return (
-                      <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100 border-0 px-3 py-1.5 text-sm font-semibold flex items-center gap-1.5">
-                        <AlertCircle className="h-3.5 w-3.5" />
-                        Update Appointment
-                      </Badge>
-                    );
-                  }
-                  return getStatusBadge(apt.status);
-                })()}
+                <Select
+                  value={apt.status}
+                  onValueChange={(value) => handleUpdateStatus(apt.id, value as Appointment["status"])}
+                >
+                  <SelectTrigger className="w-auto border-0 bg-transparent p-0 h-auto [&>svg]:hidden focus:ring-0">
+                    {(() => {
+                      const todayStr = format(new Date(), "yyyy-MM-dd");
+                      const isPastDue = apt.status === "scheduled" && apt.appointmentDate < todayStr;
+                      if (isPastDue) {
+                        return (
+                          <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100 border-0 px-3 py-1.5 text-sm font-semibold flex items-center gap-1.5 pointer-events-none">
+                            <AlertCircle className="h-3.5 w-3.5" />
+                            Update Appointment
+                            <ChevronDown className="h-3.5 w-3.5 ml-1" />
+                          </Badge>
+                        );
+                      }
+                      return getStatusBadge(apt.status, true);
+                    })()}
+                  </SelectTrigger>
+                  <SelectContent align="end">
+                    <SelectItem value="scheduled" className="text-sm font-medium">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
+                        <span className="text-indigo-700">Scheduled</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="completed" className="text-sm font-medium">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                        <span className="text-green-700">Completed</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="cancelled" className="text-sm font-medium">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                        <span className="text-red-700">Cancelled</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="no_show" className="text-sm font-medium">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-gray-500"></div>
+                        <span className="text-gray-700">No Show</span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
