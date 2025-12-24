@@ -298,7 +298,7 @@ const ReferralsTab = ({
                                                     onValueChange={(value) => onUpdateStatus(referral.id, value as ProviderReferralSubmission["status"])}
                                                 >
                                                     <SelectTrigger className="w-auto h-auto border-0 bg-transparent hover:bg-muted/50 p-0 [&>svg]:hidden">
-                                                        {getStatusBadge(referral.status, false)}
+                                                        {getStatusBadge(referral.status, true)}
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         <SelectItem value="pending" className="text-sm font-medium">

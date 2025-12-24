@@ -1400,7 +1400,7 @@ const AppointmentScheduler = ({
                         return (
                           <Badge className="bg-orange-300 text-orange-900 hover:bg-orange-300 border-0 px-3 py-1.5 text-sm font-semibold flex items-center gap-1.5 pointer-events-none">
                             <AlertCircle className="h-3.5 w-3.5" />
-                            Update Appointment
+                            Update
                             <ChevronDown className="h-3.5 w-3.5 ml-1" />
                           </Badge>
                         );

@@ -267,7 +267,7 @@ const VisitRequestsTab = ({
                                                     onValueChange={(value) => onUpdateStatus(request.id, value as VisitRequest["status"])}
                                                 >
                                                     <SelectTrigger className="w-auto h-auto border-0 bg-transparent hover:bg-muted/50 p-0 [&>svg]:hidden">
-                                                        {getStatusBadge(request.status, false)}
+                                                        {getStatusBadge(request.status, true)}
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         <SelectItem value="pending" className="text-sm font-medium">
