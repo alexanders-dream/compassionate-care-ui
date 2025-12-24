@@ -955,11 +955,12 @@ const AppointmentScheduler = ({
 
 
   const getStatusBadge = (status: Appointment["status"], showIcon: boolean = false) => {
+    // High contrast color scheme for better visibility
     const styles: Record<Appointment["status"], { bg: string; text: string; label: string }> = {
-      scheduled: { bg: "bg-indigo-100", text: "text-indigo-700", label: "Scheduled" },
-      completed: { bg: "bg-green-100", text: "text-green-700", label: "Completed" },
-      cancelled: { bg: "bg-red-100", text: "text-red-700", label: "Cancelled" },
-      "no_show": { bg: "bg-gray-200", text: "text-gray-700", label: "No Show" }
+      scheduled: { bg: "bg-indigo-300", text: "text-indigo-900", label: "Scheduled" },
+      completed: { bg: "bg-green-300", text: "text-green-900", label: "Completed" },
+      cancelled: { bg: "bg-red-300", text: "text-red-900", label: "Cancelled" },
+      "no_show": { bg: "bg-gray-300", text: "text-gray-900", label: "No Show" }
     };
     const style = styles[status];
     return (
@@ -1019,7 +1020,7 @@ const AppointmentScheduler = ({
 
   const internalFullyBookedDates = getFullyBookedDatesInternal(formData.clinician);
 
-  // Calculate status counts
+  // Calculate status counts - High contrast color scheme
   const statusCounts = useMemo(() => [
     {
       status: "scheduled",
@@ -1397,7 +1398,7 @@ const AppointmentScheduler = ({
                       const isPastDue = apt.status === "scheduled" && apt.appointmentDate < todayStr;
                       if (isPastDue) {
                         return (
-                          <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100 border-0 px-3 py-1.5 text-sm font-semibold flex items-center gap-1.5 pointer-events-none">
+                          <Badge className="bg-orange-300 text-orange-900 hover:bg-orange-300 border-0 px-3 py-1.5 text-sm font-semibold flex items-center gap-1.5 pointer-events-none">
                             <AlertCircle className="h-3.5 w-3.5" />
                             Update Appointment
                             <ChevronDown className="h-3.5 w-3.5 ml-1" />
@@ -1411,25 +1412,25 @@ const AppointmentScheduler = ({
                     <SelectItem value="scheduled" className="text-sm font-medium">
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
-                        <span className="text-indigo-700">Scheduled</span>
+                        <span className="text-indigo-700 dark:text-indigo-300">Scheduled</span>
                       </div>
                     </SelectItem>
                     <SelectItem value="completed" className="text-sm font-medium">
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                        <span className="text-green-700">Completed</span>
+                        <span className="text-green-700 dark:text-green-300">Completed</span>
                       </div>
                     </SelectItem>
                     <SelectItem value="cancelled" className="text-sm font-medium">
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                        <span className="text-red-700">Cancelled</span>
+                        <span className="text-red-700 dark:text-red-300">Cancelled</span>
                       </div>
                     </SelectItem>
                     <SelectItem value="no_show" className="text-sm font-medium">
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-gray-500"></div>
-                        <span className="text-gray-700">No Show</span>
+                        <span className="text-gray-700 dark:text-gray-300">No Show</span>
                       </div>
                     </SelectItem>
                   </SelectContent>
@@ -1522,57 +1523,111 @@ const AppointmentScheduler = ({
                 className="cursor-pointer hover:bg-muted/50 select-none"
                 onClick={() => toggleSort("name")}
               >
-                <div className="flex items-center gap-1">
-                  Patient
-                  <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
-                </div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-1">
+                        Patient
+                        <ArrowUpDown className={`h-3.5 w-3.5 ${sortField === "name" ? "text-primary" : "text-muted-foreground"}`} />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-xs">Click to sort by patient name {sortField === "name" ? `(${sortDirection === "asc" ? "A-Z" : "Z-A"})` : ""}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </TableHead>
               <TableHead
                 className="cursor-pointer hover:bg-muted/50 select-none"
                 onClick={() => toggleSort("date")}
               >
-                <div className="flex items-center gap-1">
-                  Date & Time
-                  <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
-                </div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-1">
+                        Date & Time
+                        <ArrowUpDown className={`h-3.5 w-3.5 ${sortField === "date" ? "text-primary" : "text-muted-foreground"}`} />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-xs">Click to sort by date {sortField === "date" ? `(${sortDirection === "asc" ? "oldest first" : "newest first"})` : ""}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </TableHead>
               <TableHead
                 className="cursor-pointer hover:bg-muted/50 select-none"
                 onClick={() => toggleSort("type")}
               >
-                <div className="flex items-center gap-1">
-                  Type
-                  <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
-                </div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-1">
+                        Type
+                        <ArrowUpDown className={`h-3.5 w-3.5 ${sortField === "type" ? "text-primary" : "text-muted-foreground"}`} />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-xs">Click to sort by type {sortField === "type" ? `(${sortDirection === "asc" ? "A-Z" : "Z-A"})` : ""}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </TableHead>
               <TableHead
                 className="cursor-pointer hover:bg-muted/50 select-none"
                 onClick={() => toggleSort("clinician")}
               >
-                <div className="flex items-center gap-1">
-                  Clinician
-                  <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
-                </div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-1">
+                        Clinician
+                        <ArrowUpDown className={`h-3.5 w-3.5 ${sortField === "clinician" ? "text-primary" : "text-muted-foreground"}`} />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-xs">Click to sort by clinician {sortField === "clinician" ? `(${sortDirection === "asc" ? "A-Z" : "Z-A"})` : ""}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </TableHead>
               <TableHead
                 className="cursor-pointer hover:bg-muted/50 select-none"
                 onClick={() => toggleSort("location")}
               >
-                <div className="flex items-center gap-1">
-                  Location
-                  <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
-                </div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-1">
+                        Location
+                        <ArrowUpDown className={`h-3.5 w-3.5 ${sortField === "location" ? "text-primary" : "text-muted-foreground"}`} />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-xs">Click to sort by location {sortField === "location" ? `(${sortDirection === "asc" ? "A-Z" : "Z-A"})` : ""}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </TableHead>
               <TableHead
                 className="cursor-pointer hover:bg-muted/50 select-none"
                 onClick={() => toggleSort("status")}
               >
-                <div className="flex items-center gap-1">
-                  Status
-                  <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
-                </div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-1">
+                        Status
+                        <ArrowUpDown className={`h-3.5 w-3.5 ${sortField === "status" ? "text-primary" : "text-muted-foreground"}`} />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-xs">Click to sort by status {sortField === "status" ? `(${sortDirection === "asc" ? "A-Z" : "Z-A"})` : ""}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="text-right text-muted-foreground">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -1610,7 +1665,7 @@ const AppointmentScheduler = ({
                                   const isPastDue = apt.status === "scheduled" && apt.appointmentDate < todayStr;
                                   if (isPastDue) {
                                     return (
-                                      <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100 border-0 px-3 py-1.5 text-sm font-semibold flex items-center gap-1.5">
+                                      <Badge className="bg-orange-300 text-orange-900 hover:bg-orange-300 border-0 px-3 py-1.5 text-sm font-semibold flex items-center gap-1.5">
                                         <AlertCircle className="h-3.5 w-3.5" />
                                         Update Appointment
                                         <ChevronDown className="h-3.5 w-3.5" />
@@ -1624,25 +1679,25 @@ const AppointmentScheduler = ({
                                 <SelectItem value="scheduled" className="text-sm font-medium">
                                   <div className="flex items-center gap-2">
                                     <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
-                                    <span className="text-indigo-700">Scheduled</span>
+                                    <span className="text-indigo-700 dark:text-indigo-300">Scheduled</span>
                                   </div>
                                 </SelectItem>
                                 <SelectItem value="completed" className="text-sm font-medium">
                                   <div className="flex items-center gap-2">
                                     <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                                    <span className="text-green-700">Completed</span>
+                                    <span className="text-green-700 dark:text-green-300">Completed</span>
                                   </div>
                                 </SelectItem>
                                 <SelectItem value="cancelled" className="text-sm font-medium">
                                   <div className="flex items-center gap-2">
                                     <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                                    <span className="text-red-700">Cancelled</span>
+                                    <span className="text-red-700 dark:text-red-300">Cancelled</span>
                                   </div>
                                 </SelectItem>
                                 <SelectItem value="no_show" className="text-sm font-medium">
                                   <div className="flex items-center gap-2">
                                     <div className="w-3 h-3 rounded-full bg-gray-500"></div>
-                                    <span className="text-gray-700">No Show</span>
+                                    <span className="text-gray-700 dark:text-gray-300">No Show</span>
                                   </div>
                                 </SelectItem>
                               </SelectContent>

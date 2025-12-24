@@ -25,6 +25,12 @@ import { InsuranceProvider } from "@/contexts/SiteDataContext";
 import RoleGate from "@/components/auth/RoleGate";
 import AdminPagination from "../AdminPagination";
 import { ImageInsertionDialog } from "../ImageInsertionDialog";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface InsuranceTabProps {
     insuranceProviders: InsuranceProvider[];
@@ -250,30 +256,57 @@ const InsuranceTab = ({
                                 className="cursor-pointer hover:bg-muted/50 select-none"
                                 onClick={() => toggleSort("name")}
                             >
-                                <div className="flex items-center gap-1">
-                                    Name
-                                    <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
-                                </div>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <div className="flex items-center gap-1">
+                                                Name
+                                                <ArrowUpDown className={`h-3.5 w-3.5 ${sortField === "name" ? "text-primary" : "text-muted-foreground"}`} />
+                                            </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p className="text-xs">Click to sort by name {sortField === "name" ? `(${sortDirection === "asc" ? "A-Z" : "Z-A"})` : ""}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
                             </TableHead>
                             <TableHead
                                 className="cursor-pointer hover:bg-muted/50 select-none"
                                 onClick={() => toggleSort("description")}
                             >
-                                <div className="flex items-center gap-1">
-                                    Description
-                                    <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
-                                </div>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <div className="flex items-center gap-1">
+                                                Description
+                                                <ArrowUpDown className={`h-3.5 w-3.5 ${sortField === "description" ? "text-primary" : "text-muted-foreground"}`} />
+                                            </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p className="text-xs">Click to sort by description {sortField === "description" ? `(${sortDirection === "asc" ? "A-Z" : "Z-A"})` : ""}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
                             </TableHead>
                             <TableHead
                                 className="cursor-pointer hover:bg-muted/50 select-none"
                                 onClick={() => toggleSort("is_active")}
                             >
-                                <div className="flex items-center gap-1">
-                                    Status
-                                    <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
-                                </div>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <div className="flex items-center gap-1">
+                                                Status
+                                                <ArrowUpDown className={`h-3.5 w-3.5 ${sortField === "is_active" ? "text-primary" : "text-muted-foreground"}`} />
+                                            </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p className="text-xs">Click to sort by status {sortField === "is_active" ? `(${sortDirection === "asc" ? "active first" : "inactive first"})` : ""}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
                             </TableHead>
-                            <TableHead className="text-right font-semibold">Actions</TableHead>
+                            <TableHead className="text-right text-muted-foreground">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>

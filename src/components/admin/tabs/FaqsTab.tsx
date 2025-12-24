@@ -24,6 +24,12 @@ import { Plus, Pencil, Trash2, ArrowUpDown, HelpCircle } from "lucide-react";
 import { FAQ } from "@/contexts/SiteDataContext";
 import RoleGate from "@/components/auth/RoleGate";
 import AdminPagination from "../AdminPagination";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface FaqsTabProps {
     faqs: FAQ[];
@@ -171,21 +177,39 @@ const FaqsTab = ({
                                 className="cursor-pointer hover:bg-muted/50 select-none"
                                 onClick={() => toggleSort("question")}
                             >
-                                <div className="flex items-center gap-1">
-                                    Question
-                                    <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
-                                </div>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <div className="flex items-center gap-1">
+                                                Question
+                                                <ArrowUpDown className={`h-3.5 w-3.5 ${sortField === "question" ? "text-primary" : "text-muted-foreground"}`} />
+                                            </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p className="text-xs">Click to sort by question {sortField === "question" ? `(${sortDirection === "asc" ? "A-Z" : "Z-A"})` : ""}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
                             </TableHead>
                             <TableHead
                                 className="cursor-pointer hover:bg-muted/50 select-none"
                                 onClick={() => toggleSort("category")}
                             >
-                                <div className="flex items-center gap-1">
-                                    Category
-                                    <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
-                                </div>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <div className="flex items-center gap-1">
+                                                Category
+                                                <ArrowUpDown className={`h-3.5 w-3.5 ${sortField === "category" ? "text-primary" : "text-muted-foreground"}`} />
+                                            </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p className="text-xs">Click to sort by category {sortField === "category" ? `(${sortDirection === "asc" ? "A-Z" : "Z-A"})` : ""}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
                             </TableHead>
-                            <TableHead className="text-right font-semibold">Actions</TableHead>
+                            <TableHead className="text-right text-muted-foreground">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>

@@ -3,11 +3,17 @@ import VisitRequestsTab from "@/components/admin/tabs/VisitRequestsTab";
 import ReferralsTab from "@/components/admin/tabs/ReferralsTab";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { useState, useRef } from "react";
+import { ChevronDown, ChevronRight, HelpCircle } from "lucide-react";
 import { ScheduleDialog, AppointmentFormData, useClinicians } from "@/components/admin/AppointmentScheduler";
 import { useAppointmentMutations } from "@/hooks/useAppointmentMutations";
 import EmailComposeModal from "@/components/admin/EmailComposeModal";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // Types extracted from Admin.tsx logic
 import { VisitRequest, ProviderReferralSubmission } from "@/contexts/SiteDataContext";
@@ -46,6 +52,7 @@ const SubmissionsPage = () => {
     // Mobile collapsible sections state
     const [isVisitRequestsCollapsed, setIsVisitRequestsCollapsed] = useState(false);
     const [isReferralsCollapsed, setIsReferralsCollapsed] = useState(false);
+    const referralsSectionRef = useRef<HTMLDivElement>(null);
 
     // Internal function to update visit status directly (without opening dialog)
     const updateVisitStatusDirect = async (id: string, status: VisitRequest["status"]) => {
@@ -199,9 +206,26 @@ const SubmissionsPage = () => {
                 <p className="text-muted-foreground">
                     Manage visit requests and provider referrals
                     {referrals.filter(r => r.urgency === "urgent").length > 0 && (
-                        <span className="ml-2 text-red-600 font-semibold">
-                            ({referrals.filter(r => r.urgency === "urgent").length}) urgent
-                        </span>
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <button
+                                        onClick={() => {
+                                            setIsReferralsCollapsed(false);
+                                            setTimeout(() => {
+                                                referralsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                            }, 100);
+                                        }}
+                                        className="ml-2 text-red-600 font-semibold hover:text-red-700 hover:underline transition-colors"
+                                    >
+                                        ({referrals.filter(r => r.urgency === "urgent").length}) urgent
+                                    </button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p className="text-xs">Click to view urgent referrals</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
                     )}
                 </p>
             </div>
@@ -235,7 +259,7 @@ const SubmissionsPage = () => {
                 <div className="border-t border-border" />
 
                 {/* Collapsible Referrals Section */}
-                <div>
+                <div ref={referralsSectionRef}>
                     <button
                         className="flex items-center gap-2 w-full text-left py-2 hover:bg-muted/50 rounded-md px-2 -mx-2 transition-colors"
                         onClick={() => setIsReferralsCollapsed(!isReferralsCollapsed)}

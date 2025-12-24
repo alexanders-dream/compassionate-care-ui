@@ -45,6 +45,12 @@ import { ImageInsertionDialog } from "@/components/admin/ImageInsertionDialog";
 import { Badge } from "@/components/ui/badge";
 import AdminPagination from "../AdminPagination";
 import { useToast } from "@/hooks/use-toast";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 
 // Extended Type for the Unified View
@@ -461,39 +467,75 @@ const TeamTab = ({
                                 className="cursor-pointer hover:bg-muted/50 select-none"
                                 onClick={() => toggleSort("name")}
                             >
-                                <div className="flex items-center gap-1">
-                                    User
-                                    <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
-                                </div>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <div className="flex items-center gap-1">
+                                                User
+                                                <ArrowUpDown className={`h-3.5 w-3.5 ${sortField === "name" ? "text-primary" : "text-muted-foreground"}`} />
+                                            </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p className="text-xs">Click to sort by name {sortField === "name" ? `(${sortDirection === "asc" ? "A-Z" : "Z-A"})` : ""}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
                             </TableHead>
                             <TableHead
                                 className="cursor-pointer hover:bg-muted/50 select-none"
                                 onClick={() => toggleSort("role")}
                             >
-                                <div className="flex items-center gap-1">
-                                    Public Role
-                                    <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
-                                </div>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <div className="flex items-center gap-1">
+                                                Public Role
+                                                <ArrowUpDown className={`h-3.5 w-3.5 ${sortField === "role" ? "text-primary" : "text-muted-foreground"}`} />
+                                            </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p className="text-xs">Click to sort by role {sortField === "role" ? `(${sortDirection === "asc" ? "A-Z" : "Z-A"})` : ""}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
                             </TableHead>
                             <TableHead
                                 className="cursor-pointer hover:bg-muted/50 select-none"
                                 onClick={() => toggleSort("is_public")}
                             >
-                                <div className="flex items-center gap-1">
-                                    Visibility
-                                    <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
-                                </div>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <div className="flex items-center gap-1">
+                                                Visibility
+                                                <ArrowUpDown className={`h-3.5 w-3.5 ${sortField === "is_public" ? "text-primary" : "text-muted-foreground"}`} />
+                                            </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p className="text-xs">Click to sort by visibility {sortField === "is_public" ? `(${sortDirection === "asc" ? "visible first" : "hidden first"})` : ""}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
                             </TableHead>
                             <TableHead
                                 className="cursor-pointer hover:bg-muted/50 select-none"
                                 onClick={() => toggleSort("system_role")}
                             >
-                                <div className="flex items-center gap-1">
-                                    System Access
-                                    <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
-                                </div>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <div className="flex items-center gap-1">
+                                                System Access
+                                                <ArrowUpDown className={`h-3.5 w-3.5 ${sortField === "system_role" ? "text-primary" : "text-muted-foreground"}`} />
+                                            </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p className="text-xs">Click to sort by system role {sortField === "system_role" ? `(${sortDirection === "asc" ? "A-Z" : "Z-A"})` : ""}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
                             </TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
+                            <TableHead className="text-right text-muted-foreground">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>

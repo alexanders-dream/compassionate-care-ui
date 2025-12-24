@@ -202,30 +202,57 @@ const ServicesTab = ({
                                 className="cursor-pointer hover:bg-muted/50 select-none"
                                 onClick={() => toggleSort("title")}
                             >
-                                <div className="flex items-center gap-1">
-                                    Title
-                                    <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
-                                </div>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <div className="flex items-center gap-1">
+                                                Title
+                                                <ArrowUpDown className={`h-3.5 w-3.5 ${sortField === "title" ? "text-primary" : "text-muted-foreground"}`} />
+                                            </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p className="text-xs">Click to sort by title {sortField === "title" ? `(${sortDirection === "asc" ? "A-Z" : "Z-A"})` : ""}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
                             </TableHead>
                             <TableHead
                                 className="cursor-pointer hover:bg-muted/50 select-none"
                                 onClick={() => toggleSort("description")}
                             >
-                                <div className="flex items-center gap-1">
-                                    Description
-                                    <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
-                                </div>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <div className="flex items-center gap-1">
+                                                Description
+                                                <ArrowUpDown className={`h-3.5 w-3.5 ${sortField === "description" ? "text-primary" : "text-muted-foreground"}`} />
+                                            </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p className="text-xs">Click to sort by description {sortField === "description" ? `(${sortDirection === "asc" ? "A-Z" : "Z-A"})` : ""}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
                             </TableHead>
                             <TableHead
                                 className="cursor-pointer hover:bg-muted/50 select-none"
                                 onClick={() => toggleSort("icon")}
                             >
-                                <div className="flex items-center gap-1">
-                                    Icon
-                                    <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
-                                </div>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <div className="flex items-center gap-1">
+                                                Icon
+                                                <ArrowUpDown className={`h-3.5 w-3.5 ${sortField === "icon" ? "text-primary" : "text-muted-foreground"}`} />
+                                            </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p className="text-xs">Click to sort by icon name {sortField === "icon" ? `(${sortDirection === "asc" ? "A-Z" : "Z-A"})` : ""}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
                             </TableHead>
-                            <TableHead className="text-right font-semibold">Actions</TableHead>
+                            <TableHead className="text-right text-muted-foreground">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
