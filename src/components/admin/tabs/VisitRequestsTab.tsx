@@ -189,10 +189,7 @@ const VisitRequestsTab = ({
     return (
         <div>
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
-                <h2 className="text-lg md:text-xl font-semibold flex items-center gap-2">
-                    <Mail className="h-5 w-5 text-primary" />
-                    Visit Requests ({visitRequests.length})
-                </h2>
+                {/* Title is now handled by the parent collapsible header */}
 
                 {/* Search and Sort Controls - Simplified */}
                 <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
@@ -441,7 +438,7 @@ const VisitRequestsTab = ({
                     </TableHeader>
                     <TableBody>
                         {paginatedRequests.map((request, index) => (
-                            <TableRow key={request.id} className={index % 2 === 1 ? "bg-muted/50" : ""}>
+                            <TableRow key={request.id} className={`${index % 2 === 1 ? "bg-muted/50" : ""} ${request.status === "pending" ? "border-l-4 border-l-yellow-500" : ""}`}>
                                 <TableCell className="font-bold">
                                     {request.firstName} {request.lastName}
                                 </TableCell>

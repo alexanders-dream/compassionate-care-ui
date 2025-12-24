@@ -1576,132 +1576,137 @@ const AppointmentScheduler = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginatedAppointments.map((apt, index) => (
-              <TableRow key={apt.id} className={index % 2 === 1 ? "bg-muted/50" : ""}>
-                <TableCell>
-                  <div className="font-bold">{apt.patientName}</div>
-                  <div className="text-sm text-muted-foreground">{apt.patientPhone}</div>
-                </TableCell>
-                <TableCell>
-                  <div>{format(new Date(apt.appointmentDate), "MMM d, yyyy")}</div>
-                  <div className="text-sm text-muted-foreground">
-                    {apt.appointmentTime} ({apt.duration}min)
-                  </div>
-                </TableCell>
-                <TableCell>{getTypeBadge(apt.type)}</TableCell>
-                <TableCell>{apt.clinician}</TableCell>
-                <TableCell className="capitalize">{apt.location.replace("-", " ")}</TableCell>
-                <TableCell>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div>
-                          <Select
-                            value={apt.status}
-                            onValueChange={(value) => handleUpdateStatus(apt.id, value as Appointment["status"])}
-                          >
-                            <SelectTrigger className="w-auto min-w-[130px] border-0 bg-transparent hover:bg-muted/50 h-auto p-0 [&>svg]:hidden">
-                              {(() => {
-                                const todayStr = format(new Date(), "yyyy-MM-dd");
-                                const isPastDue = apt.status === "scheduled" && apt.appointmentDate < todayStr;
-                                if (isPastDue) {
-                                  return (
-                                    <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100 border-0 px-3 py-1.5 text-sm font-semibold flex items-center gap-1.5">
-                                      <AlertCircle className="h-3.5 w-3.5" />
-                                      Update Appointment
-                                      <ChevronDown className="h-3.5 w-3.5" />
-                                    </Badge>
-                                  );
-                                }
-                                return getStatusBadge(apt.status, true);
-                              })()}
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="scheduled" className="text-sm font-medium">
-                                <div className="flex items-center gap-2">
-                                  <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
-                                  <span className="text-indigo-700">Scheduled</span>
-                                </div>
-                              </SelectItem>
-                              <SelectItem value="completed" className="text-sm font-medium">
-                                <div className="flex items-center gap-2">
-                                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                                  <span className="text-green-700">Completed</span>
-                                </div>
-                              </SelectItem>
-                              <SelectItem value="cancelled" className="text-sm font-medium">
-                                <div className="flex items-center gap-2">
-                                  <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                                  <span className="text-red-700">Cancelled</span>
-                                </div>
-                              </SelectItem>
-                              <SelectItem value="no_show" className="text-sm font-medium">
-                                <div className="flex items-center gap-2">
-                                  <div className="w-3 h-3 rounded-full bg-gray-500"></div>
-                                  <span className="text-gray-700">No Show</span>
-                                </div>
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </TooltipTrigger>
-                      {apt.status === "scheduled" && (
-                        <TooltipContent>
-                          <div className="flex items-center gap-2">
-                            <CalendarIcon className="h-4 w-4" />
-                            <span>
-                              {format(new Date(apt.appointmentDate), "MMM d, yyyy")} @ {apt.appointmentTime}
-                            </span>
+            {paginatedAppointments.map((apt, index) => {
+              const todayStr = format(new Date(), "yyyy-MM-dd");
+              const isPastDue = apt.status === "scheduled" && apt.appointmentDate < todayStr;
+              const borderClass = isPastDue ? "border-l-4 border-l-yellow-500" : apt.status === "scheduled" ? "border-l-4 border-l-purple-500" : "";
+              return (
+                <TableRow key={apt.id} className={`${index % 2 === 1 ? "bg-muted/50" : ""} ${borderClass}`}>
+                  <TableCell>
+                    <div className="font-bold">{apt.patientName}</div>
+                    <div className="text-sm text-muted-foreground">{apt.patientPhone}</div>
+                  </TableCell>
+                  <TableCell>
+                    <div>{format(new Date(apt.appointmentDate), "MMM d, yyyy")}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {apt.appointmentTime} ({apt.duration}min)
+                    </div>
+                  </TableCell>
+                  <TableCell>{getTypeBadge(apt.type)}</TableCell>
+                  <TableCell>{apt.clinician}</TableCell>
+                  <TableCell className="capitalize">{apt.location.replace("-", " ")}</TableCell>
+                  <TableCell>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div>
+                            <Select
+                              value={apt.status}
+                              onValueChange={(value) => handleUpdateStatus(apt.id, value as Appointment["status"])}
+                            >
+                              <SelectTrigger className="w-auto min-w-[130px] border-0 bg-transparent hover:bg-muted/50 h-auto p-0 [&>svg]:hidden">
+                                {(() => {
+                                  const todayStr = format(new Date(), "yyyy-MM-dd");
+                                  const isPastDue = apt.status === "scheduled" && apt.appointmentDate < todayStr;
+                                  if (isPastDue) {
+                                    return (
+                                      <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100 border-0 px-3 py-1.5 text-sm font-semibold flex items-center gap-1.5">
+                                        <AlertCircle className="h-3.5 w-3.5" />
+                                        Update Appointment
+                                        <ChevronDown className="h-3.5 w-3.5" />
+                                      </Badge>
+                                    );
+                                  }
+                                  return getStatusBadge(apt.status, true);
+                                })()}
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="scheduled" className="text-sm font-medium">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
+                                    <span className="text-indigo-700">Scheduled</span>
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="completed" className="text-sm font-medium">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                                    <span className="text-green-700">Completed</span>
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="cancelled" className="text-sm font-medium">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                                    <span className="text-red-700">Cancelled</span>
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="no_show" className="text-sm font-medium">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 rounded-full bg-gray-500"></div>
+                                    <span className="text-gray-700">No Show</span>
+                                  </div>
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
                           </div>
-                        </TooltipContent>
-                      )}
-                    </Tooltip>
-                  </TooltipProvider>
-                </TableCell>
-                <TableCell className="text-right space-x-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                    onClick={() => {
-                      setViewAppointment(apt);
-                      setIsViewDialogOpen(true);
-                    }}
-                    title="View Details"
-                  >
-                    <Eye className="h-3 w-3" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                    onClick={() => window.location.href = `tel:${apt.patientPhone}`}
-                    disabled={!apt.patientPhone}
-                    title="Call Patient"
-                  >
-                    <Phone className="h-3 w-3" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                    onClick={() => handleEmail(apt)}
-                    disabled={!apt.patientEmail}
-                    title="Email Patient"
-                  >
-                    <Send className="h-3 w-3" />
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={() => handleEditAppointment(apt)}>
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <RoleGate allowedRoles={['admin']}>
-                    <Button variant="ghost" size="sm" className="hover:bg-destructive/10" onClick={() => handleDeleteAppointment(apt.id)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
+                        </TooltipTrigger>
+                        {apt.status === "scheduled" && (
+                          <TooltipContent>
+                            <div className="flex items-center gap-2">
+                              <CalendarIcon className="h-4 w-4" />
+                              <span>
+                                {format(new Date(apt.appointmentDate), "MMM d, yyyy")} @ {apt.appointmentTime}
+                              </span>
+                            </div>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    </TooltipProvider>
+                  </TableCell>
+                  <TableCell className="text-right space-x-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                      onClick={() => {
+                        setViewAppointment(apt);
+                        setIsViewDialogOpen(true);
+                      }}
+                      title="View Details"
+                    >
+                      <Eye className="h-3 w-3" />
                     </Button>
-                  </RoleGate>
-                </TableCell>
-              </TableRow>
-            ))}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                      onClick={() => window.location.href = `tel:${apt.patientPhone}`}
+                      disabled={!apt.patientPhone}
+                      title="Call Patient"
+                    >
+                      <Phone className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                      onClick={() => handleEmail(apt)}
+                      disabled={!apt.patientEmail}
+                      title="Email Patient"
+                    >
+                      <Send className="h-3 w-3" />
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => handleEditAppointment(apt)}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <RoleGate allowedRoles={['admin']}>
+                      <Button variant="ghost" size="sm" className="hover:bg-destructive/10" onClick={() => handleDeleteAppointment(apt.id)}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </RoleGate>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
             {filteredAppointments.length === 0 && (
               <TableRow>
                 <TableCell colSpan={7} className="text-center text-muted-foreground py-8">

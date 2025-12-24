@@ -4,6 +4,7 @@ import ReferralsTab from "@/components/admin/tabs/ReferralsTab";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { ScheduleDialog, AppointmentFormData, useClinicians } from "@/components/admin/AppointmentScheduler";
 import { useAppointmentMutations } from "@/hooks/useAppointmentMutations";
 import EmailComposeModal from "@/components/admin/EmailComposeModal";
@@ -41,6 +42,10 @@ const SubmissionsPage = () => {
     // Email modal state
     const [emailModalOpen, setEmailModalOpen] = useState(false);
     const [emailRecipient, setEmailRecipient] = useState<EmailRecipient | null>(null);
+
+    // Mobile collapsible sections state
+    const [isVisitRequestsCollapsed, setIsVisitRequestsCollapsed] = useState(false);
+    const [isReferralsCollapsed, setIsReferralsCollapsed] = useState(false);
 
     // Internal function to update visit status directly (without opening dialog)
     const updateVisitStatusDirect = async (id: string, status: VisitRequest["status"]) => {
@@ -191,29 +196,68 @@ const SubmissionsPage = () => {
         <div className="space-y-6">
             <div>
                 <h2 className="text-3xl font-bold tracking-tight">Submissions</h2>
-                <p className="text-muted-foreground">Manage visit requests and provider referrals</p>
+                <p className="text-muted-foreground">
+                    Manage visit requests and provider referrals
+                    {referrals.filter(r => r.urgency === "urgent").length > 0 && (
+                        <span className="ml-2 text-red-600 font-semibold">
+                            ({referrals.filter(r => r.urgency === "urgent").length}) urgent
+                        </span>
+                    )}
+                </p>
             </div>
 
             <div className="space-y-8">
-                <VisitRequestsTab
-                    visitRequests={visitRequests}
-                    appointments={appointments}
-                    onUpdateStatus={updateVisitStatus}
-                    onSchedule={(req) => openScheduleDialog("visit", req)}
-                    onEmail={(req) => handleEmail("visit", req)}
-                    onDelete={deleteVisitRequest}
-                />
+                {/* Collapsible Visit Requests Section */}
+                <div>
+                    <button
+                        className="flex items-center gap-2 w-full text-left py-2 hover:bg-muted/50 rounded-md px-2 -mx-2 transition-colors"
+                        onClick={() => setIsVisitRequestsCollapsed(!isVisitRequestsCollapsed)}
+                    >
+                        {isVisitRequestsCollapsed ? (
+                            <ChevronRight className="h-5 w-5 text-primary transition-transform" />
+                        ) : (
+                            <ChevronDown className="h-5 w-5 text-primary transition-transform" />
+                        )}
+                        <span className="text-lg font-semibold">Visit Requests ({visitRequests.length})</span>
+                    </button>
+                    <div className={`${isVisitRequestsCollapsed ? 'hidden' : ''}`}>
+                        <VisitRequestsTab
+                            visitRequests={visitRequests}
+                            appointments={appointments}
+                            onUpdateStatus={updateVisitStatus}
+                            onSchedule={(req) => openScheduleDialog("visit", req)}
+                            onEmail={(req) => handleEmail("visit", req)}
+                            onDelete={deleteVisitRequest}
+                        />
+                    </div>
+                </div>
 
                 <div className="border-t border-border" />
 
-                <ReferralsTab
-                    referrals={referrals}
-                    appointments={appointments}
-                    onUpdateStatus={updateReferralStatus}
-                    onSchedule={(ref) => openScheduleDialog("referral", ref)}
-                    onEmail={(ref) => handleEmail("referral", ref)}
-                    onDelete={deleteReferral}
-                />
+                {/* Collapsible Referrals Section */}
+                <div>
+                    <button
+                        className="flex items-center gap-2 w-full text-left py-2 hover:bg-muted/50 rounded-md px-2 -mx-2 transition-colors"
+                        onClick={() => setIsReferralsCollapsed(!isReferralsCollapsed)}
+                    >
+                        {isReferralsCollapsed ? (
+                            <ChevronRight className="h-5 w-5 text-primary transition-transform" />
+                        ) : (
+                            <ChevronDown className="h-5 w-5 text-primary transition-transform" />
+                        )}
+                        <span className="text-lg font-semibold">Provider Referrals ({referrals.length})</span>
+                    </button>
+                    <div className={`${isReferralsCollapsed ? 'hidden' : ''}`}>
+                        <ReferralsTab
+                            referrals={referrals}
+                            appointments={appointments}
+                            onUpdateStatus={updateReferralStatus}
+                            onSchedule={(ref) => openScheduleDialog("referral", ref)}
+                            onEmail={(ref) => handleEmail("referral", ref)}
+                            onDelete={deleteReferral}
+                        />
+                    </div>
+                </div>
             </div>
 
             <ScheduleDialog

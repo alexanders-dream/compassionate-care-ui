@@ -273,7 +273,7 @@ const InsuranceTab = ({
                                     <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
                                 </div>
                             </TableHead>
-                            <TableHead className="text-right text-slate-700 font-semibold">Actions</TableHead>
+                            <TableHead className="text-right font-semibold">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
