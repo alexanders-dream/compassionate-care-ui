@@ -101,10 +101,12 @@ const SidebarNavItem = ({
 
 export const SidebarContent = ({
   collapsed = false,
-  onItemClick
+  onItemClick,
+  hideProfile = false
 }: {
   collapsed?: boolean;
   onItemClick?: () => void;
+  hideProfile?: boolean;
 }) => {
   const { signOut, isAdmin } = useAuth();
   const navigate = useNavigate();
@@ -147,45 +149,47 @@ export const SidebarContent = ({
 
         <div className="mt-auto pt-4 border-t border-border/50 space-y-1">
           {/* Profile Link */}
-          {collapsed ? (
-            <Tooltip delayDuration={0}>
-              <TooltipTrigger asChild>
-                <NavLink
-                  to="/admin/profile"
-                  onClick={onItemClick}
-                  className={({ isActive }) => cn(
-                    "w-full flex items-center justify-center px-2 py-2.5 rounded-full text-sm font-medium transition-all duration-200",
-                    isActive
-                      ? "bg-blue-100 dark:bg-transparent text-foreground shadow-sm"
-                      : "text-muted-foreground hover:bg-slate-200/80 dark:hover:bg-slate-700/60 hover:text-foreground hover:shadow-md hover:scale-[1.02]"
-                  )}
+          {!hideProfile && (
+            collapsed ? (
+              <Tooltip delayDuration={0}>
+                <TooltipTrigger asChild>
+                  <NavLink
+                    to="/admin/profile"
+                    onClick={onItemClick}
+                    className={({ isActive }) => cn(
+                      "w-full flex items-center justify-center px-2 py-2.5 rounded-full text-sm font-medium transition-all duration-200",
+                      isActive
+                        ? "bg-blue-100 dark:bg-transparent text-foreground shadow-sm"
+                        : "text-muted-foreground hover:bg-slate-200/80 dark:hover:bg-slate-700/60 hover:text-foreground hover:shadow-md hover:scale-[1.02]"
+                    )}
+                  >
+                    <User className="h-4 w-4 shrink-0" />
+                  </NavLink>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="right"
+                  className="bg-slate-900 text-white font-medium px-3 py-1.5 rounded-full shadow-lg border-0"
+                  sideOffset={8}
                 >
-                  <User className="h-4 w-4 shrink-0" />
-                </NavLink>
-              </TooltipTrigger>
-              <TooltipContent
-                side="right"
-                className="bg-slate-900 text-white font-medium px-3 py-1.5 rounded-full shadow-lg border-0"
-                sideOffset={8}
+                  My Profile
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              <NavLink
+                to="/admin/profile"
+                onClick={onItemClick}
+                className={({ isActive }) => cn(
+                  "w-full flex items-center gap-3 px-3 py-2.5 rounded-full text-sm font-medium transition-all duration-200",
+                  isActive
+                    ? "bg-blue-100 dark:bg-transparent text-foreground shadow-sm"
+                    : "text-muted-foreground hover:bg-slate-200/80 dark:hover:bg-slate-700/60 hover:text-foreground hover:shadow-md hover:scale-[1.02]",
+                  collapsed && "justify-center px-2"
+                )}
               >
-                My Profile
-              </TooltipContent>
-            </Tooltip>
-          ) : (
-            <NavLink
-              to="/admin/profile"
-              onClick={onItemClick}
-              className={({ isActive }) => cn(
-                "w-full flex items-center gap-3 px-3 py-2.5 rounded-full text-sm font-medium transition-all duration-200",
-                isActive
-                  ? "bg-blue-100 dark:bg-transparent text-foreground shadow-sm"
-                  : "text-muted-foreground hover:bg-slate-200/80 dark:hover:bg-slate-700/60 hover:text-foreground hover:shadow-md hover:scale-[1.02]",
-                collapsed && "justify-center px-2"
-              )}
-            >
-              <User className="h-4 w-4 shrink-0" />
-              <span>My Profile</span>
-            </NavLink>
+                <User className="h-4 w-4 shrink-0" />
+                <span>My Profile</span>
+              </NavLink>
+            )
           )}
 
           {/* Logout */}
@@ -238,7 +242,7 @@ const AdminSidebar = ({ collapsed, onToggleCollapse }: AdminSidebarProps) => {
   return (
     <aside
       className={cn(
-        "bg-slate-100 dark:bg-slate-900 border-r border-border flex flex-col shrink-0 transition-all duration-300 hidden md:flex",
+        "bg-slate-200/80 dark:bg-slate-900 border-r border-slate-300 dark:border-border flex flex-col shrink-0 transition-all duration-300 hidden md:flex",
         collapsed ? "w-16" : "w-56"
       )}
     >

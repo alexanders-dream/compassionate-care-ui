@@ -1,4 +1,4 @@
-import { ClipboardList, CalendarDays, Bell, Menu, Plus } from "lucide-react";
+import { ClipboardList, CalendarDays, Bell, Menu, Plus, User, LogOut } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
@@ -7,11 +7,21 @@ import { SidebarContent } from "./AdminSidebar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const AdminMobileBottomNav = () => {
     const location = useLocation();
     const [open, setOpen] = useState(false);
     const [activeTab, setActiveTab] = useState(0);
+    const { user, signOut } = useAuth();
+    const navigate = useNavigate();
+
+    const handleLogout = async () => {
+        await signOut();
+        navigate("/auth");
+        setOpen(false);
+    };
 
     const isActive = (path: string) => location.pathname.startsWith(path);
 
@@ -102,11 +112,34 @@ const AdminMobileBottomNav = () => {
                     </SheetTrigger>
                     <SheetContent side="right" className="w-[80vw] p-0 flex flex-col">
                         <SheetTitle className="sr-only">Admin Navigation</SheetTitle>
-                        <div className="p-4 border-b border-border flex items-center justify-between">
-                            <span className="font-semibold text-sm text-foreground">Menu</span>
+
+                        {/* Profile Header */}
+                        <div className="p-4 border-b border-border bg-slate-50/50 dark:bg-slate-900/20">
+                            <div className="flex items-center gap-3">
+                                <Link
+                                    to="/admin/profile"
+                                    className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-700 dark:text-blue-300 shrink-0"
+                                    onClick={() => setOpen(false)}
+                                >
+                                    <User className="h-5 w-5" />
+                                </Link>
+                                <div className="flex-1 min-w-0 flex items-center">
+                                    <Link
+                                        to="/admin/profile"
+                                        className="font-medium text-sm truncate text-foreground hover:text-primary transition-colors"
+                                        onClick={() => setOpen(false)}
+                                    >
+                                        {user?.user_metadata?.full_name || user?.user_metadata?.name || 'Admin'}
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                            Menu
                         </div>
                         <ScrollArea className="flex-1">
-                            <SidebarContent onItemClick={() => setOpen(false)} />
+                            <SidebarContent onItemClick={() => setOpen(false)} hideProfile={true} />
                         </ScrollArea>
                         <div className="p-4 border-t border-border flex items-center justify-between">
                             <span className="text-sm text-muted-foreground">Theme</span>

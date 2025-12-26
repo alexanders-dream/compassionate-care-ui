@@ -3,6 +3,7 @@ import AppointmentsTab from "@/components/admin/tabs/AppointmentsTab";
 import { useAppointmentMutations } from "@/hooks/useAppointmentMutations";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 
 const AppointmentsPage = () => {
     const {
@@ -49,10 +50,10 @@ const AppointmentsPage = () => {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h2 className="text-3xl font-bold tracking-tight">Appointments</h2>
-                <p className="text-muted-foreground">Manage schedule and appointments</p>
-            </div>
+            <AdminPageHeader
+                title="Appointments"
+                description="Manage schedule and appointments"
+            />
 
             <AppointmentsTab
                 visitRequests={visitRequests}

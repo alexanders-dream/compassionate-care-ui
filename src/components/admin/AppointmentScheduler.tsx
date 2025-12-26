@@ -32,6 +32,7 @@ import { Plus, Pencil, Trash2, CalendarIcon, Clock, MapPin, User, Phone, Mail, F
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 import { Card, CardContent } from "@/components/ui/card";
+import { SwipeableCard } from "@/components/ui/swipeable-card";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -1458,13 +1459,18 @@ const AppointmentScheduler = ({
       {/* Mobile Cards */}
       <div className="md:hidden space-y-4">
         {paginatedAppointments.map(apt => (
-          <Card key={apt.id} className={`overflow-hidden shadow-sm ring-1 ring-slate-200 dark:ring-slate-800 rounded-xl bg-card transition-all active:scale-[0.99] ${(() => {
-            const todayStr = format(new Date(), "yyyy-MM-dd");
-            const isPastDue = apt.status === "scheduled" && apt.appointmentDate < todayStr;
-            if (isPastDue) return "border-l-4 border-l-yellow-500";
-            if (apt.status === "scheduled") return "border-l-4 border-l-primary";
-            return "";
-          })()}`}>
+          <SwipeableCard
+            key={apt.id}
+            className={`overflow-hidden shadow-sm ring-1 ring-slate-200 dark:ring-slate-800 bg-card transition-all active:scale-[0.99] ${(() => {
+              const todayStr = format(new Date(), "yyyy-MM-dd");
+              const isPastDue = apt.status === "scheduled" && apt.appointmentDate < todayStr;
+              if (isPastDue) return "border-l-4 border-l-yellow-500";
+              if (apt.status === "scheduled") return "border-l-4 border-l-primary";
+              return "";
+            })()}`}
+            onSwipeRight={() => { setViewAppointment(apt); setIsViewDialogOpen(true); }}
+            showScheduleHint={false}
+          >
             <CardContent className="p-4 space-y-4">
               {/* Row 1: Header */}
               <div className="flex justify-between items-start gap-3">
@@ -1565,7 +1571,7 @@ const AppointmentScheduler = ({
                 }] : [])
               ]}
             />
-          </Card>
+          </SwipeableCard>
         ))}
         {filteredAppointments.length === 0 && (
           <p className="text-center text-muted-foreground py-8">
@@ -1707,7 +1713,11 @@ const AppointmentScheduler = ({
               const isPastDue = apt.status === "scheduled" && apt.appointmentDate < todayStr;
               const borderClass = isPastDue ? "border-l-4 border-l-yellow-500" : apt.status === "scheduled" ? "border-l-4 border-l-purple-500" : "";
               return (
-                <TableRow key={apt.id} className={`${index % 2 === 1 ? "bg-muted/50" : ""} ${borderClass}`}>
+                <TableRow key={apt.id} className={`${index % 2 === 1 ? "bg-muted/50" : ""} ${borderClass} transition-all duration-100 ease-in-out hover:scale-[0.995] hover:bg-muted/80 relative border-b-0 ${apt.status === "scheduled" ? "hover:shadow-[inset_0_2px_4px_0_rgba(59,130,246,0.1)] dark:hover:shadow-[inset_0_2px_4px_0_rgba(30,64,175,0.2)]" :
+                    apt.status === "completed" ? "hover:shadow-[inset_0_2px_4px_0_rgba(34,197,94,0.1)] dark:hover:shadow-[inset_0_2px_4px_0_rgba(21,128,61,0.2)]" :
+                      apt.status === "cancelled" ? "hover:shadow-[inset_0_2px_4px_0_rgba(239,68,68,0.1)] dark:hover:shadow-[inset_0_2px_4px_0_rgba(185,28,28,0.2)]" :
+                        "hover:shadow-[inset_0_2px_4px_0_rgba(107,114,128,0.1)] dark:hover:shadow-[inset_0_2px_4px_0_rgba(55,65,81,0.2)]"
+                  }`}>
                   <TableCell>
                     <div className="font-bold">{apt.patientName}</div>
                     <div className="text-sm text-muted-foreground">{apt.patientPhone}</div>

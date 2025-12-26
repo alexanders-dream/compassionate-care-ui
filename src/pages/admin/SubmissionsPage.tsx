@@ -8,6 +8,7 @@ import { ChevronDown, ChevronRight, HelpCircle } from "lucide-react";
 import { ScheduleDialog, AppointmentFormData, useClinicians } from "@/components/admin/AppointmentScheduler";
 import { useAppointmentMutations } from "@/hooks/useAppointmentMutations";
 import EmailComposeModal from "@/components/admin/EmailComposeModal";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import {
     Tooltip,
     TooltipContent,
@@ -199,36 +200,40 @@ const SubmissionsPage = () => {
         }
     };
 
+    const urgentCount = referrals.filter(r => r.urgency === "urgent").length;
+
     return (
         <div className="space-y-6">
-            <div>
-                <h2 className="text-3xl font-bold tracking-tight">Submissions</h2>
-                <p className="text-muted-foreground">
-                    Manage visit requests and provider referrals
-                    {referrals.filter(r => r.urgency === "urgent").length > 0 && (
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <button
-                                        onClick={() => {
-                                            setIsReferralsCollapsed(false);
-                                            setTimeout(() => {
-                                                referralsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                                            }, 100);
-                                        }}
-                                        className="ml-2 text-red-600 font-semibold hover:text-red-700 hover:underline transition-colors"
-                                    >
-                                        ({referrals.filter(r => r.urgency === "urgent").length}) urgent
-                                    </button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p className="text-xs">Click to view urgent referrals</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    )}
-                </p>
-            </div>
+            <AdminPageHeader
+                title="Submissions"
+                description={
+                    <>
+                        Manage visit requests and provider referrals
+                        {urgentCount > 0 && (
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <button
+                                            onClick={() => {
+                                                setIsReferralsCollapsed(false);
+                                                setTimeout(() => {
+                                                    referralsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                                }, 100);
+                                            }}
+                                            className="ml-2 text-red-600 font-semibold hover:text-red-700 hover:underline transition-colors"
+                                        >
+                                            ({urgentCount}) urgent
+                                        </button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p className="text-xs">Click to view urgent referrals</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        )}
+                    </>
+                }
+            />
 
             <div className="space-y-8">
                 {/* Collapsible Visit Requests Section */}

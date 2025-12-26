@@ -5,6 +5,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { SwipeableCard } from "@/components/ui/swipeable-card";
 import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from "@/components/ui/select";
@@ -324,7 +325,13 @@ const ReferralsTab = ({
             {/* Mobile Cards */}
             <div className="md:hidden space-y-4">
                 {paginatedReferrals.map(referral => (
-                    <Card key={referral.id} className={`overflow-hidden shadow-sm ring-1 ring-slate-200 dark:ring-slate-800 rounded-xl bg-card transition-all active:scale-[0.99] ${referral.urgency === "urgent" ? "border-l-4 border-l-red-500" : referral.status === "pending" ? "border-l-4 border-l-amber-500" : ""}`}>
+                    <SwipeableCard
+                        key={referral.id}
+                        className={`overflow-hidden shadow-sm ring-1 ring-slate-200 dark:ring-slate-800 bg-card transition-all active:scale-[0.99] ${referral.urgency === "urgent" ? "border-l-4 border-l-red-500" : referral.status === "pending" ? "border-l-4 border-l-amber-500" : ""}`}
+                        onSwipeLeft={referral.status !== "scheduled" && referral.status !== "completed" ? () => onSchedule(referral) : undefined}
+                        onSwipeRight={() => handleView(referral)}
+                        showScheduleHint={referral.status !== "scheduled" && referral.status !== "completed"}
+                    >
                         <CardContent className="p-4 space-y-4">
                             {/* Row 1: Header */}
                             <div className="flex justify-between items-start gap-3">
@@ -414,7 +421,7 @@ const ReferralsTab = ({
                                 }] : [])
                             ]}
                         />
-                    </Card>
+                    </SwipeableCard>
                 ))}
                 {filteredReferrals.length === 0 && (
                     <p className="text-center text-muted-foreground py-8">
@@ -531,7 +538,11 @@ const ReferralsTab = ({
                     </TableHeader>
                     <TableBody>
                         {paginatedReferrals.map((referral, index) => (
-                            <TableRow key={referral.id} className={`${index % 2 === 1 ? "bg-muted/50" : ""} ${referral.urgency === "urgent" ? "border-l-4 border-l-red-500" : referral.status === "pending" ? "border-l-4 border-l-yellow-500" : ""}`}>
+                            <TableRow key={referral.id} className={`${index % 2 === 1 ? "bg-muted/50" : ""} ${referral.urgency === "urgent" ? "border-l-4 border-l-red-500" : referral.status === "pending" ? "border-l-4 border-l-yellow-500" : ""} transition-all duration-100 ease-in-out hover:scale-[0.995] hover:bg-muted/80 relative border-b-0 ${referral.status === "pending" ? "hover:shadow-[inset_0_2px_4px_0_rgba(245,158,11,0.1)] dark:hover:shadow-[inset_0_2px_4px_0_rgba(180,83,9,0.2)]" :
+                                    referral.status === "contacted" ? "hover:shadow-[inset_0_2px_4px_0_rgba(59,130,246,0.1)] dark:hover:shadow-[inset_0_2px_4px_0_rgba(30,64,175,0.2)]" :
+                                        referral.status === "scheduled" ? "hover:shadow-[inset_0_2px_4px_0_rgba(99,102,241,0.1)] dark:hover:shadow-[inset_0_2px_4px_0_rgba(67,56,202,0.2)]" :
+                                            "hover:shadow-[inset_0_2px_4px_0_rgba(34,197,94,0.1)] dark:hover:shadow-[inset_0_2px_4px_0_rgba(21,128,61,0.2)]"
+                                }`}>
                                 <TableCell className="font-bold">{referral.patientFirstName} {referral.patientLastName}</TableCell>
                                 <TableCell>
                                     <div className="text-sm">
