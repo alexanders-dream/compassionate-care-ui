@@ -36,7 +36,7 @@ interface AdminSidebarProps {
   onToggleCollapse: () => void;
 }
 
-const menuItems: { id: AdminSection; label: string; icon: React.ElementType; path: string }[] = [
+export const menuItems: { id: AdminSection; label: string; icon: React.ElementType; path: string }[] = [
   { id: "submissions", label: "Submissions", icon: ClipboardList, path: "/admin/submissions" },
   { id: "appointments", label: "Appointments", icon: CalendarDays, path: "/admin/appointments" },
   { id: "site-copy", label: "Site Copy", icon: Type, path: "/admin/site-copy" },
@@ -99,7 +99,7 @@ const SidebarNavItem = ({
   return navLink;
 };
 
-const SidebarContent = ({
+export const SidebarContent = ({
   collapsed = false,
   onItemClick
 }: {
@@ -234,49 +234,6 @@ const SidebarContent = ({
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 const AdminSidebar = ({ collapsed, onToggleCollapse }: AdminSidebarProps) => {
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const location = useLocation();
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  // Mobile: Floating hamburger button with sheet drawer
-  if (isMobile) {
-    return (
-      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="fixed top-4 right-4 z-50 h-10 w-10 shrink-0 md:hidden bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-700 shadow-md border border-border"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="left" className="w-64 p-0 flex flex-col">
-          <SheetTitle className="sr-only">Admin Navigation</SheetTitle>
-          <div className="p-4 border-b border-border flex items-center justify-between">
-            <span className="font-semibold text-sm text-foreground">Navigation</span>
-          </div>
-          <ScrollArea className="flex-1">
-            <SidebarContent
-              onItemClick={() => setMobileOpen(false)}
-            />
-          </ScrollArea>
-          <div className="p-4 border-t border-border flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Theme</span>
-            <ThemeToggle className="text-muted-foreground hover:text-foreground" />
-          </div>
-        </SheetContent>
-      </Sheet>
-    );
-  }
-
   // Desktop: Fixed sidebar
   return (
     <aside

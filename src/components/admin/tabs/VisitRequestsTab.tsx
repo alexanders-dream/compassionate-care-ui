@@ -4,14 +4,16 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import {
-    Mail, Send, CalendarDays, CheckCircle2, ArrowUpDown, Search, Trash2, Calendar, Phone, Eye, ChevronDown, ArrowDown, ArrowUp
+    Mail, Send, CalendarDays, CheckCircle2, ArrowUpDown, Search, Trash2, Calendar, Phone, Eye, ChevronDown, ArrowDown, ArrowUp, X, Filter, Clock
 } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+
 import { SubmissionDetailsDialog } from "../SubmissionDetailsDialog";
 import {
     Tooltip,
@@ -58,6 +60,8 @@ const VisitRequestsTab = ({
     const [sortField, setSortField] = useState<"name" | "date" | "status" | "woundType">("date");
     const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
     const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
+
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
@@ -192,8 +196,59 @@ const VisitRequestsTab = ({
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
                 {/* Title is now handled by the parent collapsible header */}
 
-                {/* Search and Sort Controls - Simplified */}
-                <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+                {/* Mobile Search & Filter (Collapsible) */}
+                <div className="md:hidden w-full">
+                    <Collapsible open={isFilterOpen} onOpenChange={setIsFilterOpen} className="space-y-2">
+                        <div className="flex items-center gap-2">
+                            <div className="relative flex-1">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    placeholder="Search patients..."
+                                    className="pl-9 h-10 bg-background"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                            </div>
+                            <CollapsibleTrigger asChild>
+                                <Button variant="outline" size="icon" className="h-10 w-10 shrink-0">
+                                    {isFilterOpen ? (
+                                        <X className="h-4 w-4" />
+                                    ) : (
+                                        <Filter className="h-4 w-4" />
+                                    )}
+                                    <span className="sr-only">Toggle filters</span>
+                                </Button>
+                            </CollapsibleTrigger>
+                        </div>
+
+                        <CollapsibleContent className="space-y-2 animate-in slide-in-from-top-1 fade-in-0 duration-200">
+                            <Select
+                                value={`${sortField}-${sortDirection}`}
+                                onValueChange={(value) => {
+                                    const [field, direction] = value.split('-') as ["name" | "date" | "status", "asc" | "desc"];
+                                    setSortField(field);
+                                    setSortDirection(direction);
+                                }}
+                            >
+                                <SelectTrigger className="w-full h-10 bg-background">
+                                    {sortDirection === "asc" ? <ArrowUp className="h-4 w-4 mr-2 text-muted-foreground" /> : <ArrowDown className="h-4 w-4 mr-2 text-muted-foreground" />}
+                                    <SelectValue placeholder="Sort" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="name-asc">Name (A-Z)</SelectItem>
+                                    <SelectItem value="name-desc">Name (Z-A)</SelectItem>
+                                    <SelectItem value="date-asc">Date (Old-New)</SelectItem>
+                                    <SelectItem value="date-desc">Date (New-Old)</SelectItem>
+                                    <SelectItem value="status-asc">Status (A-Z)</SelectItem>
+                                    <SelectItem value="status-desc">Status (Z-A)</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </CollapsibleContent>
+                    </Collapsible>
+                </div>
+
+                {/* Desktop Search */}
+                <div className="hidden md:flex flex-col md:flex-row gap-3 w-full md:w-auto">
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
@@ -212,30 +267,6 @@ const VisitRequestsTab = ({
                             </TooltipContent>
                         </Tooltip>
                     </TooltipProvider>
-                    {/* Mobile-only sort control */}
-                    <div className="md:hidden">
-                        <Select
-                            value={`${sortField}-${sortDirection}`}
-                            onValueChange={(value) => {
-                                const [field, direction] = value.split('-') as ["name" | "date" | "status", "asc" | "desc"];
-                                setSortField(field);
-                                setSortDirection(direction);
-                            }}
-                        >
-                            <SelectTrigger className="w-full h-10 bg-background">
-                                {sortDirection === "asc" ? <ArrowUp className="h-4 w-4 mr-2 text-muted-foreground" /> : <ArrowDown className="h-4 w-4 mr-2 text-muted-foreground" />}
-                                <SelectValue placeholder="Sort" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="name-asc">Name (A-Z)</SelectItem>
-                                <SelectItem value="name-desc">Name (Z-A)</SelectItem>
-                                <SelectItem value="date-asc">Date (Old-New)</SelectItem>
-                                <SelectItem value="date-desc">Date (New-Old)</SelectItem>
-                                <SelectItem value="status-asc">Status (A-Z)</SelectItem>
-                                <SelectItem value="status-desc">Status (Z-A)</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
                 </div>
             </div>
 
@@ -249,141 +280,98 @@ const VisitRequestsTab = ({
             {/* Mobile Cards */}
             <div className="md:hidden space-y-4">
                 {paginatedRequests.map(request => (
-                    <Card key={request.id} className={`overflow-hidden shadow-lg ring-1 ring-slate-900/5 dark:ring-slate-100/10 rounded-xl bg-white dark:bg-slate-800 ${request.status === "pending" ? "border-l-4 border-l-yellow-500" : ""}`}>
-                        {/* Header with Name and Status */}
-                        <div className="px-4 py-3">
-                            <div className="flex items-start justify-between gap-3">
+                    <Card key={request.id} className={`overflow-hidden shadow-sm ring-1 ring-slate-200 dark:ring-slate-800 rounded-xl bg-card transition-all active:scale-[0.99] ${request.status === "pending" ? "border-l-4 border-l-yellow-500" : ""}`}>
+                        <CardContent className="p-4 space-y-4">
+                            {/* Row 1: Header */}
+                            <div className="flex justify-between items-start gap-3">
                                 <div className="flex-1 min-w-0">
-                                    <h3 className="font-semibold text-base truncate">
-                                        {request.firstName} {request.lastName}
-                                    </h3>
+                                    <h3 className="font-bold text-lg text-foreground truncate">{request.firstName} {request.lastName}</h3>
+                                    <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
+                                        <Clock className="h-3.5 w-3.5" />
+                                        <span className="truncate">Submitted {new Date(request.submittedAt).toLocaleDateString()}</span>
+                                    </div>
                                 </div>
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <div className="shrink-0">
-                                                <Select
-                                                    value={request.status}
-                                                    onValueChange={(value) => onUpdateStatus(request.id, value as VisitRequest["status"])}
-                                                >
-                                                    <SelectTrigger className="w-auto h-auto border-0 bg-transparent hover:bg-muted/50 p-0 [&>svg]:hidden">
-                                                        {getStatusBadge(request.status, true)}
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="pending" className="text-sm font-medium">
-                                                            <div className="flex items-center gap-2">
-                                                                <div className="w-3 h-3 rounded-full bg-amber-500"></div>
-                                                                <span className="text-amber-700 dark:text-amber-300">Pending</span>
-                                                            </div>
-                                                        </SelectItem>
-                                                        <SelectItem value="contacted" className="text-sm font-medium">
-                                                            <div className="flex items-center gap-2">
-                                                                <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                                                                <span className="text-blue-700 dark:text-blue-300">Contacted</span>
-                                                            </div>
-                                                        </SelectItem>
-                                                        <SelectItem value="scheduled" className="text-sm font-medium">
-                                                            <div className="flex items-center gap-2">
-                                                                <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
-                                                                <span className="text-indigo-700 dark:text-indigo-300">Scheduled</span>
-                                                            </div>
-                                                        </SelectItem>
-                                                        <SelectItem value="completed" className="text-sm font-medium">
-                                                            <div className="flex items-center gap-2">
-                                                                <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                                                                <span className="text-green-700 dark:text-green-300">Completed</span>
-                                                            </div>
-                                                        </SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-                                        </TooltipTrigger>
-                                        {request.status === "scheduled" && appointments.find(a => a.visitRequestId === request.id) && (
-                                            <TooltipContent>
-                                                <div className="flex items-center gap-2">
-                                                    <Calendar className="h-4 w-4" />
-                                                    <span>
-                                                        {format(new Date(appointments.find(a => a.visitRequestId === request.id)!.appointmentDate), "MMM d")} @ {appointments.find(a => a.visitRequestId === request.id)!.appointmentTime}
-                                                    </span>
-                                                </div>
-                                            </TooltipContent>
-                                        )}
-                                    </Tooltip>
-                                </TooltipProvider>
+                                <div className="shrink-0">
+                                    <Select
+                                        value={request.status}
+                                        onValueChange={(value) => onUpdateStatus(request.id, value as VisitRequest["status"])}
+                                    >
+                                        <SelectTrigger className="w-auto border-0 bg-transparent p-0 h-auto gap-0 focus:ring-0 [&>svg]:hidden">
+                                            {getStatusBadge(request.status, true)}
+                                        </SelectTrigger>
+                                        <SelectContent align="end">
+                                            <SelectItem value="pending">Pending</SelectItem>
+                                            <SelectItem value="contacted">Contacted</SelectItem>
+                                            <SelectItem value="scheduled">Scheduled</SelectItem>
+                                            <SelectItem value="completed">Completed</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                             </div>
-                        </div>
 
-                        {/* Contact Info Section - Clickable links */}
-                        <div className="px-4 py-2 space-y-1 text-sm">
-                            <button
-                                onClick={() => onEmail(request)}
-                                className="flex items-center gap-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
-                            >
-                                <Mail className="h-4 w-4 shrink-0" />
-                                <span className="truncate">{request.email}</span>
-                            </button>
-                            {request.phone && (
-                                <a
-                                    href={`tel:${request.phone}`}
-                                    className="flex items-center gap-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
-                                >
-                                    <Phone className="h-4 w-4 shrink-0" />
-                                    <span>{request.phone}</span>
-                                </a>
-                            )}
-                        </div>
-
-                        {/* Details Section */}
-                        <div className="px-4 py-3 space-y-2">
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-muted-foreground">Wound Type</span>
-                                <Badge variant="outline" className="capitalize font-medium">
-                                    {request.woundType}
-                                </Badge>
-                            </div>
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-muted-foreground">Submitted</span>
-                                <span className="font-medium">
-                                    {new Date(request.submittedAt).toLocaleDateString()}
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* Actions Section */}
-                        <div className="px-4 py-4 space-y-3">
-                            {/* Primary Action */}
-                            {request.status !== "scheduled" && request.status !== "completed" && (
-                                <Button
-                                    onClick={() => onSchedule(request)}
-                                    className="w-full h-12 font-semibold bg-blue-600 text-white hover:bg-blue-700 border-transparent shadow-sm text-base"
-                                >
-                                    <CalendarDays className="h-5 w-5 mr-2" />
-                                    Schedule Appointment
-                                </Button>
+                            {/* Row 2: Contact Chips */}
+                            {(request.phone || request.email) && (
+                                <div className="flex flex-wrap gap-2">
+                                    {request.phone && (
+                                        <a href={`tel:${request.phone}`} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 text-blue-700 text-xs font-medium hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 transition-colors">
+                                            <Phone className="h-3 w-3" />
+                                            {request.phone}
+                                        </a>
+                                    )}
+                                    {request.email && (
+                                        <button onClick={() => onEmail(request)} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 text-xs font-medium hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 transition-colors">
+                                            <Mail className="h-3 w-3" />
+                                            Email
+                                        </button>
+                                    )}
+                                </div>
                             )}
 
-                            {/* Action Buttons - View and Delete */}
-                            <div className="grid grid-cols-2 gap-3">
-                                <Button
-                                    variant="outline"
-                                    onClick={() => handleView(request)}
-                                    className="w-full h-11 border-slate-300 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800 flex items-center justify-center gap-2"
-                                >
-                                    <Eye className="h-4 w-4" />
-                                    <span>View</span>
-                                </Button>
-                                <RoleGate allowedRoles={['admin']}>
+                            {/* Row 3: Details Grid */}
+                            <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-sm bg-muted/40 p-3 rounded-lg border border-border/50">
+                                <div className="flex items-center gap-2 text-muted-foreground">
+                                    <span className="font-medium text-foreground">Wound Type:</span>
+                                </div>
+                                <div className="text-right">
+                                    <Badge variant="outline" className="capitalize">{request.woundType}</Badge>
+                                </div>
+                                <div className="flex items-center gap-2 text-muted-foreground col-span-2 border-t border-border/50 pt-2 mt-1 hidden">
+                                    {/* <span className="line-clamp-2 italic text-xs">"{request.message}"</span> */}
+                                </div>
+                            </div>
+
+                            {/* Row 4: Actions */}
+                            <div className="space-y-3 pt-1">
+                                {request.status !== "scheduled" && request.status !== "completed" && (
+                                    <Button
+                                        onClick={() => onSchedule(request)}
+                                        className="w-full bg-blue-600 text-white hover:bg-blue-700 shadow-sm"
+                                    >
+                                        <CalendarDays className="h-4 w-4 mr-2" />
+                                        Schedule Appointment
+                                    </Button>
+                                )}
+                                <div className="grid grid-cols-[1fr,auto] gap-2">
                                     <Button
                                         variant="outline"
-                                        onClick={() => setItemToDelete(request.id)}
-                                        className="w-full h-11 border-red-300 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/30 flex items-center justify-center gap-2"
+                                        className="h-10 text-muted-foreground hover:text-foreground border-border/50"
+                                        onClick={() => handleView(request)}
                                     >
-                                        <Trash2 className="h-4 w-4" />
-                                        <span>Delete</span>
+                                        <Eye className="h-4 w-4 mr-2" /> View Details
                                     </Button>
-                                </RoleGate>
+                                    <RoleGate allowedRoles={['admin']}>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-10 w-10 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                            onClick={() => setItemToDelete(request.id)}
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </RoleGate>
+                                </div>
                             </div>
-                        </div>
+                        </CardContent>
                     </Card>
                 ))}
                 {filteredVisitRequests.length === 0 && (

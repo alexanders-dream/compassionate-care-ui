@@ -24,6 +24,7 @@ interface StatusCountsProps {
     statusCounts: StatusCount[];
     activeFilter: string;
     onFilterChange: (status: string) => void;
+    children?: React.ReactNode;
 }
 
 // Helper to extract Tailwind color values - HIGH CONTRAST VERSION
@@ -68,7 +69,7 @@ const getColorFromClass = (className: string): string => {
     return colorMap[className] || '';
 };
 
-const StatusCounts = ({ statusCounts, activeFilter, onFilterChange }: StatusCountsProps) => {
+const StatusCounts = ({ statusCounts, activeFilter, onFilterChange, children }: StatusCountsProps) => {
     // Calculate total count
     const totalCount = statusCounts.reduce((sum, item) => sum + item.count, 0);
 
@@ -166,6 +167,7 @@ const StatusCounts = ({ statusCounts, activeFilter, onFilterChange }: StatusCoun
                         </Tooltip>
                     );
                 })}
+                {children}
             </div>
         </TooltipProvider>
     );
