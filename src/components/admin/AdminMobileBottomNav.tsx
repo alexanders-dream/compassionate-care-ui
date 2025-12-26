@@ -1,4 +1,4 @@
-import { ClipboardList, CalendarDays, Bell, Menu } from "lucide-react";
+import { ClipboardList, CalendarDays, Bell, Menu, Plus } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
@@ -20,7 +20,11 @@ const AdminMobileBottomNav = () => {
         if (isActive("/admin/notifications")) return 3;
         if (isActive("/admin/appointments")) return 1;
         if (isActive("/admin/submissions")) return 0;
-        return activeTab; // Fallback or stick to last known
+
+        // If we are in admin but not in the above main tabs, assume we are in a sub-page accessed via Menu
+        if (location.pathname.startsWith("/admin")) return 4;
+
+        return activeTab;
     };
 
     const currentIndex = getActiveIndex();
@@ -43,33 +47,31 @@ const AdminMobileBottomNav = () => {
                 <Link
                     to="/admin/submissions"
                     className={cn(
-                        "flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors duration-200",
+                        "flex flex-col items-center justify-center w-full h-full transition-colors duration-200",
                         isActive("/admin/submissions") ? "text-primary" : "text-muted-foreground hover:text-foreground active:text-primary"
                     )}
                     onClick={() => setOpen(false)}
                 >
-                    <ClipboardList className={cn("h-5 w-5 transition-all duration-200")} strokeWidth={isActive("/admin/submissions") ? 2.5 : 1.5} />
-                    <span className="text-[10px] font-medium">Requests</span>
+                    <ClipboardList className={cn("h-6 w-6 transition-all duration-200")} strokeWidth={isActive("/admin/submissions") ? 2.5 : 1.5} />
                 </Link>
 
                 {/* 2. Appointments */}
                 <Link
                     to="/admin/appointments"
                     className={cn(
-                        "flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors duration-200",
+                        "flex flex-col items-center justify-center w-full h-full transition-colors duration-200",
                         isActive("/admin/appointments") ? "text-primary" : "text-muted-foreground hover:text-foreground active:text-primary"
                     )}
                     onClick={() => setOpen(false)}
                 >
-                    <CalendarDays className={cn("h-5 w-5 transition-all duration-200")} strokeWidth={isActive("/admin/appointments") ? 2.5 : 1.5} />
-                    <span className="text-[10px] font-medium">Calendar</span>
+                    <CalendarDays className={cn("h-6 w-6 transition-all duration-200")} strokeWidth={isActive("/admin/appointments") ? 2.5 : 1.5} />
                 </Link>
 
                 {/* 3. Central FAB (Schedule) */}
                 <div className="relative -top-5">
                     <Link to="/admin/appointments?action=schedule" onClick={() => setOpen(false)}>
                         <div className="h-14 w-14 rounded-full bg-blue-600 shadow-lg shadow-blue-600/20 flex items-center justify-center text-white hover:bg-blue-700 active:scale-95 transition-all duration-200 border-4 border-background">
-                            <CalendarDays className="h-6 w-6" strokeWidth={2.5} />
+                            <Plus className="h-6 w-6" strokeWidth={2.5} />
                         </div>
                     </Link>
                 </div>
@@ -78,13 +80,12 @@ const AdminMobileBottomNav = () => {
                 <Link
                     to="/admin/notifications"
                     className={cn(
-                        "flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors duration-200",
+                        "flex flex-col items-center justify-center w-full h-full transition-colors duration-200",
                         isActive("/admin/notifications") ? "text-primary" : "text-muted-foreground hover:text-foreground active:text-primary"
                     )}
                     onClick={() => setOpen(false)}
                 >
-                    <Bell className={cn("h-5 w-5 transition-all duration-200", isActive("/admin/notifications") && "fill-current")} strokeWidth={isActive("/admin/notifications") ? 2.5 : 1.5} />
-                    <span className="text-[10px] font-medium">Alerts</span>
+                    <Bell className={cn("h-6 w-6 transition-all duration-200", isActive("/admin/notifications") && "fill-current")} strokeWidth={isActive("/admin/notifications") ? 2.5 : 1.5} />
                 </Link>
 
                 {/* 5. More (Menu) */}
@@ -92,12 +93,11 @@ const AdminMobileBottomNav = () => {
                     <SheetTrigger asChild>
                         <button
                             className={cn(
-                                "flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors duration-200",
-                                open ? "text-primary" : "text-muted-foreground hover:text-foreground active:text-primary"
+                                "flex flex-col items-center justify-center w-full h-full transition-colors duration-200",
+                                (open || currentIndex === 4) ? "text-primary" : "text-muted-foreground hover:text-foreground active:text-primary"
                             )}
                         >
-                            <Menu className={cn("h-5 w-5 transition-all duration-200")} strokeWidth={open ? 2.5 : 1.5} />
-                            <span className="text-[10px] font-medium">Menu</span>
+                            <Menu className={cn("h-6 w-6 transition-all duration-200")} strokeWidth={(open || currentIndex === 4) ? 2.5 : 1.5} />
                         </button>
                     </SheetTrigger>
                     <SheetContent side="right" className="w-[80vw] p-0 flex flex-col">
