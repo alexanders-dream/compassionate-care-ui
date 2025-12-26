@@ -3,6 +3,7 @@ import { useState } from "react";
 import ServicesTab from "@/components/admin/tabs/ServicesTab";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 
 const ServicesPage = () => {
     const { services, setServices } = useSiteData();
@@ -76,10 +77,10 @@ const ServicesPage = () => {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h2 className="text-3xl font-bold tracking-tight">Services</h2>
-                <p className="text-muted-foreground">Manage services offered</p>
-            </div>
+            <AdminPageHeader
+                title="Services"
+                description="Manage services offered"
+            />
 
             <ServicesTab
                 services={services}

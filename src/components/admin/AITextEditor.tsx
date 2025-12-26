@@ -32,6 +32,7 @@ import { getAIConfig, AIConfig } from "@/lib/ai/config";
 import { useAIEditor } from "@/hooks/use-ai-editor";
 import { useAIConfig } from "@/hooks/use-ai-config";
 import { AISidebar } from "@/components/admin/ai/AISidebar";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 
 interface AITextEditorProps {
   post: BlogPost;
@@ -234,11 +235,11 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
             </Tooltip>
           </TooltipProvider>
 
-          <div>
-            <h2 className="text-lg md:text-xl font-semibold mb-2">Edit Article</h2>
-            <p className="text-sm text-muted-foreground">
-              Edit your blog post with AI assistance. {isProcessing && <span className="font-medium text-primary">AI is processing...</span>}
-            </p>
+          <div className="w-full">
+            <AdminPageHeader
+              title="Edit Article"
+              description={<>Edit your blog post with AI assistance. {isProcessing && <span className="font-medium text-primary">AI is processing...</span>}</>}
+            />
           </div>
         </div>
       </div>

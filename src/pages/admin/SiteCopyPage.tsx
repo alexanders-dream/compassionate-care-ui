@@ -2,6 +2,7 @@ import { useSiteData } from "@/contexts/SiteDataContext";
 import SiteCopyTab from "@/components/admin/tabs/SiteCopyTab";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 
 const SiteCopyPage = () => {
     const { siteCopy, setSiteCopy } = useSiteData();
@@ -53,10 +54,10 @@ const SiteCopyPage = () => {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h2 className="text-3xl font-bold tracking-tight">Site Copy</h2>
-                <p className="text-muted-foreground">Manage website text content</p>
-            </div>
+            <AdminPageHeader
+                title="Site Copy"
+                description="Manage website text content"
+            />
 
             <SiteCopyTab
                 siteCopy={siteCopy}

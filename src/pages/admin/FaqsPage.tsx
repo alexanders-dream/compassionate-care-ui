@@ -3,6 +3,7 @@ import { useSiteData, FAQ } from "@/contexts/SiteDataContext";
 import FaqsTab from "@/components/admin/tabs/FaqsTab";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 
 const FaqsPage = () => {
     const { faqs, setFaqs } = useSiteData();
@@ -72,10 +73,10 @@ const FaqsPage = () => {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h2 className="text-3xl font-bold tracking-tight">FAQs</h2>
-                <p className="text-muted-foreground">Manage frequently asked questions</p>
-            </div>
+            <AdminPageHeader
+                title="FAQs"
+                description="Manage frequently asked questions"
+            />
 
             <FaqsTab
                 faqs={faqs}

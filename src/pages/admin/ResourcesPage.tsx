@@ -3,6 +3,7 @@ import { useState } from "react";
 import ResourcesTab from "@/components/admin/tabs/ResourcesTab";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 
 const BUCKET_NAME = "patient-resources";
 
@@ -169,10 +170,10 @@ const ResourcesPage = () => {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h2 className="text-3xl font-bold tracking-tight">Patient Resources</h2>
-                <p className="text-muted-foreground">Manage downloadable patient resources</p>
-            </div>
+            <AdminPageHeader
+                title="Patient Resources"
+                description="Manage downloadable patient resources"
+            />
 
             <ResourcesTab
                 resources={patientResources}

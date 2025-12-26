@@ -3,6 +3,7 @@ import { useState } from "react";
 import InsuranceTab from "@/components/admin/tabs/InsuranceTab";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 
 const InsurancePage = () => {
     const { insuranceProviders, setInsuranceProviders } = useSiteData();
@@ -80,10 +81,10 @@ const InsurancePage = () => {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h2 className="text-3xl font-bold tracking-tight">Insurance</h2>
-                <p className="text-muted-foreground">Manage insurance providers</p>
-            </div>
+            <AdminPageHeader
+                title="Insurance"
+                description="Manage insurance providers"
+            />
 
             <InsuranceTab
                 insuranceProviders={insuranceProviders}

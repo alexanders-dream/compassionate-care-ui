@@ -3,6 +3,7 @@ import { useSiteData } from "@/contexts/SiteDataContext";
 import BlogTab, { ExtendedBlogPost } from "@/components/admin/tabs/BlogTab";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 
 const BlogPage = () => {
     const { blogPosts, setBlogPosts, refreshBlogPosts } = useSiteData();
@@ -154,10 +155,10 @@ const BlogPage = () => {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h2 className="text-3xl font-bold tracking-tight">Blog</h2>
-                <p className="text-muted-foreground">Manage blog posts and articles</p>
-            </div>
+            <AdminPageHeader
+                title="Blog"
+                description="Manage blog posts and articles"
+            />
 
             <BlogTab
                 posts={posts}

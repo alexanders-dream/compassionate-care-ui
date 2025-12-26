@@ -7,6 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import { Bell, Clock, Mail } from "lucide-react";
 
 interface NotificationSettings {
@@ -95,12 +96,10 @@ const NotificationsPage = () => {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h2 className="text-3xl font-bold tracking-tight">Notifications</h2>
-                <p className="text-muted-foreground">
-                    Manage email alerts and appointment reminders.
-                </p>
-            </div>
+            <AdminPageHeader
+                title="Notifications"
+                description="Manage email alerts and appointment reminders."
+            />
 
             <div className="grid gap-6 md:grid-cols-2">
                 {/* General Settings */}

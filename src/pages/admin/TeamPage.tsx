@@ -3,6 +3,7 @@ import { useSiteData } from "@/contexts/SiteDataContext"; // Keeping for cache i
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import TeamTab, { EnhancedTeamMember } from "@/components/admin/tabs/TeamTab";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 
 const TeamPage = () => {
     // We use local state for the Unified View instead of just SiteData, 
@@ -390,10 +391,10 @@ const TeamPage = () => {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h2 className="text-3xl font-bold tracking-tight">Team</h2>
-                <p className="text-muted-foreground">Manage team members and users</p>
-            </div>
+            <AdminPageHeader
+                title="Team"
+                description="Manage team members and users"
+            />
 
             <TeamTab
                 team={unifiedTeam}

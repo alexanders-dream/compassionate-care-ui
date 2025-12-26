@@ -36,6 +36,7 @@ import { useEmailTemplates, EmailTemplate } from "@/hooks/useEmailTemplates";
 import { useEmailLogs, replacePlaceholders } from "@/hooks/useEmailLogs";
 import EmailTemplateDialog from "@/components/admin/EmailTemplateDialog";
 import { CardActionFooter } from "@/components/admin/CardActionFooter";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import { format } from "date-fns";
 
 const EmailPatientsPage = () => {
@@ -159,12 +160,10 @@ const EmailPatientsPage = () => {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h2 className="text-2xl font-bold tracking-tight">Email Patients</h2>
-                <p className="text-muted-foreground">
-                    Manage email templates and send messages to patients.
-                </p>
-            </div>
+            <AdminPageHeader
+                title="Email Patients"
+                description="Manage email templates and send messages to patients."
+            />
 
             <Tabs defaultValue="compose" className="space-y-4">
                 <TabsList className="grid w-full grid-cols-3 md:w-auto md:inline-flex">

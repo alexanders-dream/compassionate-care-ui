@@ -3,6 +3,7 @@ import { useState } from "react";
 import TestimonialsTab from "@/components/admin/tabs/TestimonialsTab";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 
 const TestimonialsPage = () => {
     const { testimonials, setTestimonials } = useSiteData();
@@ -73,10 +74,10 @@ const TestimonialsPage = () => {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h2 className="text-3xl font-bold tracking-tight">Testimonials</h2>
-                <p className="text-muted-foreground">Manage patient testimonials</p>
-            </div>
+            <AdminPageHeader
+                title="Testimonials"
+                description="Manage patient testimonials"
+            />
 
             <TestimonialsTab
                 testimonials={testimonials}
