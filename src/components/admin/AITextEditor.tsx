@@ -213,63 +213,67 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
   return (
     <div className="space-y-4">
       {/* Header */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
-        <div className="flex-1">
-          <h2 className="text-lg md:text-xl font-semibold mb-2">Edit Article</h2>
-          <p className="text-sm text-muted-foreground">
-            Edit your blog post with AI assistance. {isProcessing && <span className="font-medium text-primary">AI is processing...</span>}
-          </p>
+        <div className="flex-1 flex items-start gap-4">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={onClose}
+                  className="shrink-0 mt-1"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                Back to Posts
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <div>
+            <h2 className="text-lg md:text-xl font-semibold mb-2">Edit Article</h2>
+            <p className="text-sm text-muted-foreground">
+              Edit your blog post with AI assistance. {isProcessing && <span className="font-medium text-primary">AI is processing...</span>}
+            </p>
+          </div>
         </div>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={onClose}
-                className="shrink-0"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              Back to Posts
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
       </div>
 
       {/* Main Content Area with Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 border rounded-lg overflow-hidden bg-background shadow-sm p-4">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 border rounded-lg overflow-hidden bg-background shadow-sm p-6">
         {/* --- Main Editor (Left/Center) --- */}
         <div className="lg:col-span-8 flex flex-col">
           <Card className="flex-1 flex flex-col border-0 sm:border rounded-none sm:rounded-lg shadow-none sm:shadow">
-            <CardHeader className="py-3 border-b flex flex-row items-center justify-between space-y-0 px-4">
+            <CardHeader className="py-4 border-b flex flex-col sm:flex-row items-stretch sm:items-center justify-between space-y-3 sm:space-y-0 px-6">
               <div className="flex items-center gap-2">
                 <CardTitle className="text-base">Editor</CardTitle>
                 {isProcessing && <span className="text-xs text-muted-foreground animate-pulse">AI is working...</span>}
               </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => handleSave("draft")}>
-                  <Save className="h-4 w-4 mr-2" /> Save Draft
+              <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+                <Button variant="outline" size="sm" onClick={() => handleSave("draft")} className="flex-1 sm:flex-none px-2 sm:px-4">
+                  <Save className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Save Draft</span><span className="inline sm:hidden">Save</span>
                 </Button>
                 <SchedulePopover
                   onSchedule={(date) => handleSave("scheduled", date)}
                   trigger={
-                    <Button variant="outline" size="sm" className="gap-2 border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 hover:text-amber-800">
+                    <Button variant="outline" size="sm" className="flex-1 sm:flex-none gap-2 border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 hover:text-amber-800 px-2 sm:px-4">
                       <CalendarIcon className="h-4 w-4" />
-                      Schedule
+                      <span className="inline">Schedule</span>
                     </Button>
                   }
                 />
-                <Button size="sm" onClick={() => handleSave("published")}>
-                  <Send className="h-4 w-4 mr-2" /> Publish
+                <Button size="sm" onClick={() => handleSave("published")} className="flex-1 sm:flex-none px-2 sm:px-4">
+                  <Send className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Publish</span><span className="inline sm:hidden">Post</span>
                 </Button>
               </div>
             </CardHeader>
             <CardContent className="flex-1 flex flex-col p-0">
               <Tabs defaultValue="content" className="flex-1 flex flex-col">
-                <div className="border-b px-4 shrink-0 relative">
+                <div className="border-b px-6 py-2 shrink-0 relative">
                   <TabsList className="h-10">
                     <TabsTrigger value="content">Content</TabsTrigger>
                     <TabsTrigger value="settings">Settings</TabsTrigger>
@@ -285,7 +289,7 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
 
                 <TabsContent value="content" className="flex-1 flex-col overflow-hidden m-0 data-[state=active]:flex">
                   {/* Sticky Header: Title + Toolbar */}
-                  <div className="shrink-0 bg-background p-4 pb-2 space-y-3 border-b">
+                  <div className="shrink-0 bg-background p-6 pb-4 space-y-4 border-b">
                     {/* Title */}
                     <Input
                       value={title}
@@ -412,10 +416,10 @@ const AITextEditor = ({ post, onSave, onClose }: AITextEditorProps) => {
 
                   {/* Scrollable Content Area */}
                   <ScrollArea className="flex-1" ref={contentRef}>
-                    <div className="flex flex-col gap-4 p-4">
+                    <div className="flex flex-col gap-6 p-6">
                       {/* Rich Text Editor */}
                       <div className="min-h-[300px] border rounded-lg bg-card">
-                        <EditorContent editor={editor} className="min-h-full p-4" />
+                        <EditorContent editor={editor} className="min-h-full p-6" />
                       </div>
 
                       {/* Excerpt */}

@@ -47,6 +47,9 @@ interface ResourcesTabProps {
     isUploading?: boolean;
 }
 
+import { useAuth } from "@/contexts/AuthContext";
+import { CardActionFooter } from "../CardActionFooter";
+
 const ResourcesTab = ({
     resources,
     onSave,
@@ -59,6 +62,7 @@ const ResourcesTab = ({
     onFileUpload,
     isUploading = false,
 }: ResourcesTabProps) => {
+    const { hasRole } = useAuth();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [selectedExistingFile, setSelectedExistingFile] = useState<PatientResource | null>(null);
     const [sortField, setSortField] = useState<"title" | "type" | "file_name">("title");
@@ -196,24 +200,34 @@ const ResourcesTab = ({
             {/* Mobile Cards */}
             <div className="md:hidden space-y-4">
                 {paginatedResources.map(resource => (
-                    <Card key={resource.id} className="p-4">
-                        <div className="flex justify-between items-start mb-2">
+                    <Card key={resource.id} className="overflow-hidden shadow-sm ring-1 ring-slate-200 dark:ring-slate-800 rounded-xl bg-card transition-all active:scale-[0.99]">
+                        <div className="p-4 flex items-start gap-3">
                             <div className="flex-1 min-w-0">
-                                <p className="font-medium truncate">{resource.title}</p>
+                                <div className="flex justify-between items-start gap-2 mb-2">
+                                    <p className="font-medium truncate">{resource.title}</p>
+                                    <Badge variant="outline" className="shrink-0">Resource</Badge>
+                                </div>
                                 <p className="text-xs text-muted-foreground truncate">{resource.file_name || resource.file_url || "No file"}</p>
                             </div>
-                            <Badge variant="outline" className="ml-2 shrink-0">Resource</Badge>
                         </div>
-                        <div className="flex gap-2 mt-3">
-                            <RoleGate allowedRoles={['admin', 'medical_staff']}>
-                                <Button variant="outline" size="sm" className="flex-1" onClick={() => handleOpenDialog(resource)}>
-                                    <Pencil className="h-3 w-3 mr-1" /> Edit
-                                </Button>
-                                <Button variant="ghost" size="sm" onClick={() => onDelete(resource.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
-                            </RoleGate>
-                        </div>
+
+                        {hasRole(['admin', 'medical_staff']) && (
+                            <CardActionFooter
+                                actions={[
+                                    {
+                                        label: "Edit",
+                                        icon: Pencil,
+                                        onClick: () => handleOpenDialog(resource),
+                                    },
+                                    {
+                                        label: "Delete",
+                                        icon: Trash2,
+                                        onClick: () => onDelete(resource.id),
+                                        className: "text-destructive hover:text-destructive hover:bg-destructive/10"
+                                    }
+                                ]}
+                            />
+                        )}
                     </Card>
                 ))}
                 {resources.length === 0 && (

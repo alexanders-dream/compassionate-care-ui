@@ -44,6 +44,8 @@ import RoleGate from "@/components/auth/RoleGate";
 import { ImageInsertionDialog } from "@/components/admin/ImageInsertionDialog";
 import { Badge } from "@/components/ui/badge";
 import AdminPagination from "../AdminPagination";
+import { CardActionFooter } from "../CardActionFooter";
+import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import {
     Tooltip,
@@ -86,6 +88,7 @@ const TeamTab = ({
     onImageSelected,
     onVisibilityChange,
 }: TeamTabProps) => {
+    const { hasRole } = useAuth();
     const { toast } = useToast();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
@@ -615,8 +618,8 @@ const TeamTab = ({
             {/* Mobile View */}
             <div className="md:hidden space-y-4">
                 {paginatedTeam.map((member) => (
-                    <Card key={member.id} className="p-4">
-                        <div className="flex items-start gap-3">
+                    <Card key={member.id} className="overflow-hidden shadow-sm ring-1 ring-slate-200 dark:ring-slate-800 rounded-xl bg-card transition-all active:scale-[0.99]">
+                        <div className="p-4 flex items-start gap-3">
                             <div className="h-10 w-10 rounded-full bg-muted overflow-hidden shrink-0">
                                 {member.image_url ? (
                                     <img src={member.image_url} alt={member.name} className="h-full w-full object-cover" />
@@ -626,48 +629,51 @@ const TeamTab = ({
                                     </div>
                                 )}
                             </div>
-                            <div className="flex-1 min-w-0">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <div className="flex items-center gap-2">
-                                        </div>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <p className="text-xs text-muted-foreground">{member.role}</p>
-                                            <div className="flex items-center gap-1.5 ml-2">
-                                                <Switch
-                                                    id={`mobile-vis-${member.id}`}
-                                                    className="h-5 w-9"
-                                                    checked={member.is_public}
-                                                    onCheckedChange={(checked) => onVisibilityChange(member.id, checked)}
-                                                />
-                                                <Label htmlFor={`mobile-vis-${member.id}`} className="text-[10px] text-muted-foreground font-normal">
-                                                    {member.is_public ? 'Visible' : 'Hidden'}
-                                                </Label>
-                                            </div>
-                                        </div>
+                            <div className="flex-1 min-w-0 flex flex-col gap-2">
+                                <div className="flex justify-between items-start gap-2">
+                                    <div className="min-w-0">
+                                        <p className="font-medium text-foreground leading-tight">{member.name}</p>
+                                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{member.role}</p>
                                     </div>
                                     <Badge variant={
                                         member.system_role === 'admin' ? "default" :
                                             member.system_role === 'Public Only' ? "outline" :
                                                 "secondary"
-                                    } className="text-[10px] px-1.5 py-0 h-5 capitalize">
+                                    } className="shrink-0 whitespace-nowrap text-[10px] px-2 py-0.5 h-auto capitalize">
                                         {member.system_role === 'Public Only' ? 'Public Only' :
                                             (member.system_role || 'User').replace(/_/g, ' ')}
                                     </Badge>
                                 </div>
 
-                                <div className="mt-3 flex justify-end gap-2">
-                                    <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => handleOpenDialog(member)}>
-                                        Edit
-                                    </Button>
-                                    <RoleGate allowedRoles={['admin']}>
-                                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive" onClick={() => setItemToDelete(member)}>
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </RoleGate>
+                                <div className="flex items-center gap-2 mt-1">
+                                    <Switch
+                                        id={`mobile-vis-${member.id}`}
+                                        className="h-5 w-9 shrink-0"
+                                        checked={member.is_public}
+                                        onCheckedChange={(checked) => onVisibilityChange(member.id, checked)}
+                                    />
+                                    <Label htmlFor={`mobile-vis-${member.id}`} className="text-xs text-muted-foreground font-normal">
+                                        {member.is_public ? 'Visible on site' : 'Hidden from site'}
+                                    </Label>
                                 </div>
                             </div>
                         </div>
+
+                        <CardActionFooter
+                            actions={[
+                                {
+                                    label: "Edit",
+                                    icon: Pencil,
+                                    onClick: () => handleOpenDialog(member),
+                                },
+                                ...(hasRole(['admin']) ? [{
+                                    label: "Delete",
+                                    icon: Trash2,
+                                    onClick: () => setItemToDelete(member),
+                                    className: "text-destructive hover:text-destructive hover:bg-destructive/10"
+                                }] : [])
+                            ]}
+                        />
                     </Card>
                 ))}
                 {/* Mobile Pagination */}

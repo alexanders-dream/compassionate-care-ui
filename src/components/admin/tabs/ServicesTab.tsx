@@ -32,6 +32,8 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useAuth } from "@/contexts/AuthContext";
+import { CardActionFooter } from "../CardActionFooter";
 
 interface ServicesTabProps {
     services: Service[];
@@ -52,6 +54,7 @@ const ServicesTab = ({
     serviceIcon,
     setServiceIcon,
 }: ServicesTabProps) => {
+    const { hasRole } = useAuth();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [sortField, setSortField] = useState<"title" | "description" | "icon">("title");
     const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -148,36 +151,37 @@ const ServicesTab = ({
             {/* Mobile Cards */}
             <div className="md:hidden space-y-4">
                 {paginatedServices.map(service => (
-                    <Card key={service.id} className="p-4">
-                        <div className="flex justify-between items-start mb-2">
-                            <p className="font-medium">{service.title}</p>
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <div className="p-2 bg-primary/10 rounded-md">
-                                            {(() => {
-                                                const Icon = getIconByName(service.icon);
-                                                return <Icon className="h-5 w-5 text-primary" />;
-                                            })()}
-                                        </div>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>{service.icon}</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
+                    <Card key={service.id} className="overflow-hidden shadow-sm ring-1 ring-slate-200 dark:ring-slate-800 rounded-xl bg-card transition-all active:scale-[0.99]">
+                        <div className="p-4 flex items-start gap-4">
+                            <div className="h-10 w-10 shrink-0 rounded-lg bg-primary/10 flex items-center justify-center">
+                                {(() => {
+                                    const Icon = getIconByName(service.icon);
+                                    return <Icon className="h-5 w-5 text-primary" />;
+                                })()}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="font-medium mb-1">{service.title}</p>
+                                <p className="text-sm text-muted-foreground line-clamp-2">{service.description}</p>
+                            </div>
                         </div>
-                        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{service.description}</p>
-                        <div className="flex gap-2">
-                            <RoleGate allowedRoles={['admin', 'medical_staff']}>
-                                <Button variant="outline" size="sm" className="flex-1" onClick={() => handleOpenDialog(service)}>
-                                    <Pencil className="h-3 w-3 mr-1" /> Edit
-                                </Button>
-                                <Button variant="ghost" size="sm" onClick={() => onDelete(service.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
-                            </RoleGate>
-                        </div>
+
+                        {hasRole(['admin', 'medical_staff']) && (
+                            <CardActionFooter
+                                actions={[
+                                    {
+                                        label: "Edit",
+                                        icon: Pencil,
+                                        onClick: () => handleOpenDialog(service),
+                                    },
+                                    {
+                                        label: "Delete",
+                                        icon: Trash2,
+                                        onClick: () => onDelete(service.id),
+                                        className: "text-destructive hover:text-destructive hover:bg-destructive/10"
+                                    }
+                                ]}
+                            />
+                        )}
                     </Card>
                 ))}
                 {services.length === 0 && (

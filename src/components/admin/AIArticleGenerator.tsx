@@ -14,7 +14,7 @@ import { ImageInsertionDialog } from "@/components/admin/ImageInsertionDialog";
 import { SchedulePopover } from "@/components/admin/SchedulePopover";
 import {
   Sparkles, Search, Loader2, Plus, X, Image as ImageIcon, Youtube, Save, Send, Settings,
-  Lightbulb, RefreshCw, Wand2, Eye, EyeOff, Check, ChevronDown, Calendar as CalendarIcon
+  Lightbulb, RefreshCw, Wand2, Eye, EyeOff, Check, ChevronDown, Calendar as CalendarIcon, FileText
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -302,26 +302,26 @@ const AIArticleGenerator = ({ onSaveArticle, editingArticle }: AIArticleGenerato
 
   const EditorArea = (
     <Card className="flex-1 flex flex-col border-0 sm:border rounded-none sm:rounded-lg shadow-none sm:shadow">
-      <CardHeader className="py-3 border-b flex flex-row items-center justify-between space-y-0 px-4">
+      <CardHeader className="py-3 border-b flex flex-col sm:flex-row items-stretch sm:items-center justify-between space-y-3 sm:space-y-0 px-4">
         <div className="flex items-center gap-2">
-          <CardTitle className="text-base">Editor</CardTitle>
+          {/* Editor Title Removed as per user request */}
           {isGenerating && <span className="text-xs text-muted-foreground animate-pulse">AI is writing...</span>}
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => handleSave("draft")}>
-            <Save className="h-4 w-4 mr-2" /> Save Draft
+        <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+          <Button variant="outline" size="sm" onClick={() => handleSave("draft")} className="flex-1 sm:flex-none px-2 sm:px-4">
+            <Save className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Save Draft</span><span className="inline sm:hidden">Save</span>
           </Button>
           <SchedulePopover
             onSchedule={(date) => handleSave("scheduled", date)}
             trigger={
-              <Button variant="outline" size="sm" className="gap-2 border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 hover:text-amber-800">
+              <Button variant="outline" size="sm" className="flex-1 sm:flex-none gap-2 border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 hover:text-amber-800 px-2 sm:px-4">
                 <CalendarIcon className="h-4 w-4" />
-                Schedule
+                <span className="inline">Schedule</span>
               </Button>
             }
           />
-          <Button size="sm" onClick={() => handleSave("published")}>
-            <Send className="h-4 w-4 mr-2" /> Publish
+          <Button size="sm" onClick={() => handleSave("published")} className="flex-1 sm:flex-none px-2 sm:px-4">
+            <Send className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Publish</span><span className="inline sm:hidden">Post</span>
           </Button>
         </div>
       </CardHeader>
@@ -358,7 +358,7 @@ const AIArticleGenerator = ({ onSaveArticle, editingArticle }: AIArticleGenerato
           <Input
             value={title}
             onChange={e => setTitle(e.target.value)}
-            className="font-bold text-lg border-none shadow-none px-0 focus-visible:ring-0"
+            className="font-bold text-lg"
             placeholder="Article Title..."
             autoComplete="off"
             data-1p-ignore
@@ -396,15 +396,21 @@ const AIArticleGenerator = ({ onSaveArticle, editingArticle }: AIArticleGenerato
 
   if (isMobile) {
     return (
-      <Tabs defaultValue="editor" className="flex flex-col bg-background pb-20 h-full">
+      <Tabs defaultValue="editor" className="flex flex-col bg-background pb-28 h-full">
         <TabsList className="grid w-full grid-cols-2 mb-2 sticky top-0 z-10 bg-background/95">
-          <TabsTrigger value="editor">Editor</TabsTrigger>
-          <TabsTrigger value="settings">Setup & AI</TabsTrigger>
+          <TabsTrigger value="editor" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Editor
+          </TabsTrigger>
+          <TabsTrigger value="settings" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Settings
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="editor" className="mt-0 flex-1 overflow-auto">
           {EditorArea}
         </TabsContent>
-        <TabsContent value="settings" className="mt-0 flex-1 overflow-auto">
+        <TabsContent value="settings" className="mt-0 flex-1 flex flex-col overflow-hidden">
           <AISidebar
             config={config}
             setConfig={setConfig}

@@ -45,6 +45,8 @@ import { supabase } from "@/integrations/supabase/client";
 import AdminPagination from "./AdminPagination";
 import RoleGate from "@/components/auth/RoleGate";
 import EmailComposeModal from "./EmailComposeModal";
+import { useAuth } from "@/contexts/AuthContext";
+import { CardActionFooter } from "./CardActionFooter";
 
 // Shared constants
 export const useClinicians = () => {
@@ -694,6 +696,7 @@ const AppointmentScheduler = ({
   onAppointmentsChange,
   onDelete
 }: AppointmentSchedulerProps) => {
+  const { hasRole } = useAuth();
   const { toast } = useToast();
   const { clinicians, loading } = useClinicians();
   const [internalAppointments, setInternalAppointments] = useState<Appointment[]>([]);
@@ -1540,34 +1543,28 @@ const AppointmentScheduler = ({
                 </div>
               </div>
 
-              {/* Row 4: Actions */}
-              <div className="grid grid-cols-[1fr,1fr,auto] gap-2 pt-1 border-t">
-                <Button
-                  variant="ghost"
-                  className="h-10 text-muted-foreground"
-                  onClick={() => { setViewAppointment(apt); setIsViewDialogOpen(true); }}
-                >
-                  View
-                </Button>
-                <Button
-                  variant="outline"
-                  className="h-10 border-primary/20 text-primary hover:bg-primary/5 hover:text-primary"
-                  onClick={() => handleEditAppointment(apt)}
-                >
-                  Edit
-                </Button>
-                <RoleGate allowedRoles={['admin']}>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-10 w-10 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                    onClick={() => handleDeleteAppointment(apt.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </RoleGate>
-              </div>
+              {/* Row 4: Actions - moved to footer */}
             </CardContent>
+            <CardActionFooter
+              actions={[
+                {
+                  label: "View",
+                  onClick: () => { setViewAppointment(apt); setIsViewDialogOpen(true); }
+                },
+                {
+                  label: "Edit",
+                  icon: Pencil,
+                  onClick: () => handleEditAppointment(apt),
+                  className: "text-primary hover:text-primary hover:bg-primary/10"
+                },
+                ...(hasRole(['admin']) ? [{
+                  label: "Delete",
+                  icon: Trash2,
+                  onClick: () => handleDeleteAppointment(apt.id),
+                  className: "text-destructive hover:text-destructive hover:bg-destructive/10"
+                }] : [])
+              ]}
+            />
           </Card>
         ))}
         {filteredAppointments.length === 0 && (

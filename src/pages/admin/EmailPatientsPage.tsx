@@ -35,6 +35,7 @@ import { Send, FileText, Plus, Pencil, Trash2, Mail, History, Loader2, Star } fr
 import { useEmailTemplates, EmailTemplate } from "@/hooks/useEmailTemplates";
 import { useEmailLogs, replacePlaceholders } from "@/hooks/useEmailLogs";
 import EmailTemplateDialog from "@/components/admin/EmailTemplateDialog";
+import { CardActionFooter } from "@/components/admin/CardActionFooter";
 import { format } from "date-fns";
 
 const EmailPatientsPage = () => {
@@ -159,25 +160,25 @@ const EmailPatientsPage = () => {
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-3xl font-bold tracking-tight">Email Patients</h2>
+                <h2 className="text-2xl font-bold tracking-tight">Email Patients</h2>
                 <p className="text-muted-foreground">
                     Manage email templates and send messages to patients.
                 </p>
             </div>
 
             <Tabs defaultValue="compose" className="space-y-4">
-                <TabsList>
-                    <TabsTrigger value="compose" className="gap-2">
+                <TabsList className="grid w-full grid-cols-3 md:w-auto md:inline-flex">
+                    <TabsTrigger value="compose" className="gap-2 px-2 sm:px-4">
                         <Send className="h-4 w-4" />
                         Compose
                     </TabsTrigger>
-                    <TabsTrigger value="templates" className="gap-2">
+                    <TabsTrigger value="templates" className="gap-2 px-2 sm:px-4">
                         <FileText className="h-4 w-4" />
                         Templates
                     </TabsTrigger>
-                    <TabsTrigger value="history" className="gap-2">
+                    <TabsTrigger value="history" className="gap-2 px-2 sm:px-4">
                         <History className="h-4 w-4" />
-                        Email History
+                        History
                     </TabsTrigger>
                 </TabsList>
 
@@ -185,7 +186,7 @@ const EmailPatientsPage = () => {
                 <TabsContent value="compose">
                     <Card>
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
+                            <CardTitle className="flex items-center gap-2 text-lg">
                                 <Mail className="h-5 w-5" />
                                 Compose Message
                             </CardTitle>
@@ -274,9 +275,9 @@ const EmailPatientsPage = () => {
                 {/* Templates Tab */}
                 <TabsContent value="templates">
                     <Card>
-                        <CardHeader className="flex flex-row items-center justify-between">
+                        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                             <div>
-                                <CardTitle className="flex items-center gap-2">
+                                <CardTitle className="flex items-center gap-2 text-lg">
                                     <FileText className="h-5 w-5" />
                                     Email Templates
                                 </CardTitle>
@@ -284,7 +285,7 @@ const EmailPatientsPage = () => {
                                     Create and manage reusable email templates.
                                 </CardDescription>
                             </div>
-                            <Button onClick={openNewTemplate} className="gap-2">
+                            <Button onClick={openNewTemplate} className="gap-2 w-full sm:w-auto">
                                 <Plus className="h-4 w-4" />
                                 New Template
                             </Button>
@@ -300,78 +301,126 @@ const EmailPatientsPage = () => {
                                     <p>No templates yet. Create your first template to get started.</p>
                                 </div>
                             ) : (
-                                <div className="rounded-md border">
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow className="bg-muted/50">
-                                                <TableHead>Name</TableHead>
-                                                <TableHead>Subject</TableHead>
-                                                <TableHead>Category</TableHead>
-                                                <TableHead>Default For</TableHead>
-                                                <TableHead className="text-right">Actions</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {templates.map((template, index) => (
-                                                <TableRow key={template.id} className={index % 2 === 1 ? "bg-muted/50" : ""}>
-                                                    <TableCell className="font-medium">{template.name}</TableCell>
-                                                    <TableCell className="max-w-[200px] truncate text-muted-foreground">
-                                                        {template.subject}
-                                                    </TableCell>
-                                                    <TableCell>{getCategoryBadge(template.category)}</TableCell>
-                                                    <TableCell>
-                                                        {template.default_for_context ? (
-                                                            <div className="flex items-center gap-2">
+                                <>
+                                    {/* Desktop Table View */}
+                                    <div className="hidden md:block rounded-md border">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow className="bg-muted/50">
+                                                    <TableHead>Name</TableHead>
+                                                    <TableHead>Subject</TableHead>
+                                                    <TableHead>Category</TableHead>
+                                                    <TableHead>Default For</TableHead>
+                                                    <TableHead className="text-right">Actions</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {templates.map((template, index) => (
+                                                    <TableRow key={template.id} className={index % 2 === 1 ? "bg-muted/50" : ""}>
+                                                        <TableCell className="font-medium">{template.name}</TableCell>
+                                                        <TableCell className="max-w-[200px] truncate text-muted-foreground">
+                                                            {template.subject}
+                                                        </TableCell>
+                                                        <TableCell>{getCategoryBadge(template.category)}</TableCell>
+                                                        <TableCell>
+                                                            {template.default_for_context ? (
+                                                                <div className="flex items-center gap-2">
+                                                                    <Badge className="bg-amber-100 text-amber-700 border-0">
+                                                                        <Star className="h-3 w-3 mr-1" />
+                                                                        {getDefaultContextLabel(template.default_for_context)}
+                                                                    </Badge>
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
+                                                                        onClick={() => handleClearDefault(template.id)}
+                                                                    >
+                                                                        Clear
+                                                                    </Button>
+                                                                </div>
+                                                            ) : (
+                                                                <Select
+                                                                    onValueChange={(value) => handleSetDefault(template.id, value)}
+                                                                >
+                                                                    <SelectTrigger className="h-8 w-[140px]">
+                                                                        <SelectValue placeholder="Set default..." />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        <SelectItem value="appointment">Appointments</SelectItem>
+                                                                        <SelectItem value="visit_request">Visit Requests</SelectItem>
+                                                                        <SelectItem value="referral">Referrals</SelectItem>
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            )}
+                                                        </TableCell>
+                                                        <TableCell className="text-right space-x-1">
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={() => openEditTemplate(template)}
+                                                            >
+                                                                <Pencil className="h-4 w-4" />
+                                                            </Button>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                                                onClick={() => setTemplateToDelete(template.id)}
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </Button>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+
+                                    {/* Mobile Card View */}
+                                    <div className="md:hidden grid grid-cols-1 gap-4">
+                                        {templates.map((template) => (
+                                            <div key={template.id} className="rounded-lg border bg-card text-card-foreground shadow-sm">
+                                                <div className="p-4 space-y-3">
+                                                    <div className="flex items-start justify-between">
+                                                        <div className="space-y-1">
+                                                            <h3 className="font-medium text-base leading-none tracking-tight">{template.name}</h3>
+                                                            <p className="text-sm text-muted-foreground line-clamp-1">{template.subject}</p>
+                                                        </div>
+                                                        {getCategoryBadge(template.category)}
+                                                    </div>
+
+                                                    <div className="flex items-center justify-between pt-2">
+                                                        <div className="text-sm">
+                                                            {template.default_for_context ? (
                                                                 <Badge className="bg-amber-100 text-amber-700 border-0">
                                                                     <Star className="h-3 w-3 mr-1" />
                                                                     {getDefaultContextLabel(template.default_for_context)}
                                                                 </Badge>
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="sm"
-                                                                    className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
-                                                                    onClick={() => handleClearDefault(template.id)}
-                                                                >
-                                                                    Clear
-                                                                </Button>
-                                                            </div>
-                                                        ) : (
-                                                            <Select
-                                                                onValueChange={(value) => handleSetDefault(template.id, value)}
-                                                            >
-                                                                <SelectTrigger className="h-8 w-[140px]">
-                                                                    <SelectValue placeholder="Set default..." />
-                                                                </SelectTrigger>
-                                                                <SelectContent>
-                                                                    <SelectItem value="appointment">Appointments</SelectItem>
-                                                                    <SelectItem value="visit_request">Visit Requests</SelectItem>
-                                                                    <SelectItem value="referral">Referrals</SelectItem>
-                                                                </SelectContent>
-                                                            </Select>
-                                                        )}
-                                                    </TableCell>
-                                                    <TableCell className="text-right space-x-1">
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={() => openEditTemplate(template)}
-                                                        >
-                                                            <Pencil className="h-4 w-4" />
-                                                        </Button>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                                                            onClick={() => setTemplateToDelete(template.id)}
-                                                        >
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </div>
+                                                            ) : (
+                                                                <span className="text-muted-foreground text-xs italic">No default set</span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <CardActionFooter
+                                                    actions={[
+                                                        {
+                                                            label: "Edit",
+                                                            icon: Pencil,
+                                                            onClick: () => openEditTemplate(template),
+                                                        },
+                                                        {
+                                                            label: "Delete",
+                                                            icon: Trash2,
+                                                            onClick: () => setTemplateToDelete(template.id),
+                                                            className: "text-destructive hover:text-destructive hover:bg-destructive/10"
+                                                        }
+                                                    ]}
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
                             )}
                         </CardContent>
                     </Card>
@@ -381,7 +430,7 @@ const EmailPatientsPage = () => {
                 <TabsContent value="history">
                     <Card>
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
+                            <CardTitle className="flex items-center gap-2 text-lg">
                                 <History className="h-5 w-5" />
                                 Email History
                             </CardTitle>
@@ -400,47 +449,83 @@ const EmailPatientsPage = () => {
                                     <p>No emails sent yet.</p>
                                 </div>
                             ) : (
-                                <div className="rounded-md border">
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow className="bg-muted/50">
-                                                <TableHead>Recipient</TableHead>
-                                                <TableHead>Subject</TableHead>
-                                                <TableHead>Status</TableHead>
-                                                <TableHead>Sent At</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {emailLogs.map((log, index) => (
-                                                <TableRow key={log.id} className={index % 2 === 1 ? "bg-muted/50" : ""}>
-                                                    <TableCell>
-                                                        <div>
-                                                            <p className="font-medium">{log.recipient_name || "—"}</p>
-                                                            <p className="text-sm text-muted-foreground">{log.recipient_email}</p>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell className="max-w-[250px] truncate">
-                                                        {log.subject}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Badge
-                                                            className={
-                                                                log.status === "sent"
-                                                                    ? "bg-green-100 text-green-700 border-0"
-                                                                    : "bg-red-100 text-red-700 border-0"
-                                                            }
-                                                        >
-                                                            {log.status}
-                                                        </Badge>
-                                                    </TableCell>
-                                                    <TableCell className="text-muted-foreground">
-                                                        {format(new Date(log.created_at), "MMM d, yyyy h:mm a")}
-                                                    </TableCell>
+                                <>
+                                    {/* Desktop Table View */}
+                                    <div className="hidden md:block rounded-md border">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow className="bg-muted/50">
+                                                    <TableHead>Recipient</TableHead>
+                                                    <TableHead>Subject</TableHead>
+                                                    <TableHead>Status</TableHead>
+                                                    <TableHead>Sent At</TableHead>
                                                 </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </div>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {emailLogs.map((log, index) => (
+                                                    <TableRow key={log.id} className={index % 2 === 1 ? "bg-muted/50" : ""}>
+                                                        <TableCell>
+                                                            <div>
+                                                                <p className="font-medium">{log.recipient_name || "—"}</p>
+                                                                <p className="text-sm text-muted-foreground">{log.recipient_email}</p>
+                                                            </div>
+                                                        </TableCell>
+                                                        <TableCell className="max-w-[250px] truncate">
+                                                            {log.subject}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <Badge
+                                                                className={
+                                                                    log.status === "sent"
+                                                                        ? "bg-green-100 text-green-700 border-0"
+                                                                        : "bg-red-100 text-red-700 border-0"
+                                                                }
+                                                            >
+                                                                {log.status}
+                                                            </Badge>
+                                                        </TableCell>
+                                                        <TableCell className="text-muted-foreground">
+                                                            {format(new Date(log.created_at), "MMM d, yyyy h:mm a")}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+
+                                    {/* Mobile Card View */}
+                                    <div className="md:hidden space-y-4">
+                                        {emailLogs.map((log) => (
+                                            <div key={log.id} className="relative flex flex-col gap-2 rounded-lg border p-4 text-sm shadow-sm">
+                                                <div className="flex w-full flex-col gap-1">
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="font-semibold">{log.recipient_name || "—"}</div>
+                                                            <Badge
+                                                                variant="outline"
+                                                                className={
+                                                                    log.status === "sent"
+                                                                        ? "bg-green-50 text-green-700 border-green-200"
+                                                                        : "bg-red-50 text-red-700 border-red-200"
+                                                                }
+                                                            >
+                                                                {log.status}
+                                                            </Badge>
+                                                        </div>
+                                                        <span className="text-xs text-muted-foreground">
+                                                            {format(new Date(log.created_at), "MMM d")}
+                                                        </span>
+                                                    </div>
+                                                    <div className="text-xs text-muted-foreground">{log.recipient_email}</div>
+                                                </div>
+                                                <div className="line-clamp-2 text-muted-foreground">
+                                                    <span className="font-medium text-foreground">Subject: </span>
+                                                    {log.subject}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
                             )}
                         </CardContent>
                     </Card>

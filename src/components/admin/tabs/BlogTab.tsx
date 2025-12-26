@@ -19,7 +19,7 @@ import {
     DropdownMenuTrigger,
     DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { Plus, Pencil, Trash2, Sparkles, Share2, Mail, ArrowLeft, Star, Calendar as CalendarIcon, ArrowUpDown, FileText } from "lucide-react";
+import { Plus, Pencil, Trash2, Sparkles, Share2, Mail, ArrowLeft, Star, Calendar as CalendarIcon, ArrowUpDown, FileText, User } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import RoleGate from "@/components/auth/RoleGate";
 import AIArticleGenerator from "@/components/admin/AIArticleGenerator";
@@ -166,23 +166,17 @@ const BlogTab = ({
                 />
             ) : showAIGenerator ? (
                 <div className="space-y-4">
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
-                        <div className="flex-1">
-                            <h2 className="text-lg md:text-xl font-semibold">AI Article Generator</h2>
-                            <p className="text-sm text-muted-foreground">
-                                Use AI to generate high-quality blog content. Configure your AI provider, select a topic, and let the AI create SEO-optimized articles for your blog. <span className="font-medium text-amber-600">AI can make mistakes—check responses before publishing.</span>
-                            </p>
-                        </div>
+                    <div className="flex items-center gap-2 mb-4">
                         <TooltipProvider>
                             <Tooltip>
                                 <TooltipTrigger asChild>
                                     <Button
-                                        variant="outline"
+                                        variant="ghost"
                                         size="icon"
                                         onClick={() => setShowAIGenerator(false)}
-                                        className="shrink-0"
+                                        className="shrink-0 -ml-2"
                                     >
-                                        <ArrowLeft className="h-4 w-4" />
+                                        <ArrowLeft className="h-5 w-5" />
                                     </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>
@@ -190,7 +184,13 @@ const BlogTab = ({
                                 </TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
+                        <div className="flex-1">
+                            <h2 className="text-lg md:text-xl font-semibold">AI Article Generator</h2>
+                        </div>
                     </div>
+                    <p className="text-sm text-muted-foreground mb-4">
+                        Use AI to generate high-quality blog content. Configure your AI provider, select a topic, and let the AI create SEO-optimized articles for your blog. <span className="font-medium text-amber-600">AI can make mistakes—check responses before publishing.</span>
+                    </p>
                     <AIArticleGenerator
                         onSaveArticle={handleSaveArticle}
                         editingArticle={null}
@@ -218,65 +218,109 @@ const BlogTab = ({
                     {/* Mobile Cards */}
                     <div className="md:hidden space-y-4">
                         {paginatedPosts.map(post => (
-                            <Card key={post.id} className="p-4">
-                                <div className="flex justify-between items-start mb-2">
-                                    <p className="font-medium text-sm line-clamp-2 flex-1 pr-2">{post.title}</p>
-                                    <RoleGate
-                                        allowedRoles={['admin', 'medical_staff']}
-                                        fallback={<div className="scale-90 origin-right">{getStatusBadge(post.status, post)}</div>}
-                                    >
-                                        <Select
-                                            defaultValue={post.status}
-                                            onValueChange={(value) => handleStatusChange(post, value as "draft" | "published" | "scheduled")}
+                            <Card key={post.id} className={`overflow-hidden shadow-sm ring-1 ring-slate-200 dark:ring-slate-800 rounded-xl bg-card transition-all active:scale-[0.99] ${(() => {
+                                if (post.status === "published") return "border-l-4 border-l-primary";
+                                if (post.status === "scheduled") return "border-l-4 border-l-amber-500";
+                                return "border-l-4 border-l-slate-400";
+                            })()
+                                }`}>
+                                <div className="p-4 space-y-3">
+                                    <div className="flex justify-between items-start gap-3">
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-bold text-lg text-foreground line-clamp-2">{post.title}</p>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <Badge variant="outline" className="capitalize text-xs font-normal">
+                                                    {post.category}
+                                                </Badge>
+                                            </div>
+                                        </div>
+                                        <RoleGate
+                                            allowedRoles={['admin', 'medical_staff']}
+                                            fallback={<div className="scale-90 origin-right">{getStatusBadge(post.status, post)}</div>}
                                         >
-                                            <SelectTrigger className="w-[110px] h-8">
-                                                <SelectValue>
-                                                    {getStatusBadge(post.status, post)}
-                                                </SelectValue>
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="draft">Draft</SelectItem>
-                                                <SelectItem value="published">Published</SelectItem>
-                                                <SelectItem value="scheduled">Scheduled</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </RoleGate>
+                                            <Select
+                                                defaultValue={post.status}
+                                                onValueChange={(value) => handleStatusChange(post, value as "draft" | "published" | "scheduled")}
+                                            >
+                                                <SelectTrigger className="w-auto border-0 bg-transparent p-0 h-auto gap-0 focus:ring-0 [&>svg]:hidden">
+                                                    <SelectValue>
+                                                        {getStatusBadge(post.status, post)}
+                                                    </SelectValue>
+                                                </SelectTrigger>
+                                                <SelectContent align="end">
+                                                    <SelectItem value="draft">Draft</SelectItem>
+                                                    <SelectItem value="published">Published</SelectItem>
+                                                    <SelectItem value="scheduled">Scheduled</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </RoleGate>
+                                    </div>
+
+                                    {/* Details Grid */}
+                                    <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-sm bg-muted/40 p-3 rounded-lg border border-border/50">
+                                        <div className="flex items-center gap-2 text-muted-foreground">
+                                            <User className="h-4 w-4 text-primary/70" />
+                                            <span className="text-foreground truncate">{post.author}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-muted-foreground">
+                                            <CalendarIcon className="h-4 w-4 text-primary/70" />
+                                            <span className="text-foreground">{post.date}</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
-                                    <Badge variant="outline" className="capitalize">{post.category}</Badge>
-                                    <span>{post.author}</span>
-                                    <span>•</span>
-                                    <span>{post.date}</span>
-                                </div>
-                                <div className="flex gap-2">
-                                    <RoleGate allowedRoles={['admin', 'medical_staff']}>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="flex-1"
-                                            onClick={() => setEditingPost(post)}
-                                        >
-                                            <Pencil className="h-3 w-3 mr-1" /> Edit
-                                        </Button>
-                                    </RoleGate>
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="outline" size="sm">
-                                                <Share2 className="h-3 w-3" />
+
+                                {/* Action Footer (Manual implementation to support Dropdown) */}
+                                <div className="flex items-center p-2 border-t bg-muted/20">
+                                    <div className="flex-1 flex items-center">
+                                        <RoleGate allowedRoles={['admin', 'medical_staff']}>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => setEditingPost(post)}
+                                                className="flex-1 h-8 text-xs font-medium hover:bg-background/80 hover:shadow-sm transition-all text-primary hover:text-primary hover:bg-primary/10"
+                                            >
+                                                <Pencil className="h-3.5 w-3.5 mr-2" />
+                                                Edit
                                             </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end" className="w-48">
-                                            <DropdownMenuItem onClick={() => onSharePost(post, "linkedin")}>LinkedIn</DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => onSharePost(post, "facebook")}>Facebook</DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => onSharePost(post, "twitter")}>X (Twitter)</DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => onSharePost(post, "copy")}>Copy Link</DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                    <RoleGate allowedRoles={['admin', 'medical_staff']}>
-                                        <Button variant="ghost" size="sm" onClick={() => onDeletePost(post.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </RoleGate>
+                                        </RoleGate>
+                                        <div className="w-px h-4 bg-border/60 mx-1 shrink-0" />
+                                    </div>
+
+                                    <div className="flex-1 flex items-center">
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="flex-1 h-8 text-xs font-medium hover:bg-background/80 hover:shadow-sm transition-all"
+                                                >
+                                                    <Share2 className="h-3.5 w-3.5 mr-2" />
+                                                    Share
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end" className="w-48">
+                                                <DropdownMenuItem onClick={() => onSharePost(post, "linkedin")}>LinkedIn</DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => onSharePost(post, "facebook")}>Facebook</DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => onSharePost(post, "twitter")}>X (Twitter)</DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => onSharePost(post, "copy")}>Copy Link</DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                        <div className="w-px h-4 bg-border/60 mx-1 shrink-0" />
+                                    </div>
+
+                                    <div className="flex-1 flex items-center">
+                                        <RoleGate allowedRoles={['admin', 'medical_staff']}>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => onDeletePost(post.id)}
+                                                className="flex-1 h-8 text-xs font-medium hover:bg-background/80 hover:shadow-sm transition-all text-destructive hover:text-destructive hover:bg-destructive/10"
+                                            >
+                                                <Trash2 className="h-3.5 w-3.5 mr-2" />
+                                                Delete
+                                            </Button>
+                                        </RoleGate>
+                                    </div>
                                 </div>
                             </Card>
                         ))}

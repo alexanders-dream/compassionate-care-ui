@@ -37,6 +37,8 @@ import { VisitRequest } from "@/contexts/SiteDataContext";
 import StatusCounts from "../StatusCounts";
 import AdminPagination from "../AdminPagination";
 import RoleGate from "@/components/auth/RoleGate";
+import { useAuth } from "@/contexts/AuthContext";
+import { CardActionFooter, CardAction } from "../CardActionFooter";
 
 interface VisitRequestsTabProps {
     visitRequests: VisitRequest[];
@@ -55,6 +57,7 @@ const VisitRequestsTab = ({
     onEmail,
     onDelete
 }: VisitRequestsTabProps) => {
+    const { hasRole } = useAuth();
     const [filterStatus, setFilterStatus] = useState<string>("all");
     const [searchQuery, setSearchQuery] = useState("");
     const [sortField, setSortField] = useState<"name" | "date" | "status" | "woundType">("date");
@@ -288,7 +291,7 @@ const VisitRequestsTab = ({
                                     <h3 className="font-bold text-lg text-foreground truncate">{request.firstName} {request.lastName}</h3>
                                     <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
                                         <Clock className="h-3.5 w-3.5" />
-                                        <span className="truncate">Submitted {new Date(request.submittedAt).toLocaleDateString()}</span>
+                                        <span className="truncate">{new Date(request.submittedAt).toLocaleDateString()}</span>
                                     </div>
                                 </div>
                                 <div className="shrink-0">
@@ -340,38 +343,29 @@ const VisitRequestsTab = ({
                                 </div>
                             </div>
 
-                            {/* Row 4: Actions */}
-                            <div className="space-y-3 pt-1">
-                                {request.status !== "scheduled" && request.status !== "completed" && (
-                                    <Button
-                                        onClick={() => onSchedule(request)}
-                                        className="w-full bg-blue-600 text-white hover:bg-blue-700 shadow-sm"
-                                    >
-                                        <CalendarDays className="h-4 w-4 mr-2" />
-                                        Schedule Appointment
-                                    </Button>
-                                )}
-                                <div className="grid grid-cols-[1fr,auto] gap-2">
-                                    <Button
-                                        variant="outline"
-                                        className="h-10 text-muted-foreground hover:text-foreground border-border/50"
-                                        onClick={() => handleView(request)}
-                                    >
-                                        <Eye className="h-4 w-4 mr-2" /> View Details
-                                    </Button>
-                                    <RoleGate allowedRoles={['admin']}>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-10 w-10 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                                            onClick={() => setItemToDelete(request.id)}
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </RoleGate>
-                                </div>
-                            </div>
+                            {/* Row 4: Actions - moved to footer */}
                         </CardContent>
+                        <CardActionFooter
+                            actions={[
+                                ...(request.status !== "scheduled" && request.status !== "completed" ? [{
+                                    label: "Schedule",
+                                    icon: CalendarDays,
+                                    onClick: () => onSchedule(request),
+                                    className: "text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                }] : []),
+                                {
+                                    label: "View",
+                                    icon: Eye,
+                                    onClick: () => handleView(request)
+                                },
+                                ...(hasRole(['admin']) ? [{
+                                    label: "Delete",
+                                    icon: Trash2,
+                                    onClick: () => setItemToDelete(request.id),
+                                    className: "text-destructive hover:text-destructive hover:bg-destructive/10"
+                                }] : [])
+                            ]}
+                        />
                     </Card>
                 ))}
                 {filteredVisitRequests.length === 0 && (

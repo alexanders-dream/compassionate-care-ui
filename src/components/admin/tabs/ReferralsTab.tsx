@@ -37,6 +37,8 @@ import { ProviderReferralSubmission } from "@/contexts/SiteDataContext";
 import StatusCounts from "../StatusCounts";
 import AdminPagination from "../AdminPagination";
 import RoleGate from "@/components/auth/RoleGate";
+import { useAuth } from "@/contexts/AuthContext";
+import { CardActionFooter } from "../CardActionFooter";
 
 interface ReferralsTabProps {
     referrals: ProviderReferralSubmission[];
@@ -55,6 +57,7 @@ const ReferralsTab = ({
     onEmail,
     onDelete
 }: ReferralsTabProps) => {
+    const { hasRole } = useAuth();
     const [filterStatus, setFilterStatus] = useState<string>("all");
     const [filterUrgency, setFilterUrgency] = useState<string>("all");
     const [searchQuery, setSearchQuery] = useState("");
@@ -388,38 +391,29 @@ const ReferralsTab = ({
                                 </div>
                             </div>
 
-                            {/* Row 4: Actions */}
-                            <div className="space-y-3 pt-1">
-                                {referral.status !== "scheduled" && referral.status !== "completed" && (
-                                    <Button
-                                        onClick={() => onSchedule(referral)}
-                                        className="w-full bg-blue-600 text-white hover:bg-blue-700 shadow-sm"
-                                    >
-                                        <CalendarDays className="h-4 w-4 mr-2" />
-                                        Schedule Appointment
-                                    </Button>
-                                )}
-                                <div className="grid grid-cols-[1fr,auto] gap-2">
-                                    <Button
-                                        variant="outline"
-                                        className="h-10 text-muted-foreground hover:text-foreground border-border/50"
-                                        onClick={() => handleView(referral)}
-                                    >
-                                        <Eye className="h-4 w-4 mr-2" /> View Details
-                                    </Button>
-                                    <RoleGate allowedRoles={['admin']}>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-10 w-10 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                                            onClick={() => setItemToDelete(referral.id)}
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </RoleGate>
-                                </div>
-                            </div>
+                            {/* Row 4: Actions - moved to footer */}
                         </CardContent>
+                        <CardActionFooter
+                            actions={[
+                                ...(referral.status !== "scheduled" && referral.status !== "completed" ? [{
+                                    label: "Schedule",
+                                    icon: CalendarDays,
+                                    onClick: () => onSchedule(referral),
+                                    className: "text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                }] : []),
+                                {
+                                    label: "View",
+                                    icon: Eye,
+                                    onClick: () => handleView(referral)
+                                },
+                                ...(hasRole(['admin']) ? [{
+                                    label: "Delete",
+                                    icon: Trash2,
+                                    onClick: () => setItemToDelete(referral.id),
+                                    className: "text-destructive hover:text-destructive hover:bg-destructive/10"
+                                }] : [])
+                            ]}
+                        />
                     </Card>
                 ))}
                 {filteredReferrals.length === 0 && (

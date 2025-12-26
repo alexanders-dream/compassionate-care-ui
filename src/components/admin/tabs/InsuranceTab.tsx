@@ -31,6 +31,8 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useAuth } from "@/contexts/AuthContext";
+import { CardActionFooter } from "../CardActionFooter";
 
 interface InsuranceTabProps {
     insuranceProviders: InsuranceProvider[];
@@ -55,6 +57,7 @@ const InsuranceTab = ({
     isActive,
     setIsActive,
 }: InsuranceTabProps) => {
+    const { hasRole } = useAuth();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
     const [sortField, setSortField] = useState<"name" | "description" | "is_active">("name");
@@ -200,37 +203,45 @@ const InsuranceTab = ({
             {/* Mobile Cards */}
             <div className="md:hidden space-y-3">
                 {paginatedProviders.map(provider => (
-                    <Card key={provider.id} className="p-4">
-                        <div className="flex justify-between items-start mb-2">
-                            <div className="flex items-center gap-3">
+                    <Card key={provider.id} className="overflow-hidden shadow-sm ring-1 ring-slate-200 dark:ring-slate-800 rounded-xl bg-card transition-all active:scale-[0.99]">
+                        <div className="p-4 flex items-start gap-3">
+                            <div className="h-10 w-12 shrink-0 flex items-center justify-center bg-muted/50 rounded p-0.5">
                                 {provider.logo_url ? (
-                                    <img src={provider.logo_url} alt={provider.name} className="h-10 w-auto max-w-16 object-contain rounded" />
+                                    <img src={provider.logo_url} alt={provider.name} className="h-full w-full object-contain" />
                                 ) : (
-                                    <div className="h-10 w-10 rounded bg-muted flex items-center justify-center">
-                                        <ImageIcon className="h-5 w-5 text-muted-foreground" />
-                                    </div>
+                                    <ImageIcon className="h-5 w-5 text-muted-foreground" />
                                 )}
-                                <div>
-                                    <p className="font-medium">{provider.name}</p>
-                                    <span className={`text-xs px-2 py-0.5 rounded-full ${provider.is_active ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <div className="flex justify-between items-start gap-2">
+                                    <p className="font-medium text-sm">{provider.name}</p>
+                                    <span className={`text-[10px] px-2 py-0.5 rounded-full shrink-0 font-medium ${provider.is_active ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}>
                                         {provider.is_active ? 'Active' : 'Inactive'}
                                     </span>
                                 </div>
+                                {provider.description && (
+                                    <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{provider.description}</p>
+                                )}
                             </div>
                         </div>
-                        {provider.description && (
-                            <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{provider.description}</p>
+
+                        {hasRole(['admin', 'medical_staff']) && (
+                            <CardActionFooter
+                                actions={[
+                                    {
+                                        label: "Edit",
+                                        icon: Pencil,
+                                        onClick: () => handleOpenDialog(provider),
+                                    },
+                                    {
+                                        label: "Delete",
+                                        icon: Trash2,
+                                        onClick: () => onDelete(provider.id),
+                                        className: "text-destructive hover:text-destructive hover:bg-destructive/10"
+                                    }
+                                ]}
+                            />
                         )}
-                        <div className="flex gap-2">
-                            <RoleGate allowedRoles={['admin', 'medical_staff']}>
-                                <Button variant="outline" size="sm" className="flex-1" onClick={() => handleOpenDialog(provider)}>
-                                    <Pencil className="h-3 w-3 mr-1" /> Edit
-                                </Button>
-                                <Button variant="ghost" size="sm" onClick={() => onDelete(provider.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
-                            </RoleGate>
-                        </div>
                     </Card>
                 ))}
                 {insuranceProviders.length === 0 && (

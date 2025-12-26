@@ -29,6 +29,8 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useAuth } from "@/contexts/AuthContext";
+import { CardActionFooter } from "../CardActionFooter";
 
 interface TestimonialsTabProps {
     testimonials: Testimonial[];
@@ -45,6 +47,7 @@ const TestimonialsTab = ({
     editingTestimonial,
     setEditingTestimonial,
 }: TestimonialsTabProps) => {
+    const { hasRole } = useAuth();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [sortField, setSortField] = useState<"name" | "role" | "rating">("name");
     const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -144,25 +147,35 @@ const TestimonialsTab = ({
             {/* Mobile Cards */}
             <div className="md:hidden space-y-4">
                 {paginatedTestimonials.map(testimonial => (
-                    <Card key={testimonial.id} className="p-4">
-                        <div className="flex justify-between items-start mb-2">
-                            <div>
-                                <p className="font-medium">{testimonial.name}</p>
-                                <p className="text-xs text-muted-foreground">{testimonial.role}</p>
+                    <Card key={testimonial.id} className="overflow-hidden shadow-sm ring-1 ring-slate-200 dark:ring-slate-800 rounded-xl bg-card transition-all active:scale-[0.99]">
+                        <div className="p-4 flex flex-col gap-3">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <p className="font-medium">{testimonial.name}</p>
+                                    <p className="text-xs text-muted-foreground">{testimonial.role}</p>
+                                </div>
+                                <span className="text-sm">{"⭐".repeat(testimonial.rating)}</span>
                             </div>
-                            <span className="text-sm">{"⭐".repeat(testimonial.rating)}</span>
+                            <p className="text-sm text-muted-foreground line-clamp-2 italic">"{testimonial.quote}"</p>
                         </div>
-                        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{testimonial.quote}</p>
-                        <div className="flex gap-2">
-                            <RoleGate allowedRoles={['admin', 'medical_staff']}>
-                                <Button variant="outline" size="sm" className="flex-1" onClick={() => handleOpenDialog(testimonial)}>
-                                    <Pencil className="h-3 w-3 mr-1" /> Edit
-                                </Button>
-                                <Button variant="ghost" size="sm" onClick={() => onDelete(testimonial.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
-                            </RoleGate>
-                        </div>
+
+                        {hasRole(['admin', 'medical_staff']) && (
+                            <CardActionFooter
+                                actions={[
+                                    {
+                                        label: "Edit",
+                                        icon: Pencil,
+                                        onClick: () => handleOpenDialog(testimonial),
+                                    },
+                                    {
+                                        label: "Delete",
+                                        icon: Trash2,
+                                        onClick: () => onDelete(testimonial.id),
+                                        className: "text-destructive hover:text-destructive hover:bg-destructive/10"
+                                    }
+                                ]}
+                            />
+                        )}
                     </Card>
                 ))}
                 {testimonials.length === 0 && (

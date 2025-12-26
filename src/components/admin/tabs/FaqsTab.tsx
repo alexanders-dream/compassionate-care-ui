@@ -30,6 +30,8 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useAuth } from "@/contexts/AuthContext";
+import { CardActionFooter } from "../CardActionFooter";
 
 interface FaqsTabProps {
     faqs: FAQ[];
@@ -46,6 +48,7 @@ const FaqsTab = ({
     editingFaq,
     setEditingFaq,
 }: FaqsTabProps) => {
+    const { hasRole } = useAuth();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [sortField, setSortField] = useState<"question" | "category">("question");
     const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -138,21 +141,32 @@ const FaqsTab = ({
             {/* Mobile Cards */}
             <div className="md:hidden space-y-4">
                 {paginatedFaqs.map(faq => (
-                    <Card key={faq.id} className="p-4">
-                        <div className="flex justify-between items-start gap-2 mb-2">
-                            <p className="font-medium text-sm line-clamp-2 flex-1">{faq.question}</p>
-                            <Badge variant="outline" className="shrink-0">{faq.category}</Badge>
+                    <Card key={faq.id} className="overflow-hidden shadow-sm ring-1 ring-slate-200 dark:ring-slate-800 rounded-xl bg-card transition-all active:scale-[0.99]">
+                        <div className="p-4 flex flex-col gap-2">
+                            <div className="flex justify-between items-start gap-2">
+                                <p className="font-medium text-sm line-clamp-2 flex-1">{faq.question}</p>
+                                <Badge variant="outline" className="shrink-0">{faq.category}</Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground line-clamp-2">{faq.answer}</p>
                         </div>
-                        <div className="flex gap-2 mt-3">
-                            <RoleGate allowedRoles={['admin', 'medical_staff']}>
-                                <Button variant="outline" size="sm" className="flex-1" onClick={() => handleOpenDialog(faq)}>
-                                    <Pencil className="h-3 w-3 mr-1" /> Edit
-                                </Button>
-                                <Button variant="ghost" size="sm" onClick={() => onDelete(faq.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
-                            </RoleGate>
-                        </div>
+
+                        {hasRole(['admin', 'medical_staff']) && (
+                            <CardActionFooter
+                                actions={[
+                                    {
+                                        label: "Edit",
+                                        icon: Pencil,
+                                        onClick: () => handleOpenDialog(faq),
+                                    },
+                                    {
+                                        label: "Delete",
+                                        icon: Trash2,
+                                        onClick: () => onDelete(faq.id),
+                                        className: "text-destructive hover:text-destructive hover:bg-destructive/10"
+                                    }
+                                ]}
+                            />
+                        )}
                     </Card>
                 ))}
                 {faqs.length === 0 && (
