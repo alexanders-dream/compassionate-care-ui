@@ -160,7 +160,7 @@ const StatusCounts = ({ statusCounts, activeFilter, onFilterChange, children }: 
                                     </Badge>
                                 </button>
                             </TooltipTrigger>
-                            <TooltipContent side="bottom" className="max-w-[200px]">
+                            <TooltipContent side="bottom" className="hidden sm:block max-w-[200px]">
                                 <p className="text-xs">{tooltipText}</p>
                                 {isActive && <p className="text-xs text-muted-foreground mt-1">Click to clear filter</p>}
                             </TooltipContent>

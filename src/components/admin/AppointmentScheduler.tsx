@@ -34,7 +34,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Card, CardContent } from "@/components/ui/card";
 import { SwipeableCard } from "@/components/ui/swipeable-card";
 import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
+import { format, isToday, isTomorrow, isThisWeek, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
 import {
   Appointment,
@@ -735,11 +735,11 @@ const AppointmentScheduler = ({
   const [emailAppointment, setEmailAppointment] = useState<Appointment | null>(null);
 
   // Filtering and sorting state
-  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterStatus, setFilterStatus] = useState<string>("scheduled");
   const [sortField, setSortField] = useState<"name" | "date" | "status" | "type" | "clinician" | "location">("date");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [searchQuery, setSearchQuery] = useState("");
-  const [showTodayOnly, setShowTodayOnly] = useState(false);
+  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'tomorrow' | 'week'>("all");
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -748,7 +748,7 @@ const AppointmentScheduler = ({
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [filterStatus, searchQuery, sortField, sortDirection, showTodayOnly]);
+  }, [filterStatus, searchQuery, sortField, sortDirection, dateFilter]);
   // Removed status row background coloring - now using badges with alternating rows
 
   // Helper for toggling sort direction
@@ -775,8 +775,14 @@ const AppointmentScheduler = ({
         apt.clinician.toLowerCase().includes(searchQuery.toLowerCase()) ||
         apt.type.toLowerCase().includes(searchQuery.toLowerCase());
 
-      const todayStr = format(new Date(), "yyyy-MM-dd");
-      const matchesDate = !showTodayOnly || apt.appointmentDate === todayStr;
+      const matchesDate = (() => {
+        if (dateFilter === "all") return true;
+        const aptDate = parseISO(apt.appointmentDate);
+        if (dateFilter === "today") return isToday(aptDate);
+        if (dateFilter === "tomorrow") return isTomorrow(aptDate);
+        if (dateFilter === "week") return isThisWeek(aptDate);
+        return true;
+      })();
 
       return matchesStatus && matchesSearch && matchesDate;
     })
@@ -1407,53 +1413,148 @@ const AppointmentScheduler = ({
         activeFilter={filterStatus}
         onFilterChange={setFilterStatus}
       >
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              onClick={() => setShowTodayOnly(!showTodayOnly)}
-              className={cn(
-                "transition-all duration-200 group rounded-full",
-                "focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0",
-                "outline-none ring-0 border-0",
-                showTodayOnly ? "scale-105" : "hover:scale-[1.02] active:scale-95"
-              )}
-              style={{ outline: 'none', boxShadow: 'none' }}
-            >
-              <Badge
-                className="border-0 px-3 py-1.5 text-sm font-semibold cursor-pointer flex items-center gap-1.5 transition-all outline-none ring-0 rounded-full"
-                style={{
-                  backgroundColor: showTodayOnly ? '#67e8f9' : '#cffafe', // cyan-300 : cyan-100
-                  color: showTodayOnly ? '#164e63' : '#155e75', // cyan-900 : cyan-800
-                  outline: 'none',
-                  boxShadow: showTodayOnly
-                    ? '0 10px 20px -3px rgb(0 0 0 / 0.15), 0 4px 6px -2px rgb(0 0 0 / 0.1)'
-                    : '0 1px 2px 0 rgb(0 0 0 / 0.05)'
-                }}
-                onMouseEnter={(e) => {
-                  if (!showTodayOnly) {
-                    e.currentTarget.style.backgroundColor = '#a5f3fc'; // cyan-200
-                    e.currentTarget.style.boxShadow = '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.06)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!showTodayOnly) {
-                    e.currentTarget.style.backgroundColor = '#cffafe';
-                    e.currentTarget.style.boxShadow = '0 1px 2px 0 rgb(0 0 0 / 0.05)';
-                  }
-                }}
+        <div className="flex flex-wrap gap-2">
+          {/* Today Filter */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => setDateFilter(dateFilter === "today" ? "all" : "today")}
+                className={cn(
+                  "transition-all duration-200 group rounded-full",
+                  "focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0",
+                  "outline-none ring-0 border-0",
+                  dateFilter === "today" ? "scale-105" : "hover:scale-[1.02] active:scale-95"
+                )}
+                style={{ outline: 'none', boxShadow: 'none' }}
               >
-                <span>Today</span>
-                <span className="font-bold">
-                  {appointments.filter(apt => apt.appointmentDate === format(new Date(), "yyyy-MM-dd")).length}
-                </span>
-              </Badge>
-            </button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">
-            <p className="text-xs">Show only appointments scheduled for today</p>
-            {showTodayOnly && <p className="text-xs text-muted-foreground mt-1">Click to clear filter</p>}
-          </TooltipContent>
-        </Tooltip>
+                <Badge
+                  className="border-0 px-3 py-1.5 text-sm font-semibold cursor-pointer flex items-center gap-1.5 transition-all outline-none ring-0 rounded-full"
+                  style={{
+                    backgroundColor: dateFilter === "today" ? '#67e8f9' : '#cffafe', // cyan-300 : cyan-100
+                    color: dateFilter === "today" ? '#164e63' : '#155e75', // cyan-900 : cyan-800
+                    outline: 'none',
+                    boxShadow: dateFilter === "today"
+                      ? '0 10px 20px -3px rgb(0 0 0 / 0.15), 0 4px 6px -2px rgb(0 0 0 / 0.1)'
+                      : '0 1px 2px 0 rgb(0 0 0 / 0.05)'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (dateFilter !== "today") {
+                      e.currentTarget.style.backgroundColor = '#a5f3fc'; // cyan-200
+                      e.currentTarget.style.boxShadow = '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.06)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (dateFilter !== "today") {
+                      e.currentTarget.style.backgroundColor = '#cffafe';
+                      e.currentTarget.style.boxShadow = '0 1px 2px 0 rgb(0 0 0 / 0.05)';
+                    }
+                  }}
+                >
+                  <span>Today</span>
+                  <span className="font-bold">
+                    {appointments.filter(apt => isToday(parseISO(apt.appointmentDate))).length}
+                  </span>
+                </Badge>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p className="text-xs">Show only appointments scheduled for today</p>
+            </TooltipContent>
+          </Tooltip>
+
+          {/* Tomorrow Filter */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => setDateFilter(dateFilter === "tomorrow" ? "all" : "tomorrow")}
+                className={cn(
+                  "transition-all duration-200 group rounded-full",
+                  "focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0",
+                  "outline-none ring-0 border-0",
+                  dateFilter === "tomorrow" ? "scale-105" : "hover:scale-[1.02] active:scale-95"
+                )}
+                style={{ outline: 'none', boxShadow: 'none' }}
+              >
+                <Badge
+                  className="border-0 px-3 py-1.5 text-sm font-semibold cursor-pointer flex items-center gap-1.5 transition-all outline-none ring-0 rounded-full"
+                  style={{
+                    backgroundColor: dateFilter === "tomorrow" ? '#a5b4fc' : '#e0e7ff', // indigo-300 : indigo-100
+                    color: dateFilter === "tomorrow" ? '#312e81' : '#3730a3', // indigo-900 : indigo-800
+                    outline: 'none',
+                    boxShadow: dateFilter === "tomorrow"
+                      ? '0 10px 20px -3px rgb(0 0 0 / 0.15), 0 4px 6px -2px rgb(0 0 0 / 0.1)'
+                      : '0 1px 2px 0 rgb(0 0 0 / 0.05)'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (dateFilter !== "tomorrow") {
+                      e.currentTarget.style.backgroundColor = '#c7d2fe'; // indigo-200
+                      e.currentTarget.style.boxShadow = '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.06)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (dateFilter !== "tomorrow") {
+                      e.currentTarget.style.backgroundColor = '#e0e7ff';
+                      e.currentTarget.style.boxShadow = '0 1px 2px 0 rgb(0 0 0 / 0.05)';
+                    }
+                  }}
+                >
+                  <span>Tomorrow</span>
+                  <span className="font-bold">
+                    {appointments.filter(apt => isTomorrow(parseISO(apt.appointmentDate))).length}
+                  </span>
+                </Badge>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p className="text-xs">Show only appointments scheduled for tomorrow</p>
+            </TooltipContent>
+          </Tooltip>
+
+          {/* This Week Filter */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => setDateFilter(dateFilter === "week" ? "all" : "week")}
+                className={cn(
+                  "transition-all duration-200 group rounded-full",
+                  "focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0",
+                  "outline-none ring-0 border-0",
+                  dateFilter === "week" ? "scale-105" : "hover:scale-[1.02] active:scale-95"
+                )}
+                style={{ outline: 'none', boxShadow: 'none' }}
+              >
+                <Badge
+                  className="border-0 px-3 py-1.5 text-sm font-semibold cursor-pointer flex items-center gap-1.5 transition-all outline-none ring-0 rounded-full"
+                  style={{
+                    backgroundColor: dateFilter === "week" ? '#d8b4fe' : '#f3e8ff', // purple-300 : purple-100
+                    color: dateFilter === "week" ? '#581c87' : '#6b21a8', // purple-900 : purple-800
+                    outline: 'none',
+                    boxShadow: dateFilter === "week"
+                      ? '0 10px 20px -3px rgb(0 0 0 / 0.15), 0 4px 6px -2px rgb(0 0 0 / 0.1)'
+                      : '0 1px 2px 0 rgb(0 0 0 / 0.05)'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (dateFilter !== "week") {
+                      e.currentTarget.style.backgroundColor = '#e9d5ff'; // purple-200
+                      e.currentTarget.style.boxShadow = '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.06)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (dateFilter !== "week") {
+                      e.currentTarget.style.backgroundColor = '#f3e8ff';
+                      e.currentTarget.style.boxShadow = '0 1px 2px 0 rgb(0 0 0 / 0.05)';
+                    }
+                  }}
+                >
+                  <span>This Week</span>
+                </Badge>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p className="text-xs">Show appointments for the rest of this week</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
       </StatusCounts>
 
       {/* Mobile Cards */}
@@ -1469,7 +1570,7 @@ const AppointmentScheduler = ({
               return "";
             })()}`}
             onSwipeRight={() => { setViewAppointment(apt); setIsViewDialogOpen(true); }}
-            showScheduleHint={false}
+            onSwipeLeft={() => handleEditAppointment(apt)}
           >
             <CardContent className="p-4 space-y-4">
               {/* Row 1: Header */}
@@ -1534,7 +1635,15 @@ const AppointmentScheduler = ({
               <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-sm bg-muted/40 p-3 rounded-lg border border-border/50">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <CalendarIcon className="h-4 w-4 text-primary/70" />
-                  <span className="text-foreground">{format(new Date(apt.appointmentDate), "MMM d")}</span>
+                  <span className={cn("text-foreground", isToday(parseISO(apt.appointmentDate)) && "font-bold text-blue-600 dark:text-blue-400"
+                  )}>
+                    {(() => {
+                      const date = parseISO(apt.appointmentDate);
+                      if (isToday(date)) return "Today";
+                      if (isTomorrow(date)) return "Tomorrow";
+                      return format(date, "MMM d");
+                    })()}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Clock className="h-4 w-4 text-primary/70" />
@@ -1714,9 +1823,9 @@ const AppointmentScheduler = ({
               const borderClass = isPastDue ? "border-l-4 border-l-yellow-500" : apt.status === "scheduled" ? "border-l-4 border-l-purple-500" : "";
               return (
                 <TableRow key={apt.id} className={`${index % 2 === 1 ? "bg-muted/50" : ""} ${borderClass} transition-all duration-100 ease-in-out hover:scale-[0.995] hover:bg-muted/80 relative border-b-0 ${apt.status === "scheduled" ? "hover:shadow-[inset_0_2px_4px_0_rgba(59,130,246,0.1)] dark:hover:shadow-[inset_0_2px_4px_0_rgba(30,64,175,0.2)]" :
-                    apt.status === "completed" ? "hover:shadow-[inset_0_2px_4px_0_rgba(34,197,94,0.1)] dark:hover:shadow-[inset_0_2px_4px_0_rgba(21,128,61,0.2)]" :
-                      apt.status === "cancelled" ? "hover:shadow-[inset_0_2px_4px_0_rgba(239,68,68,0.1)] dark:hover:shadow-[inset_0_2px_4px_0_rgba(185,28,28,0.2)]" :
-                        "hover:shadow-[inset_0_2px_4px_0_rgba(107,114,128,0.1)] dark:hover:shadow-[inset_0_2px_4px_0_rgba(55,65,81,0.2)]"
+                  apt.status === "completed" ? "hover:shadow-[inset_0_2px_4px_0_rgba(34,197,94,0.1)] dark:hover:shadow-[inset_0_2px_4px_0_rgba(21,128,61,0.2)]" :
+                    apt.status === "cancelled" ? "hover:shadow-[inset_0_2px_4px_0_rgba(239,68,68,0.1)] dark:hover:shadow-[inset_0_2px_4px_0_rgba(185,28,28,0.2)]" :
+                      "hover:shadow-[inset_0_2px_4px_0_rgba(107,114,128,0.1)] dark:hover:shadow-[inset_0_2px_4px_0_rgba(55,65,81,0.2)]"
                   }`}>
                   <TableCell>
                     <div className="font-bold">{apt.patientName}</div>
