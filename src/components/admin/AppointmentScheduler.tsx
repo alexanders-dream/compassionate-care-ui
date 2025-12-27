@@ -1841,7 +1841,7 @@ const AppointmentScheduler = ({
               const isPastDue = apt.status === "scheduled" && apt.appointmentDate < todayStr;
               const borderClass = isPastDue ? "border-l-4 border-l-yellow-500" : apt.status === "scheduled" ? "border-l-4 border-l-purple-500" : "";
               return (
-                <TableRow key={apt.id} className={`${index % 2 === 1 ? "bg-muted/50" : ""} ${borderClass} transition-all duration-100 ease-in-out hover:scale-[0.995] hover:bg-muted/80 relative border-b-0 ${apt.status === "scheduled" ? "hover:shadow-[inset_0_2px_4px_0_rgba(59,130,246,0.1)] dark:hover:shadow-[inset_0_2px_4px_0_rgba(30,64,175,0.2)]" :
+                <TableRow key={apt.id} className={`${index % 2 === 1 ? "bg-muted/50" : ""} ${borderClass} transition-all duration-100 ease-in-out hover:scale-[0.995] hover:bg-muted/80 relative border-b-0 ${apt.status === "scheduled" ? "hover:shadow-[inset_0_2px_4px_0_rgba(99,102,241,0.1)] dark:hover:shadow-[inset_0_2px_4px_0_rgba(67,56,202,0.2)]" :
                   apt.status === "completed" ? "hover:shadow-[inset_0_2px_4px_0_rgba(34,197,94,0.1)] dark:hover:shadow-[inset_0_2px_4px_0_rgba(21,128,61,0.2)]" :
                     apt.status === "cancelled" ? "hover:shadow-[inset_0_2px_4px_0_rgba(239,68,68,0.1)] dark:hover:shadow-[inset_0_2px_4px_0_rgba(185,28,28,0.2)]" :
                       "hover:shadow-[inset_0_2px_4px_0_rgba(107,114,128,0.1)] dark:hover:shadow-[inset_0_2px_4px_0_rgba(55,65,81,0.2)]"
@@ -1851,7 +1851,14 @@ const AppointmentScheduler = ({
                     <div className="text-sm text-muted-foreground">{apt.patientPhone}</div>
                   </TableCell>
                   <TableCell>
-                    <div>{format(new Date(apt.appointmentDate), "MMM d, yyyy")}</div>
+                    <div className={cn(isToday(parseISO(apt.appointmentDate)) && "font-bold text-blue-600 dark:text-blue-400")}>
+                      {(() => {
+                        const date = parseISO(apt.appointmentDate);
+                        if (isToday(date)) return "Today";
+                        if (isTomorrow(date)) return "Tomorrow";
+                        return format(date, "MMM d, yyyy");
+                      })()}
+                    </div>
                     <div className="text-sm text-muted-foreground">
                       {apt.appointmentTime} ({apt.duration}min)
                     </div>
