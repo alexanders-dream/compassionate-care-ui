@@ -40,294 +40,253 @@ CREATE TYPE public.submission_status AS ENUM ('pending', 'scheduled', 'completed
 -- #############################################################################
 -- Tables are ordered to respect foreign key dependencies
 
--- -----------------------------------------------------------------------------
--- 2.1 User Profiles (depends on auth.users)
--- -----------------------------------------------------------------------------
-CREATE TABLE public.profiles (
-    id UUID NOT NULL DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL UNIQUE,
-    email TEXT,
-    full_name TEXT,
-    avatar_url TEXT,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    CONSTRAINT profiles_pkey PRIMARY KEY (id),
-    CONSTRAINT profiles_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
-);
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
 
--- -----------------------------------------------------------------------------
--- 2.2 User Roles (depends on auth.users)
--- -----------------------------------------------------------------------------
-CREATE TABLE public.user_roles (
-    id UUID NOT NULL DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL UNIQUE,
-    role public.app_role NOT NULL DEFAULT 'user'::public.app_role,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    CONSTRAINT user_roles_pkey PRIMARY KEY (id),
-    CONSTRAINT user_roles_user_id_key UNIQUE (user_id),
-    CONSTRAINT user_roles_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
-);
-
--- -----------------------------------------------------------------------------
--- 2.3 Team Members (depends on auth.users, optional link)
--- -----------------------------------------------------------------------------
-CREATE TABLE public.team_members (
-    id UUID NOT NULL DEFAULT gen_random_uuid(),
-    name TEXT NOT NULL,
-    role TEXT NOT NULL,
-    bio TEXT,
-    image_url TEXT,
-    display_order INTEGER NOT NULL DEFAULT 0,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    user_id UUID,
-    is_public BOOLEAN DEFAULT true,
-    CONSTRAINT team_members_pkey PRIMARY KEY (id),
-    CONSTRAINT team_members_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL
-);
-
--- -----------------------------------------------------------------------------
--- 2.4 Visit Requests (no dependencies)
--- -----------------------------------------------------------------------------
-CREATE TABLE public.visit_requests (
-    id UUID NOT NULL DEFAULT gen_random_uuid(),
-    patient_name TEXT NOT NULL,
-    email TEXT NOT NULL,
-    phone TEXT NOT NULL,
-    address TEXT NOT NULL,
-    preferred_date TEXT,
-    preferred_time TEXT,
-    wound_type TEXT,
-    additional_notes TEXT,
-    status public.submission_status NOT NULL DEFAULT 'pending'::public.submission_status,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    CONSTRAINT visit_requests_pkey PRIMARY KEY (id)
-);
-
--- -----------------------------------------------------------------------------
--- 2.5 Provider Referrals (no dependencies)
--- -----------------------------------------------------------------------------
-CREATE TABLE public.provider_referrals (
-    id UUID NOT NULL DEFAULT gen_random_uuid(),
-    provider_name TEXT NOT NULL,
-    provider_organization TEXT,
-    provider_email TEXT NOT NULL,
-    provider_phone TEXT NOT NULL,
-    patient_name TEXT NOT NULL,
-    patient_email TEXT,
-    patient_phone TEXT NOT NULL,
-    patient_address TEXT NOT NULL,
-    wound_type TEXT,
-    clinical_notes TEXT,
-    urgency TEXT,
-    status public.submission_status NOT NULL DEFAULT 'pending'::public.submission_status,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    CONSTRAINT provider_referrals_pkey PRIMARY KEY (id)
-);
-
--- -----------------------------------------------------------------------------
--- 2.6 Appointments (depends on visit_requests, provider_referrals)
--- -----------------------------------------------------------------------------
-CREATE TABLE public.appointments (
-    id UUID NOT NULL DEFAULT gen_random_uuid(),
-    patient_name TEXT NOT NULL,
-    patient_email TEXT,
-    patient_phone TEXT,
-    patient_address TEXT,
-    appointment_date DATE NOT NULL,
-    appointment_time TEXT NOT NULL,
-    duration_minutes INTEGER NOT NULL DEFAULT 60,
-    clinician TEXT NOT NULL,
-    notes TEXT,
-    status public.appointment_status NOT NULL DEFAULT 'scheduled'::public.appointment_status,
-    visit_request_id UUID,
-    provider_referral_id UUID,
-    reminder_sent BOOLEAN NOT NULL DEFAULT false,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    type TEXT DEFAULT 'initial'::TEXT,
-    location TEXT DEFAULT 'in-home'::TEXT,
-    CONSTRAINT appointments_pkey PRIMARY KEY (id),
-    CONSTRAINT appointments_visit_request_id_fkey FOREIGN KEY (visit_request_id) REFERENCES public.visit_requests(id) ON DELETE SET NULL,
-    CONSTRAINT appointments_provider_referral_id_fkey FOREIGN KEY (provider_referral_id) REFERENCES public.provider_referrals(id) ON DELETE SET NULL
-);
-
--- -----------------------------------------------------------------------------
--- 2.7 Audit Logs (depends on auth.users)
--- -----------------------------------------------------------------------------
-CREATE TABLE public.audit_logs (
-    id UUID NOT NULL DEFAULT gen_random_uuid(),
-    user_id UUID,
-    action TEXT NOT NULL,
-    entity_type TEXT NOT NULL,
-    entity_id TEXT NOT NULL,
-    entity_name TEXT,
-    previous_data JSONB,
-    new_data JSONB,
-    metadata JSONB,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    CONSTRAINT audit_logs_pkey PRIMARY KEY (id),
-    CONSTRAINT audit_logs_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL
-);
-
--- -----------------------------------------------------------------------------
--- 2.8 Blog Posts (no dependencies)
--- -----------------------------------------------------------------------------
-CREATE TABLE public.blog_posts (
-    id UUID NOT NULL DEFAULT gen_random_uuid(),
-    title TEXT NOT NULL,
-    slug TEXT NOT NULL UNIQUE,
-    excerpt TEXT NOT NULL,
-    content TEXT NOT NULL,
-    category TEXT NOT NULL DEFAULT 'General'::TEXT,
-    author TEXT NOT NULL,
-    image_url TEXT,
-    tags TEXT[] DEFAULT '{}'::TEXT[],
-    status public.blog_status NOT NULL DEFAULT 'draft'::public.blog_status,
-    published_at TIMESTAMP WITH TIME ZONE,
-    scheduled_at TIMESTAMP WITH TIME ZONE,
-    read_time TEXT,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    is_featured BOOLEAN DEFAULT false,
-    CONSTRAINT blog_posts_pkey PRIMARY KEY (id)
-);
-
--- -----------------------------------------------------------------------------
--- 2.9 Contact Submissions (no dependencies)
--- -----------------------------------------------------------------------------
-CREATE TABLE public.contact_submissions (
-    id UUID NOT NULL DEFAULT gen_random_uuid(),
-    name TEXT NOT NULL,
-    email TEXT NOT NULL,
-    phone TEXT,
-    subject TEXT,
-    message TEXT NOT NULL,
-    is_read BOOLEAN NOT NULL DEFAULT false,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    CONSTRAINT contact_submissions_pkey PRIMARY KEY (id)
-);
-
--- -----------------------------------------------------------------------------
--- 2.10 FAQs (no dependencies)
--- -----------------------------------------------------------------------------
-CREATE TABLE public.faqs (
-    id UUID NOT NULL DEFAULT gen_random_uuid(),
-    question TEXT NOT NULL,
-    answer TEXT NOT NULL,
-    category TEXT NOT NULL DEFAULT 'General'::TEXT,
-    display_order INTEGER NOT NULL DEFAULT 0,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    CONSTRAINT faqs_pkey PRIMARY KEY (id)
-);
-
--- -----------------------------------------------------------------------------
--- 2.11 Form Configs (optional, currently dropped in migrations)
--- NOTE: This table was dropped in migration 007, but including for completeness
--- Uncomment if needed
--- -----------------------------------------------------------------------------
--- CREATE TABLE public.form_configs (
---     id UUID NOT NULL DEFAULT gen_random_uuid(),
---     form_name TEXT NOT NULL UNIQUE,
---     config JSONB NOT NULL,
---     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
---     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
---     CONSTRAINT form_configs_pkey PRIMARY KEY (id)
--- );
-
--- -----------------------------------------------------------------------------
--- 2.12 Insurance Providers (no dependencies)
--- -----------------------------------------------------------------------------
-CREATE TABLE public.insurance_providers (
-    id UUID NOT NULL DEFAULT gen_random_uuid(),
-    name TEXT NOT NULL,
-    logo_url TEXT,
-    description TEXT,
-    payment_details TEXT,
-    is_active BOOLEAN DEFAULT true,
-    display_order INTEGER DEFAULT 0,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    CONSTRAINT insurance_providers_pkey PRIMARY KEY (id)
-);
-
--- -----------------------------------------------------------------------------
--- 2.13 Patient Resources (no dependencies)
--- -----------------------------------------------------------------------------
-CREATE TABLE public.patient_resources (
-    id UUID NOT NULL DEFAULT gen_random_uuid(),
-    title TEXT NOT NULL,
-    description TEXT NOT NULL,
-    file_url TEXT,
-    file_name TEXT,
-    file_size TEXT,
-    icon TEXT NOT NULL DEFAULT 'FileText'::TEXT,
-    download_count INTEGER NOT NULL DEFAULT 0,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    CONSTRAINT patient_resources_pkey PRIMARY KEY (id)
-);
-
--- -----------------------------------------------------------------------------
--- 2.14 Services (no dependencies)
--- -----------------------------------------------------------------------------
-CREATE TABLE public.services (
-    id UUID NOT NULL DEFAULT gen_random_uuid(),
-    title TEXT NOT NULL,
-    description TEXT NOT NULL,
-    icon TEXT NOT NULL DEFAULT 'Heart'::TEXT,
-    display_order INTEGER NOT NULL DEFAULT 0,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    CONSTRAINT services_pkey PRIMARY KEY (id)
-);
-
--- -----------------------------------------------------------------------------
--- 2.15 Site Copy (no dependencies)
--- -----------------------------------------------------------------------------
-CREATE TABLE public.site_copy (
-    id UUID NOT NULL DEFAULT gen_random_uuid(),
-    page TEXT NOT NULL,
-    section TEXT NOT NULL,
-    content JSONB NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    CONSTRAINT site_copy_pkey PRIMARY KEY (id)
-);
-
--- -----------------------------------------------------------------------------
--- 2.16 Testimonials (no dependencies)
--- -----------------------------------------------------------------------------
-CREATE TABLE public.testimonials (
-    id UUID NOT NULL DEFAULT gen_random_uuid(),
-    quote TEXT NOT NULL,
-    name TEXT NOT NULL,
-    role TEXT,
-    rating INTEGER NOT NULL DEFAULT 5,
-    is_featured BOOLEAN NOT NULL DEFAULT false,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    CONSTRAINT testimonials_pkey PRIMARY KEY (id),
-    CONSTRAINT testimonials_rating_check CHECK (rating >= 1 AND rating <= 5)
-);
-
--- -----------------------------------------------------------------------------
--- 2.17 App Config (no dependencies)
--- -----------------------------------------------------------------------------
 CREATE TABLE public.app_config (
-    key TEXT NOT NULL,
-    value TEXT,
-    is_secret BOOLEAN DEFAULT false,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    CONSTRAINT app_config_pkey PRIMARY KEY (key)
+  key text NOT NULL,
+  value text,
+  is_secret boolean DEFAULT false,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT app_config_pkey PRIMARY KEY (key)
+);
+CREATE TABLE public.appointments (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  patient_name text NOT NULL,
+  patient_email text,
+  patient_phone text,
+  patient_address text,
+  appointment_date date NOT NULL,
+  appointment_time text NOT NULL,
+  duration_minutes integer NOT NULL DEFAULT 60,
+  clinician text NOT NULL,
+  notes text,
+  status USER-DEFINED NOT NULL DEFAULT 'scheduled'::appointment_status,
+  visit_request_id uuid,
+  provider_referral_id uuid,
+  reminder_sent boolean NOT NULL DEFAULT false,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  type text DEFAULT 'initial'::text,
+  location text DEFAULT 'in-home'::text,
+  CONSTRAINT appointments_pkey PRIMARY KEY (id),
+  CONSTRAINT appointments_visit_request_id_fkey FOREIGN KEY (visit_request_id) REFERENCES public.visit_requests(id),
+  CONSTRAINT appointments_provider_referral_id_fkey FOREIGN KEY (provider_referral_id) REFERENCES public.provider_referrals(id)
+);
+CREATE TABLE public.audit_logs (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid,
+  action text NOT NULL,
+  entity_type text NOT NULL,
+  entity_id text NOT NULL,
+  entity_name text,
+  previous_data jsonb,
+  new_data jsonb,
+  metadata jsonb,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT audit_logs_pkey PRIMARY KEY (id),
+  CONSTRAINT audit_logs_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.blog_posts (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  title text NOT NULL,
+  slug text NOT NULL UNIQUE,
+  excerpt text NOT NULL,
+  content text NOT NULL,
+  category text NOT NULL DEFAULT 'General'::text,
+  author text NOT NULL,
+  image_url text,
+  tags ARRAY DEFAULT '{}'::text[],
+  status USER-DEFINED NOT NULL DEFAULT 'draft'::blog_status,
+  published_at timestamp with time zone,
+  scheduled_at timestamp with time zone,
+  read_time text,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  is_featured boolean DEFAULT false,
+  CONSTRAINT blog_posts_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.contact_submissions (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  email text NOT NULL,
+  phone text,
+  subject text,
+  message text NOT NULL,
+  is_read boolean NOT NULL DEFAULT false,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT contact_submissions_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.email_logs (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  recipient_email text NOT NULL,
+  recipient_name text,
+  subject text NOT NULL,
+  body text NOT NULL,
+  template_id uuid,
+  sent_by uuid,
+  context_type text,
+  context_id uuid,
+  status text NOT NULL DEFAULT 'sent'::text,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT email_logs_pkey PRIMARY KEY (id),
+  CONSTRAINT email_logs_template_id_fkey FOREIGN KEY (template_id) REFERENCES public.email_templates(id),
+  CONSTRAINT email_logs_sent_by_fkey FOREIGN KEY (sent_by) REFERENCES auth.users(id)
+);
+CREATE TABLE public.email_templates (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  subject text NOT NULL,
+  body text NOT NULL,
+  category text DEFAULT 'general'::text,
+  default_for_context text,
+  is_active boolean DEFAULT true,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT email_templates_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.faqs (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  question text NOT NULL,
+  answer text NOT NULL,
+  category text NOT NULL DEFAULT 'General'::text,
+  display_order integer NOT NULL DEFAULT 0,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT faqs_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.form_configs (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  form_name text NOT NULL UNIQUE,
+  config jsonb NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT form_configs_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.insurance_providers (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  logo_url text,
+  description text,
+  payment_details text,
+  is_active boolean DEFAULT true,
+  display_order integer DEFAULT 0,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT insurance_providers_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.patient_resources (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  title text NOT NULL,
+  description text NOT NULL,
+  file_url text,
+  file_name text,
+  file_size text,
+  icon text NOT NULL DEFAULT 'FileText'::text,
+  download_count integer NOT NULL DEFAULT 0,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT patient_resources_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.profiles (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL UNIQUE,
+  email text,
+  full_name text,
+  avatar_url text,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT profiles_pkey PRIMARY KEY (id),
+  CONSTRAINT profiles_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.provider_referrals (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  provider_name text NOT NULL,
+  provider_organization text,
+  provider_email text NOT NULL,
+  provider_phone text NOT NULL,
+  patient_name text NOT NULL,
+  patient_email text,
+  patient_phone text NOT NULL,
+  patient_address text NOT NULL,
+  wound_type text,
+  clinical_notes text,
+  urgency text,
+  status USER-DEFINED NOT NULL DEFAULT 'pending'::submission_status,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT provider_referrals_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.services (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  title text NOT NULL,
+  description text NOT NULL,
+  icon text NOT NULL DEFAULT 'Heart'::text,
+  display_order integer NOT NULL DEFAULT 0,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT services_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.site_copy (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  page text NOT NULL,
+  section text NOT NULL,
+  content jsonb NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT site_copy_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.team_members (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  role text NOT NULL,
+  bio text,
+  image_url text,
+  display_order integer NOT NULL DEFAULT 0,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  user_id uuid,
+  is_public boolean DEFAULT true,
+  CONSTRAINT team_members_pkey PRIMARY KEY (id),
+  CONSTRAINT team_members_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.testimonials (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  quote text NOT NULL,
+  name text NOT NULL,
+  role text,
+  rating integer NOT NULL DEFAULT 5 CHECK (rating >= 1 AND rating <= 5),
+  is_featured boolean NOT NULL DEFAULT false,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT testimonials_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.user_roles (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL UNIQUE,
+  role USER-DEFINED NOT NULL DEFAULT 'user'::app_role,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT user_roles_pkey PRIMARY KEY (id),
+  CONSTRAINT user_roles_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.visit_requests (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  patient_name text NOT NULL,
+  email text NOT NULL,
+  phone text NOT NULL,
+  address text NOT NULL,
+  preferred_date text,
+  preferred_time text,
+  wound_type text,
+  additional_notes text,
+  status USER-DEFINED NOT NULL DEFAULT 'pending'::submission_status,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  preferred_contact text,
+  CONSTRAINT visit_requests_pkey PRIMARY KEY (id)
 );
 
-
--- #############################################################################
 -- SECTION 3: CREATE INDEXES
 -- #############################################################################
 
