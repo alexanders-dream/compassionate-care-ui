@@ -146,6 +146,7 @@ export interface AppointmentFormData {
   patientDOB?: string;
   clinicalNotes?: string;
   submittedAt?: string;
+  appointmentDate?: string;
   linkedSubmissionType?: "visit" | "referral"; // Keep helper for UI display logic
 }
 
@@ -685,6 +686,8 @@ interface AppointmentSchedulerProps {
   externalAppointments?: Appointment[];
   onAppointmentsChange?: (appointments: Appointment[]) => void;
   onDelete?: (id: string) => void;
+  onSchedule?: (appointment: AppointmentFormData) => void;
+  onUpdate?: (appointment: Appointment) => void;
 }
 
 const AppointmentScheduler = ({
@@ -695,7 +698,9 @@ const AppointmentScheduler = ({
   onUpdateAppointmentStatus,
   externalAppointments = [],
   onAppointmentsChange,
-  onDelete
+  onDelete,
+  onSchedule,
+  onUpdate
 }: AppointmentSchedulerProps) => {
   const { hasRole } = useAuth();
   const { toast } = useToast();
@@ -923,19 +928,32 @@ const AppointmentScheduler = ({
     };
 
     if (editingAppointment) {
-      setAppointments(appointments.map(a => a.id === editingAppointment.id ? appointmentData : a));
-      toast({ title: "Appointment updated" });
-    } else {
-      setAppointments([...appointments, appointmentData]);
-
-      // Update linked submission status
-      if (formData.visitRequestId) {
-        onUpdateVisitStatus(formData.visitRequestId, "scheduled");
-      } else if (formData.providerReferralId) {
-        onUpdateReferralStatus(formData.providerReferralId, "scheduled");
+      if (onUpdate) {
+        onUpdate(appointmentData);
+      } else {
+        // Fallback or optimistic update
+        setAppointments(appointments.map(a => a.id === editingAppointment.id ? appointmentData : a));
+        toast({ title: "Appointment updated" });
       }
-
-      toast({ title: "Appointment scheduled" });
+    } else {
+      if (onSchedule) {
+        // Construct FormData-like object if needed, but appointmentData is Appointment type
+        // The onSchedule prop expects AppointmentFormData in some usages but createAppointment expects fields.
+        // Let's coerce or map it. The existing usage in SubmissionsPage passes AppointmentFormData.
+        // But here we built a full Appointment object.
+        // We should align the types or just pass the relevant fields.
+        // Let's pass the formData directly which matches AppointmentFormData
+        onSchedule({ ...formData, appointmentDate: format(selectedDate, "yyyy-MM-dd") });
+      } else {
+        setAppointments([...appointments, appointmentData]);
+        // Update linked submission status
+        if (formData.visitRequestId) {
+          onUpdateVisitStatus(formData.visitRequestId, "scheduled");
+        } else if (formData.providerReferralId) {
+          onUpdateReferralStatus(formData.providerReferralId, "scheduled");
+        }
+        toast({ title: "Appointment scheduled" });
+      }
     }
 
     setIsDialogOpen(false);
@@ -1663,20 +1681,21 @@ const AppointmentScheduler = ({
             <CardActionFooter
               actions={[
                 {
-                  label: "View",
-                  onClick: () => { setViewAppointment(apt); setIsViewDialogOpen(true); }
-                },
-                {
                   label: "Edit",
                   icon: Pencil,
-                  onClick: () => handleEditAppointment(apt),
-                  className: "text-primary hover:text-primary hover:bg-primary/10"
+                  onClick: () => {
+                    setViewAppointment(apt);
+                    setIsViewDialogOpen(true);
+                  },
+                  className: "text-primary hover:text-primary hover:bg-primary/10",
+                  showLabel: false
                 },
                 ...(hasRole(['admin']) ? [{
                   label: "Delete",
                   icon: Trash2,
                   onClick: () => handleDeleteAppointment(apt.id),
-                  className: "text-destructive hover:text-destructive hover:bg-destructive/10"
+                  className: "text-destructive hover:text-destructive hover:bg-destructive/10",
+                  showLabel: false
                 }] : [])
               ]}
             />
@@ -1908,18 +1927,7 @@ const AppointmentScheduler = ({
                     </TooltipProvider>
                   </TableCell>
                   <TableCell className="text-right space-x-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                      onClick={() => {
-                        setViewAppointment(apt);
-                        setIsViewDialogOpen(true);
-                      }}
-                      title="View Details"
-                    >
-                      <Eye className="h-3 w-3" />
-                    </Button>
+
                     <Button
                       variant="ghost"
                       size="icon"
@@ -1940,7 +1948,10 @@ const AppointmentScheduler = ({
                     >
                       <Send className="h-3 w-3" />
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleEditAppointment(apt)}>
+                    <Button variant="ghost" size="sm" onClick={() => {
+                      setViewAppointment(apt);
+                      setIsViewDialogOpen(true);
+                    }}>
                       <Pencil className="h-4 w-4" />
                     </Button>
                     <RoleGate allowedRoles={['admin']}>

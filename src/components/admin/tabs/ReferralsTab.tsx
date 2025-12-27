@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import {
-    User, Send, CalendarDays, CheckCircle2, ArrowUpDown, Search, Filter, Trash2, Calendar, Phone, Eye, ChevronDown, ArrowDown, ArrowUp, X, Clock
+    User, Send, CalendarDays, CheckCircle2, ArrowUpDown, Search, Filter, Trash2, Calendar, Phone, Eye, ChevronDown, ArrowDown, ArrowUp, X, Clock, Pencil
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
@@ -48,6 +48,7 @@ interface ReferralsTabProps {
     onSchedule: (referral: ProviderReferralSubmission) => void;
     onEmail: (referral: ProviderReferralSubmission) => void;
     onDelete: (id: string) => void;
+    onUpdateDetails: (id: string, data: Partial<ProviderReferralSubmission>) => void;
 }
 
 const ReferralsTab = ({
@@ -56,7 +57,8 @@ const ReferralsTab = ({
     onUpdateStatus,
     onSchedule,
     onEmail,
-    onDelete
+    onDelete,
+    onUpdateDetails
 }: ReferralsTabProps) => {
     const { hasRole } = useAuth();
     const [filterStatus, setFilterStatus] = useState<string>("all");
@@ -409,15 +411,18 @@ const ReferralsTab = ({
                                     className: "text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                                 }] : []),
                                 {
-                                    label: "View",
-                                    icon: Eye,
-                                    onClick: () => handleView(referral)
+                                    label: "Edit",
+                                    icon: Pencil,
+                                    onClick: () => handleView(referral),
+                                    showLabel: false,
+                                    className: "text-primary hover:text-primary hover:bg-primary/10"
                                 },
                                 ...(hasRole(['admin']) ? [{
                                     label: "Delete",
                                     icon: Trash2,
                                     onClick: () => setItemToDelete(referral.id),
-                                    className: "text-destructive hover:text-destructive hover:bg-destructive/10"
+                                    className: "text-destructive hover:text-destructive hover:bg-destructive/10",
+                                    showLabel: false
                                 }] : [])
                             ]}
                         />
@@ -731,6 +736,7 @@ const ReferralsTab = ({
                 type="referral"
                 onEmail={onEmail}
                 onSchedule={onSchedule}
+                onUpdate={onUpdateDetails}
             />
 
             <AlertDialog open={!!itemToDelete} onOpenChange={(open) => !open && setItemToDelete(null)}>

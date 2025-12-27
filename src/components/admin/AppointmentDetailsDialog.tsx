@@ -47,21 +47,27 @@ export function AppointmentDetailsDialog({
         <div className="space-y-6">
             {/* Header Info */}
             <div className="flex flex-col md:flex-row justify-between gap-4 bg-muted/30 p-4 rounded-lg">
-                <div>
-                    <h3 className="font-semibold text-lg">{appointment.patientName}</h3>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                        <Clock className="h-4 w-4" />
-                        <span>{format(new Date(appointment.appointmentDate), "MMM d, yyyy")} @ {appointment.appointmentTime} ({appointment.duration} min)</span>
+                <div className="flex-1">
+                    <div className="flex justify-between items-start">
+                        <div>
+                            <h3 className="font-semibold text-lg">{appointment.patientName}</h3>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                                <Clock className="h-4 w-4" />
+                                <span>{format(new Date(appointment.appointmentDate), "MMM d, yyyy")} @ {appointment.appointmentTime} ({appointment.duration} min)</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="capitalize border-primary/20 bg-primary/5 text-primary">
-                        {appointment.type}
-                    </Badge>
-                    <Badge variant={appointment.status === 'scheduled' ? 'default' : 'secondary'} className="capitalize">
-                        {appointment.status}
-                    </Badge>
-                </div>
+                {!isMobile && (
+                    <div className="flex items-center gap-2 self-start">
+                        <Badge variant="outline" className="capitalize border-primary/20 bg-primary/5 text-primary">
+                            {appointment.type}
+                        </Badge>
+                        <Badge variant={appointment.status === 'scheduled' ? 'default' : 'secondary'} className="capitalize">
+                            {appointment.status}
+                        </Badge>
+                    </div>
+                )}
             </div>
 
             {/* Logistics */}
@@ -154,54 +160,24 @@ export function AppointmentDetailsDialog({
         </div>
     );
 
-    const Actions = ({ className }: { className?: string }) => (
-        <div className={className}>
-            <Button
-                variant="outline"
-                className="flex-1"
-                onClick={() => window.location.href = `tel:${appointment.patientPhone}`}
-                disabled={!appointment.patientPhone}
-            >
-                <Phone className="h-4 w-4 mr-2" /> Call
-            </Button>
-            <Button
-                variant="outline"
-                className="flex-1"
-                onClick={() => {
-                    onEmail(appointment);
-                    onOpenChange(false);
-                }}
-                disabled={!appointment.patientEmail}
-            >
-                <Mail className="h-4 w-4 mr-2" /> Email
-            </Button>
-            <Button
-                className="flex-1"
-                onClick={() => {
-                    onEdit(appointment);
-                    onOpenChange(false);
-                }}
-            >
-                <Pencil className="h-4 w-4 mr-2" /> Edit
-            </Button>
-        </div>
-    );
-
     if (isMobile) {
         return (
             <Drawer open={open} onOpenChange={onOpenChange}>
                 <DrawerContent className="max-h-[90vh]">
-                    <DrawerHeader className="text-left">
+                    <DrawerHeader className="text-left flex justify-between items-center pr-4">
                         <DrawerTitle className="flex items-center gap-2 text-xl">
                             <CalendarIcon className="h-5 w-5 text-primary" />
                             Appointment Details
                         </DrawerTitle>
+                        <Button variant="ghost" size="icon" onClick={() => onEdit(appointment)}>
+                            <Pencil className="h-5 w-5 text-primary" />
+                            <span className="sr-only">Edit</span>
+                        </Button>
                     </DrawerHeader>
                     <div className="p-4 overflow-y-auto">
                         <Content />
                     </div>
                     <DrawerFooter className="pt-2">
-                        <Actions className="flex gap-2 w-full" />
                         <DrawerClose asChild>
                             <Button variant="outline">Close</Button>
                         </DrawerClose>
@@ -214,19 +190,22 @@ export function AppointmentDetailsDialog({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
-                <DialogHeader>
+                <DialogHeader className="flex flex-row items-center justify-between">
                     <DialogTitle className="flex items-center gap-2 text-xl">
                         <CalendarIcon className="h-5 w-5 text-primary" />
                         Appointment Details
                     </DialogTitle>
+                    <Button variant="ghost" size="icon" onClick={() => onEdit(appointment)}>
+                        <Pencil className="h-5 w-5 text-primary" />
+                        <span className="sr-only">Edit</span>
+                    </Button>
                 </DialogHeader>
 
                 <div className="flex-1 overflow-y-auto pr-4">
                     <Content />
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-2 pt-4 mt-2 border-t">
-                    <Actions className="flex flex-1 gap-2" />
+                <div className="flex justify-end pt-4 mt-2 border-t">
                     <Button variant="ghost" onClick={() => onOpenChange(false)}>
                         Close
                     </Button>

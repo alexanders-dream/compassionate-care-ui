@@ -1,10 +1,16 @@
-import { Env } from './index';
 import { createClient } from '@supabase/supabase-js';
+
+interface Env {
+    RESEND_API_KEY: string;
+    ADMIN_EMAIL: string;
+    SUPABASE_URL: string;
+    SUPABASE_SERVICE_ROLE_KEY: string;
+}
 
 const RESEND_API_URL = 'https://api.resend.com/emails';
 
 // Simple Email Layout
-const emailLayout = (title: string, content: string) => `
+export const emailLayout = (title: string, content: string) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -38,7 +44,7 @@ const emailLayout = (title: string, content: string) => `
 </html>
 `;
 
-async function sendEmail(
+export async function sendEmail(
     apiKey: string,
     to: string[],
     subject: string,
@@ -300,4 +306,72 @@ export async function handleCustomEmail(request: Request, env: Env) {
     return new Response(JSON.stringify({ success: true }), {
         headers: { 'Content-Type': 'application/json', "Access-Control-Allow-Origin": "*" }
     });
+}
+
+export async function sendAppointmentReminder(env: Env, appointment: any) {
+    if (!appointment.patient_email) return;
+
+    // formatted date
+    const dateObj = new Date(appointment.appointment_date + 'T' + appointment.appointment_time);
+    const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const timeStr = dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+
+    const subject = `Appointment Reminder: ${dateStr} at ${timeStr}`;
+    const content = `
+        <p>Hi ${appointment.patient_name},</p>
+        <p>This is a friendly reminder for your upcoming appointment with Compassionate Care.</p>
+        
+        <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <p style="margin: 0 0 10px;"><strong>Date:</strong> ${dateStr}</p>
+            <p style="margin: 0 0 10px;"><strong>Time:</strong> ${timeStr}</p>
+            <p style="margin: 0 0 10px;"><strong>Clinician:</strong> ${appointment.clinician}</p>
+            <p style="margin: 0;"><strong>Location:</strong> ${appointment.location === 'in-home' ? 'In-Home Visit' : 'Clinic'}</p>
+            ${appointment.patient_address ? `<p style="margin: 10px 0 0;"><strong>Address:</strong> ${appointment.patient_address}</p>` : ''}
+        </div>
+
+        <p>If you need to reschedule to confirm, please contact us at least 24 hours in advance.</p>
+        
+        <p>Warmly,<br>The Compassionate Care Team</p>
+    `;
+
+    await sendEmail(
+        env.RESEND_API_KEY,
+        [appointment.patient_email],
+        subject,
+        emailLayout(subject, content)
+    );
+}
+
+export async function sendAppointmentUpdateEmail(env: Env, appointment: any) {
+    if (!appointment.patient_email) return;
+
+    // formatted date
+    const dateObj = new Date(appointment.appointment_date + 'T' + appointment.appointment_time);
+    const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const timeStr = dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+
+    const subject = `Update: Your Appointment on ${dateStr}`;
+    const content = `
+        <p>Hi ${appointment.patient_name},</p>
+        <p>Your appointment with Compassionate Care has been updated.</p>
+        
+        <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <p style="margin: 0 0 10px;"><strong>New Date:</strong> ${dateStr}</p>
+            <p style="margin: 0 0 10px;"><strong>New Time:</strong> ${timeStr}</p>
+            <p style="margin: 0 0 10px;"><strong>Clinician:</strong> ${appointment.clinician}</p>
+            <p style="margin: 0;"><strong>Location:</strong> ${appointment.location === 'in-home' ? 'In-Home Visit' : 'Clinic'}</p>
+            ${appointment.patient_address ? `<p style="margin: 10px 0 0;"><strong>Address:</strong> ${appointment.patient_address}</p>` : ''}
+        </div>
+
+        <p>If you have any questions, please reply to this email or call us.</p>
+        
+        <p>Warmly,<br>The Compassionate Care Team</p>
+    `;
+
+    await sendEmail(
+        env.RESEND_API_KEY,
+        [appointment.patient_email],
+        subject,
+        emailLayout(subject, content)
+    );
 }

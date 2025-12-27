@@ -10,6 +10,7 @@ export interface CardAction {
     variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
     className?: string;
     disabled?: boolean;
+    showLabel?: boolean;
 }
 
 interface CardActionFooterProps {
@@ -21,9 +22,9 @@ export function CardActionFooter({ actions, className }: CardActionFooterProps) 
     if (!actions || actions.length === 0) return null;
 
     return (
-        <div className={cn("flex items-center p-2 border-t bg-muted/20", className)}>
+        <div className={cn("flex items-center justify-end p-2 border-t bg-muted/20", className)}>
             {actions.map((action, index) => (
-                <div key={action.label} className="flex-1 flex items-center">
+                <div key={action.label} className={cn("flex items-center", action.showLabel === false ? "flex-none" : "flex-1")}>
                     <Button
                         variant="ghost"
                         size="sm"
@@ -33,12 +34,15 @@ export function CardActionFooter({ actions, className }: CardActionFooterProps) 
                         }}
                         disabled={action.disabled}
                         className={cn(
-                            "flex-1 h-8 text-xs font-medium hover:bg-background/80 hover:shadow-sm transition-all",
+                            "h-8 text-xs font-medium hover:bg-background/80 hover:shadow-sm transition-all",
+                            action.showLabel === false ? "w-8 px-0" : "flex-1",
                             action.className
                         )}
+                        title={action.label}
                     >
-                        {action.icon && <action.icon className="h-3.5 w-3.5 mr-2" />}
-                        {action.label}
+                        {action.icon && <action.icon className={cn("h-3.5 w-3.5", action.showLabel !== false && "mr-2")} />}
+                        {action.showLabel !== false && action.label}
+                        {action.showLabel === false && <span className="sr-only">{action.label}</span>}
                     </Button>
                     {/* Add divider if not the last item */}
                     {index < actions.length - 1 && (

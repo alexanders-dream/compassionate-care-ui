@@ -1,4 +1,4 @@
-import AppointmentScheduler from "@/components/admin/AppointmentScheduler";
+import AppointmentScheduler, { AppointmentFormData } from "@/components/admin/AppointmentScheduler";
 import { Appointment } from "@/data/siteContent";
 import { VisitRequest, ProviderReferralSubmission } from "@/contexts/SiteDataContext";
 
@@ -11,6 +11,8 @@ interface AppointmentsTabProps {
     externalAppointments: Appointment[];
     onAppointmentsChange: (appointments: Appointment[]) => void;
     onDelete: (id: string) => void;
+    onSchedule?: (appointment: AppointmentFormData) => void;
+    onUpdate?: (appointment: Appointment) => void;
 }
 
 const AppointmentsTab = ({
@@ -21,7 +23,9 @@ const AppointmentsTab = ({
     onUpdateAppointmentStatus,
     externalAppointments,
     onAppointmentsChange,
-    onDelete
+    onDelete,
+    onSchedule,
+    onUpdate
 }: AppointmentsTabProps) => {
     return (
         <AppointmentScheduler
@@ -33,6 +37,8 @@ const AppointmentsTab = ({
             externalAppointments={externalAppointments}
             onAppointmentsChange={onAppointmentsChange}
             onDelete={onDelete}
+            onSchedule={onSchedule}
+            onUpdate={onUpdate}
         />
     );
 };

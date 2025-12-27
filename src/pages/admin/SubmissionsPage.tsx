@@ -135,6 +135,26 @@ const SubmissionsPage = () => {
         }
     };
 
+    const updateVisitRequestDetails = async (id: string, data: Partial<VisitRequest>) => {
+        const { error } = await supabase.from("visit_requests").update(data).eq("id", id);
+        if (error) {
+            toast({ title: "Failed to update request", variant: "destructive" });
+        } else {
+            toast({ title: "Request updated successfully" });
+            refreshVisitRequests();
+        }
+    };
+
+    const updateReferralDetails = async (id: string, data: Partial<ProviderReferralSubmission>) => {
+        const { error } = await supabase.from("provider_referrals").update(data).eq("id", id);
+        if (error) {
+            toast({ title: "Failed to update referral", variant: "destructive" });
+        } else {
+            toast({ title: "Referral updated successfully" });
+            refreshReferrals();
+        }
+    };
+
     const openScheduleDialog = (type: "visit" | "referral", item: any) => {
         // Prevent duplicate dialogs
         if (isScheduleDialogOpen) return;
@@ -257,6 +277,7 @@ const SubmissionsPage = () => {
                             onSchedule={(req) => openScheduleDialog("visit", req)}
                             onEmail={(req) => handleEmail("visit", req)}
                             onDelete={deleteVisitRequest}
+                            onUpdateDetails={updateVisitRequestDetails}
                         />
                     </div>
                 </div>
@@ -284,6 +305,7 @@ const SubmissionsPage = () => {
                             onSchedule={(ref) => openScheduleDialog("referral", ref)}
                             onEmail={(ref) => handleEmail("referral", ref)}
                             onDelete={deleteReferral}
+                            onUpdateDetails={updateReferralDetails}
                         />
                     </div>
                 </div>

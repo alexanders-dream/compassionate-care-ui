@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import {
-    Mail, Send, CalendarDays, CheckCircle2, ArrowUpDown, Search, Trash2, Calendar, Phone, Eye, ChevronDown, ArrowDown, ArrowUp, X, Filter, Clock
+    Mail, Send, CalendarDays, CheckCircle2, ArrowUpDown, Search, Trash2, Calendar, Phone, Eye, ChevronDown, ArrowDown, ArrowUp, X, Filter, Clock, Pencil
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
@@ -48,6 +48,7 @@ interface VisitRequestsTabProps {
     onSchedule: (request: VisitRequest) => void;
     onEmail: (request: VisitRequest) => void;
     onDelete: (id: string) => void;
+    onUpdateDetails: (id: string, data: Partial<VisitRequest>) => void;
 }
 
 const VisitRequestsTab = ({
@@ -56,7 +57,8 @@ const VisitRequestsTab = ({
     onUpdateStatus,
     onSchedule,
     onEmail,
-    onDelete
+    onDelete,
+    onUpdateDetails
 }: VisitRequestsTabProps) => {
     const { hasRole } = useAuth();
     const [filterStatus, setFilterStatus] = useState<string>("all");
@@ -361,15 +363,18 @@ const VisitRequestsTab = ({
                                     className: "text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                                 }] : []),
                                 {
-                                    label: "View",
-                                    icon: Eye,
-                                    onClick: () => handleView(request)
+                                    label: "Edit",
+                                    icon: Pencil,
+                                    onClick: () => handleView(request),
+                                    showLabel: false,
+                                    className: "text-primary hover:text-primary hover:bg-primary/10"
                                 },
                                 ...(hasRole(['admin']) ? [{
                                     label: "Delete",
                                     icon: Trash2,
                                     onClick: () => setItemToDelete(request.id),
-                                    className: "text-destructive hover:text-destructive hover:bg-destructive/10"
+                                    className: "text-destructive hover:text-destructive hover:bg-destructive/10",
+                                    showLabel: false
                                 }] : [])
                             ]}
                         />
@@ -661,6 +666,7 @@ const VisitRequestsTab = ({
                 type="visit"
                 onEmail={onEmail}
                 onSchedule={onSchedule}
+                onUpdate={onUpdateDetails}
             />
 
             <AlertDialog open={!!itemToDelete} onOpenChange={(open) => !open && setItemToDelete(null)}>

@@ -85,6 +85,15 @@ export const useAppointmentMutations = () => {
                 newData: data,
             });
             toast({ title: "Appointment updated successfully" });
+
+            // Send email notification to patient
+            if (data.patient_email) {
+                const workerUrl = import.meta.env.VITE_WORKER_URL || 'https://email-service.re-boot.workers.dev';
+                fetch(`${workerUrl}/notify-appointment-update`, {
+                    method: 'POST',
+                    body: JSON.stringify(data)
+                }).catch(err => console.error('Failed to send update email', err));
+            }
         },
         onError: (error: Error) => {
             toast({
